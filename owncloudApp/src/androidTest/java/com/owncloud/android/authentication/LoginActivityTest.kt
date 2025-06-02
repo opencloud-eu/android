@@ -309,7 +309,7 @@ class LoginActivityTest {
     @Test
     fun checkServerInfo_isSuccess_updateUrlInput() {
         launchTest()
-        R.id.hostUrlInput.typeText("demo.owncloud.com")
+        R.id.hostUrlInput.typeText("demo.opencloud.eu")
 
         serverInfoLiveData.postValue(Event(UIResult.Success(SECURE_SERVER_INFO_BASIC)))
 

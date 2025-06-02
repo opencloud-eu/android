@@ -355,7 +355,6 @@ fun Activity.openFeedbackDialog() {
     val getInContactDescription =
         getString(
             R.string.feedback_dialog_get_in_contact_description,
-            DrawerActivity.CENTRAL_URL,
             DrawerActivity.GITHUB_URL
         ).trimIndent()
     val spannableString = HtmlCompat.fromHtml(getInContactDescription, HtmlCompat.FROM_HTML_MODE_LEGACY)

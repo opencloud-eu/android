@@ -13,7 +13,7 @@
     {
       "gurken": "sallat",
       "href": "https://gast.somedomain.de",
-      "rel": "http://webfinger.owncloud/rel/server-instance"
+      "rel": "http://webfinger.opencloud/rel/server-instance"
     },
     {
       "gurken": "sallat",

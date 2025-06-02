@@ -22,11 +22,11 @@ class ScopedStorageProviderTest {
     private lateinit var directory: File
     private lateinit var filesDir: File
 
-    private val absolutePath = "/storage/emulated/0/owncloud"
-    private val remotePath = "/storage/emulated/0/owncloud/remotepath"
+    private val absolutePath = "/storage/emulated/0/opencloud"
+    private val remotePath = "/storage/emulated/0/opencloud/remotepath"
     private val spaceId = OC_SPACE_PROJECT_WITH_IMAGE.id
-    private val accountName = "owncloud"
-    private val newName = "owncloudNewName.txt"
+    private val accountName = "opencloud"
+    private val newName = "opencloudNewName.txt"
     private val uriEncoded = "/path/to/remote/?x=%D1%88%D0%B5%D0%BB%D0%BB%D1%8B"
     private val rootFolderName = "root_folder"
     private val rootFolderPath = absolutePath + File.separator + rootFolderName
@@ -113,7 +113,7 @@ class ScopedStorageProviderTest {
     fun `getExpectedRemotePath returns expected remote path with separator in the end when there is separator and is folder true`() {
 
         val isFolder = true
-        val parent = separator + "storage" + separator + "emulated" + separator + "0" + separator + "owncloud" + separator
+        val parent = separator + "storage" + separator + "emulated" + separator + "0" + separator + "opencloud" + separator
         val expectedPath = conditionsExpectedRemotePath(parent, newName, isFolder)
         val actualPath = scopedStorageProvider.getExpectedRemotePath(remotePath, newName, isFolder)
 
@@ -124,7 +124,7 @@ class ScopedStorageProviderTest {
     fun `getExpectedRemotePath returns expected remote path with separator in the end when is separator and is folder false`() {
 
         val isFolder = false
-        val parent = separator + "storage" + separator + "emulated" + separator + "0" + separator + "owncloud" + separator
+        val parent = separator + "storage" + separator + "emulated" + separator + "0" + separator + "opencloud" + separator
 
         val expectedPath = conditionsExpectedRemotePath(parent, newName, isFolder)
         val actualPath = scopedStorageProvider.getExpectedRemotePath(remotePath, newName, isFolder)
@@ -136,7 +136,7 @@ class ScopedStorageProviderTest {
     fun `getExpectedRemotePath returns expected remote path with separator in the end when is not separator and is folder true`() {
 
         val isFolder = true
-        val parent = separator + "storage" + separator + "emulated" + separator + "0" + separator + "owncloud"
+        val parent = separator + "storage" + separator + "emulated" + separator + "0" + separator + "opencloud"
 
         val expectedPath = conditionsExpectedRemotePath(parent, newName, isFolder)
         val actualPath = scopedStorageProvider.getExpectedRemotePath(remotePath, newName, isFolder)
@@ -147,7 +147,7 @@ class ScopedStorageProviderTest {
     @Test
     fun `getExpectedRemotePath returns expected remote path with separator in the end when is not separator and is folder false`() {
         val isFolder = false
-        val parent = separator + "storage" + separator + "emulated" + separator + "0" + separator + "owncloud"
+        val parent = separator + "storage" + separator + "emulated" + separator + "0" + separator + "opencloud"
 
         val expectedPath = conditionsExpectedRemotePath(parent, newName, isFolder)
         val actualPath = scopedStorageProvider.getExpectedRemotePath(remotePath, newName, isFolder)

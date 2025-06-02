@@ -23,7 +23,7 @@ class WebFingerResponseTest {
     fun `check rel in too much information - ok`() {
         val response = loadResponses(TOO_MUCH_INFORMATION_JSON)!!
         Assert.assertEquals("https://gast.somedomain.de", response.links!![0].href)
-        Assert.assertEquals("http://webfinger.owncloud/rel/server-instance", response.links!![0].rel)
+        Assert.assertEquals("http://webfinger.opencloud/rel/server-instance", response.links!![0].rel)
     }
 
     @Test(expected = JsonDataException::class)

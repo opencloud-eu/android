@@ -21,11 +21,11 @@ package com.owncloud.android.testutil.oauth
 import com.owncloud.android.domain.authentication.oauth.model.OIDCServerConfiguration
 
 val OC_OIDC_SERVER_CONFIGURATION = OIDCServerConfiguration(
-    authorizationEndpoint = "https://owncloud.server/authorize",
-    checkSessionIframe = "https://owncloud.server/check-session.html",
-    endSessionEndpoint = "https://owncloud.server/endsession",
-    issuer = "https://owncloud.server/",
-    registrationEndpoint = "https://owncloud.server/register",
+    authorizationEndpoint = "https://opencloud.server/authorize",
+    checkSessionIframe = "https://opencloud.server/check-session.html",
+    endSessionEndpoint = "https://opencloud.server/endsession",
+    issuer = "https://opencloud.server/",
+    registrationEndpoint = "https://opencloud.server/register",
     responseTypesSupported = listOf(
         "id_token token",
         "id_token",
@@ -40,7 +40,7 @@ val OC_OIDC_SERVER_CONFIGURATION = OIDCServerConfiguration(
         "email",
         "konnect/uuid"
     ),
-    tokenEndpoint = "https://owncloud.server/token",
+    tokenEndpoint = "https://opencloud.server/token",
     tokenEndpointAuthMethodsSupported = listOf(),
-    userInfoEndpoint = "https://owncloud.server/userinfo"
+    userInfoEndpoint = "https://opencloud.server/userinfo"
 )

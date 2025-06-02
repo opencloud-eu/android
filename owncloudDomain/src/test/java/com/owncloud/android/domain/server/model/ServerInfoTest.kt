@@ -32,10 +32,10 @@ class ServerInfoTest {
     fun testConstructor() {
         val item = ServerInfo.BasicServer(
             "10.3.2.1",
-            "https://demo.owncloud.com"
+            "https://demo.opencloud.eu"
         )
 
-        assertEquals("https://demo.owncloud.com", item.baseUrl)
+        assertEquals("https://demo.opencloud.eu", item.baseUrl)
         assertEquals("10.3.2.1", item.ownCloudVersion)
         assertTrue(item.isSecureConnection)
     }
@@ -43,13 +43,13 @@ class ServerInfoTest {
     @Test
     fun testEqualsOk() {
         val item1 = ServerInfo.BasicServer(
-            baseUrl = "https://demo.owncloud.com",
+            baseUrl = "https://demo.opencloud.eu",
             ownCloudVersion = "10.3.2.1",
         )
 
         val item2 = ServerInfo.BasicServer(
             "10.3.2.1",
-            "https://demo.owncloud.com",
+            "https://demo.opencloud.eu",
         )
 
         assertTrue(item1 == item2)
@@ -59,13 +59,13 @@ class ServerInfoTest {
     @Test
     fun testEqualsKo() {
         val item1 = ServerInfo.BasicServer(
-            baseUrl = "https://demo.owncloud.com",
+            baseUrl = "https://demo.opencloud.eu",
             ownCloudVersion = "10.3.2.1",
         )
 
         val item2 = ServerInfo.BasicServer(
             "10.0.0.0",
-            "https://demo.owncloud.com",
+            "https://demo.opencloud.eu",
         )
 
         assertFalse(item1 == item2)

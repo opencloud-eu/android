@@ -20,7 +20,7 @@
     <string name="server_url" formatted="false"></string>
     <bool name="show_server_url_input">true</bool>
     <bool name="show_welcome_link">true</bool>
-    <string name="welcome_link_url" formatted="false">"https://owncloud.com/docs-guides"</string>
+    <string name="welcome_link_url" formatted="false">"https://docs.opencloud.eu/"</string>
     <string name="share_api_link" formatted="false"></string>
     <string name="login_welcome_text" formatted="false"></string>
 
@@ -71,12 +71,12 @@
     <bool name="privacy_policy_enabled">true</bool>
     <bool name="wizard_enabled">true</bool>
     <bool name="release_notes_enabled">true</bool>
-    <string name="url_privacy_policy" formatted="false">https://owncloud.com/android-app-privacy-policy/</string>
-    <string name="url_help" formatted="false">https://doc.owncloud.com/android</string>
+    <string name="url_privacy_policy" formatted="false">https://opencloud.eu/en/data-protection-notice</string> <!-- FIXME: app specific -->
+    <string name="url_help" formatted="false">https://docs.opencloud.eu/</string>
     <string name="url_imprint" formatted="false"></string>
     <string name="mail_recommend" formatted="false">"mailto:"</string>
     <string name="mail_feedback" formatted="false"></string>
-    <string name="url_app_download" formatted="false">"https://play.google.com/store/apps/details?id=com.owncloud.android"</string>
+    <string name="url_app_download" formatted="false">"https://play.google.com/store/apps/details?id=eu.opencloud.android"</string>
     <string name="url_sync_calendar_contacts">"https://play.google.com/store/apps/details?id=at.bitfire.davdroid"</string>
     <string name="url_document_provider_app">https://play.google.com/store/apps/details?id=com.marc.files</string>
 

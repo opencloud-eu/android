@@ -36,7 +36,7 @@ class OCWebFingerRepositoryTest {
     private val remoteWebFingerDatasource = mockk<RemoteWebFingerDataSource>()
     private val ocWebFingerRepository = OCWebFingerRepository(remoteWebFingerDatasource)
 
-    private val webFingerInstance = "http://webfinger.owncloud/tests/server-instance1"
+    private val webFingerInstance = "http://webfinger.opencloud/tests/server-instance1"
 
     @Test
     fun `getInstancesFromWebFinger returns a list of String of webfinger url`() {
@@ -68,7 +68,7 @@ class OCWebFingerRepositoryTest {
 
     @Test
     fun `getInstancesFromAuthenticatedWebFinger returns a list of String of webfinger url`() {
-        val webFingerAuthenticatedResource = "acct:me@demo.owncloud.com"
+        val webFingerAuthenticatedResource = "acct:me@demo.opencloud.eu"
 
         every {
             remoteWebFingerDatasource.getInstancesFromAuthenticatedWebFinger(

@@ -126,7 +126,7 @@ val OC_FILE_AVAILABLE_OFFLINE = OCFile(
 )
 
 val OC_FILE_DOWNLOADED = OC_FILE.copy(
-    storagePath = "/local/storage/path/username@demo.owncloud.com/Photos/image.jpt"
+    storagePath = "/local/storage/path/username@demo.opencloud.eu/Photos/image.jpt"
 )
 
 val OC_FILE_WITH_SPACE_ID = OCFile(

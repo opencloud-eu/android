@@ -27,7 +27,7 @@ import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
 // Response retrieved by OCS Rest API, used to obtain capabilities, shares and user info among others.
-// More info: https://doc.owncloud.com/server/developer_manual/core/apis/ocs-capabilities.html
+// More info: https://docs.opencloud.eu/server/developer_manual/core/apis/ocs-capabilities.html
 @JsonClass(generateAdapter = true)
 data class CommonOcsResponse<T>(
     val ocs: OCSResponse<T>

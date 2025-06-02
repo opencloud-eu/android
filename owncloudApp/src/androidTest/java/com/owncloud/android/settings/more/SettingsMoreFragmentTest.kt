@@ -339,14 +339,14 @@ class SettingsMoreFragmentTest {
 
     @Test
     fun imprintOpensUrl() {
-        every { moreViewModel.getImprintUrl() } returns "https://owncloud.com/mobile"
+        every { moreViewModel.getImprintUrl() } returns "https://opencloud.eu/mobile"
 
         launchTest()
 
         mockIntent(action = Intent.ACTION_VIEW)
 
         onView(withText(R.string.prefs_imprint)).perform(click())
-        intended(hasData("https://owncloud.com/mobile"))
+        intended(hasData("https://opencloud.eu/mobile"))
     }
 
     companion object {
@@ -356,7 +356,7 @@ class SettingsMoreFragmentTest {
         private const val PREFERENCE_RECOMMEND = "recommend"
         private const val PREFERENCE_FEEDBACK = "feedback"
         private const val PREFERENCE_IMPRINT = "imprint"
-        private const val FEEDBACK_MAIL = "mailto:android-app@owncloud.com"
+        private const val FEEDBACK_MAIL = "mailto:mail@opencloud.eu"
 
     }
 

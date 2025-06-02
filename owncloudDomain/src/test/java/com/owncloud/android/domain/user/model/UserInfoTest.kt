@@ -29,12 +29,12 @@ class UserInfoTest {
         val item = UserInfo(
             "admin",
             "adminOc",
-            "admin@owncloud.com"
+            "admin@opencloud.eu"
         )
 
         assertEquals("admin", item.id)
         assertEquals("adminOc", item.displayName)
-        assertEquals("admin@owncloud.com", item.email)
+        assertEquals("admin@opencloud.eu", item.email)
     }
 
     @Test
@@ -66,7 +66,7 @@ class UserInfoTest {
         val item2 = UserInfo(
             "admin",
             "adminOc",
-            "demo@owncloud.com"
+            "demo@opencloud.eu"
         )
 
         assertFalse(item1 == item2)

@@ -79,7 +79,7 @@ class OCFileRepositoryTest {
     private val ocFileRepositorySpy = spyk(ocFileRepository)
 
     private val expectedRemotePath = OC_FOLDER_WITH_SPACE_ID.remotePath + OC_FILE_WITH_SPACE_ID.fileName
-    private val storagePath = "/local/storage/path/username@demo.owncloud.com/Folder/Photos/image2.jpt"
+    private val storagePath = "/local/storage/path/username@demo.opencloud.eu/Folder/Photos/image2.jpt"
     private val remoteId = "remoteId"
     private val searchText = "image"
     private val etagInConflict = "5efb0c13c688i"
@@ -1212,7 +1212,7 @@ class OCFileRepositoryTest {
     @Test
     fun `moveFile returns an empty list with no OCFiles in conflict when replace parameter is false`() {
         val availableRemotePath = "$expectedRemotePath (1)"
-        val actualStoragePath = "/local/storage/path/username@demo.owncloud.com/Folder/Photos/image2 (1).jpt"
+        val actualStoragePath = "/local/storage/path/username@demo.opencloud.eu/Folder/Photos/image2 (1).jpt"
         every {
             remoteFileDataSource.getAvailableRemotePath(
                 remotePath = expectedRemotePath,
@@ -1863,7 +1863,7 @@ class OCFileRepositoryTest {
     fun `renameFile renames a file correctly`() {
         val newName = "image3.jpt"
         val newRemotePath = "/Folder/image3.jpt"
-        val newStoragePath = "/local/storage/path/username@demo.owncloud.com/Folder/image3.jpt"
+        val newStoragePath = "/local/storage/path/username@demo.opencloud.eu/Folder/image3.jpt"
         every {
             localStorageProvider.getExpectedRemotePath(
                 remotePath = OC_FILE_WITH_SPACE_ID.remotePath,

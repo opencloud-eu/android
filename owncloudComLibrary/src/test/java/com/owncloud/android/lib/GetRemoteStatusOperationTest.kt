@@ -126,11 +126,11 @@ class GetRemoteStatusOperationTest {
     }
 
     companion object {
-        const val SOME_OWNCLOUD = "some_owncloud.com"
+        const val SOME_OWNCLOUD = "some_opencloud.eu"
         const val HTTP_SOME_OWNCLOUD = "$HTTP_PREFIX$SOME_OWNCLOUD"
         const val HTTPS_SOME_OWNCLOUD = "$HTTPS_PREFIX$SOME_OWNCLOUD"
 
-        const val SOME_OWNCLOUD_WITH_SUBDIR = "some_owncloud.com/subdir"
+        const val SOME_OWNCLOUD_WITH_SUBDIR = "some_opencloud.eu/subdir"
         const val HTTP_SOME_OWNCLOUD_WITH_SUBDIR = "$HTTP_PREFIX$SOME_OWNCLOUD_WITH_SUBDIR"
         const val HTTPS_SOME_OWNCLOUD_WITH_SUBDIR = "$HTTPS_PREFIX$SOME_OWNCLOUD_WITH_SUBDIR"
 

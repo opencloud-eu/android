@@ -44,9 +44,9 @@ class OCRemoteWebFingerDataSourceTest {
     private val ownCloudClient: OwnCloudClient = mockk(relaxed = true)
     private val ocWebFingerService: OCWebFingerService = mockk()
     private val urls: List<String> = listOf(
-        "http://webfinger.owncloud/tests/server-instance1",
-        "http://webfinger.owncloud/tests/server-instance2",
-        "http://webfinger.owncloud/tests/server-instance3",
+        "http://webfinger.opencloud/tests/server-instance1",
+        "http://webfinger.opencloud/tests/server-instance2",
+        "http://webfinger.opencloud/tests/server-instance3",
     )
 
     @Before

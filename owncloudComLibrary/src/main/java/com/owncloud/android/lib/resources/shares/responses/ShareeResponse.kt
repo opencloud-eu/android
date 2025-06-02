@@ -28,7 +28,7 @@ import com.squareup.moshi.JsonClass
 
 /**
  * This was modeled according to the documentation:
- * https://doc.owncloud.com/server/developer_manual/core/apis/ocs-recipient-api.html#get-shares-recipients
+ * https://docs.opencloud.eu/server/developer_manual/core/apis/ocs-recipient-api.html#get-shares-recipients
  */
 @JsonClass(generateAdapter = true)
 data class ShareeOcsResponse(

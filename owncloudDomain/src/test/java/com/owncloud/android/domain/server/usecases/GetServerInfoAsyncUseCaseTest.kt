@@ -35,7 +35,7 @@ class GetServerInfoAsyncUseCaseTest {
     private val repository: ServerInfoRepository = spyk()
     private val useCase = GetServerInfoAsyncUseCase((repository))
     private val useCaseParams = GetServerInfoAsyncUseCase.Params(
-        serverPath = "http://demo.owncloud.com",
+        serverPath = "http://demo.opencloud.eu",
         creatingAccount = false,
         enforceOIDC = false,
         secureConnectionEnforced = false,

@@ -25,8 +25,8 @@ package com.owncloud.android.testutil
 import com.owncloud.android.domain.server.model.ServerInfo
 import com.owncloud.android.testutil.oauth.OC_OIDC_SERVER_CONFIGURATION
 
-const val OC_SECURE_BASE_URL = "https://demo.owncloud.com"
-const val OC_INSECURE_BASE_URL = "http://demo.owncloud.com"
+const val OC_SECURE_BASE_URL = "https://demo.opencloud.eu"
+const val OC_INSECURE_BASE_URL = "http://demo.opencloud.eu"
 
 val OC_SECURE_SERVER_INFO_BASIC_AUTH = ServerInfo.BasicServer(
     baseUrl = OC_SECURE_BASE_URL,
