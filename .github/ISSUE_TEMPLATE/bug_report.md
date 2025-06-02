@@ -1,12 +1,3 @@
----
-name: Bug report
-about: Create a bug report to help us improve
-title: "[BUG]"
-labels: ''
-assignees: ''
-
----
-
 ### Actual behaviour
 -Tell us what happens
 
@@ -19,8 +10,8 @@ assignees: ''
 3. 
 
 
-Can this problem be reproduced with the official owncloud server?
-(url: https://ocis.ocis.master.owncloud.works, user: einstein, password: relativity)
+Can this problem be reproduced with the official server?
+(url: https://demo.opencloud.eu)
 
 
 ### Environment data
@@ -30,9 +21,9 @@ Device model:
 
 Stock or customized system:
 
-ownCloud app version:
+Android app version:
 
-ownCloud server version:
+Server version:
 
 ### Logs
 #### Web server error log
@@ -40,7 +31,7 @@ ownCloud server version:
 Insert your webserver log here
 ```
 
-#### ownCloud log (data/owncloud.log)
+#### Server log
 ```
-Insert your ownCloud log here
+Insert your OpenCloud server log here
 ```

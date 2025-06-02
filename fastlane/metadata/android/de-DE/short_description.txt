@@ -1,1 +1,0 @@
-Client zum Synchronisieren von Daten

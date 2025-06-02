@@ -1,1 +1,1 @@
-File synchronization client
+OpenCloud Client
