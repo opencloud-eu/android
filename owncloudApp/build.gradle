@@ -100,8 +100,8 @@ android {
 
         testInstrumentationRunner "com.owncloud.android.utils.OCTestAndroidJUnitRunner"
 
-        versionCode = 45000100
-        versionName = "4.5.1"
+        versionCode = 1
+        versionName = "0.1"
 
         buildConfigField "String", gitRemote, "\"" + getGitOriginRemote() + "\""
         buildConfigField "String", commitSHA1, "\"" + getLatestGitHash() + "\""
@@ -211,7 +211,7 @@ def setOutputFileName(variant, appName, callerProject) {
     if (appName) {
         newName += appName
     } else {
-        newName += "owncloud"
+        newName += "OpenCloud"
     }
 
     def versionName = "$variant.mergedFlavor.versionName"

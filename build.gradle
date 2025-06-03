@@ -37,18 +37,18 @@ allprojects {
 subprojects {
     apply plugin: "com.google.devtools.ksp"
     //apply plugin: "org.jlleitschuh.gradle.ktlint"
-    apply plugin: "org.sonarqube"
+    //apply plugin: "org.sonarqube"
     apply plugin: "io.gitlab.arturbosch.detekt"
 }
 
-sonarqube {
-    properties {
-        property "sonar.projectKey", "owncloud_android"
-        property "sonar.organization", "owncloud-1"
-        property "sonar.projectVersion", getBranchName()
-        property "sonar.host.url", "https://sonarcloud.io"
-    }
-}
+//sonarqube {
+//    properties {
+//        property "sonar.projectKey", "opencloud_android"
+//        property "sonar.organization", "opencloud-1"
+//        property "sonar.projectVersion", getBranchName()
+//        property "sonar.host.url", "https://sonarcloud.io"
+//    }
+//}
 
 def getBranchName() {
     def name = "git rev-parse --abbrev-ref HEAD".execute()
