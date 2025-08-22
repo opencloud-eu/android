@@ -45,6 +45,8 @@ preference = "1.2.0"
 sonarqube = "4.0.0.2929"
 stetho = "1.6.0"
 timber = "5.0.1"
+tusJava = "0.5.0"
+tusAndroid = "0.1.11"
 
 [libraries]
 androidx-annotation = { group = "androidx.annotation", name = "annotation", version.ref = "androidxAnnotation" }
@@ -112,6 +114,8 @@ patternlockview = { group = "com.github.aritraroy.PatternLockView", name = "patt
 photoview = { group = "com.github.chrisbanes", name = "PhotoView", version.ref = "photoView" }
 stetho = { group = "com.facebook.stetho", name = "stetho", version.ref = "stetho" }
 timber = { group = "com.jakewharton.timber", name = "timber", version.ref = "timber" }
+tus-java-client = { group = "io.tus.java.client", name = "tus-java-client", version.ref = "tusJava" }
+tus-android-client = { group = "io.tus.android.client", name = "tus-android-client", version.ref = "tusAndroid" }
 
 # Dependencies of the included build-logic
 android-gradlePlugin = { group = "com.android.tools.build", name = "gradle", version.ref = "androidGradlePlugin" }

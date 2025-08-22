@@ -24,6 +24,13 @@ plugins {
     alias libs.plugins.detekt
 }
 
+// Ensure SDK versions are available to all subprojects (not only buildscript scope)
+ext {
+    sdkCompileVersion = 35
+    sdkMinVersion = 26
+    sdkTargetVersion = 35
+}
+
 allprojects {
     repositories {
         google()

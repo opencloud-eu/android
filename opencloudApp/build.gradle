@@ -47,6 +47,10 @@ dependencies {
     implementation libs.koin.androidx.workmanager
     implementation libs.koin.core
 
+    // Tus resumable uploads
+    implementation libs.tus.java.client
+    implementation libs.tus.android.client
+
     // Miscellaneous
     implementation libs.disklrucache
     implementation libs.media3.exoplayer
@@ -92,11 +96,11 @@ dependencies {
 }
 
 android {
-    compileSdkVersion sdkCompileVersion
+    compileSdk 35
 
     defaultConfig {
-        minSdkVersion sdkMinVersion
-        targetSdkVersion sdkTargetVersion
+        minSdk 26
+        targetSdk 35
 
         testInstrumentationRunner "eu.opencloud.android.utils.OCTestAndroidJUnitRunner"
 
@@ -247,5 +251,8 @@ static def getGitOriginRemote() {
     def values = process.text.toString().trim().split("\\r\\n|\\n|\\r")
 
     def found = values.find { it.startsWith("origin") && it.endsWith("(push)") }
+    if (found == null) {
+        return ""
+    }
     return found.replace("origin", "").replace("(push)", "").replace(".git", "").trim()
 }
