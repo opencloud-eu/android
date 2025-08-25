@@ -27,8 +27,10 @@ import androidx.documentfile.provider.DocumentFile
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import eu.opencloud.android.workers.UploadFileFromContentUriWorker.Companion.KEY_PARAM_CONTENT_URI
+import eu.opencloud.android.workers.UploadFileFromFileSystemWorker.Companion.KEY_PARAM_LOCAL_PATH
 import org.koin.core.component.KoinComponent
 import timber.log.Timber
+import java.io.File
 
 class RemoveSourceFileWorker(
     private val appContext: Context,
@@ -38,13 +40,30 @@ class RemoveSourceFileWorker(
     workerParameters
 ), KoinComponent {
 
-    private lateinit var contentUri: Uri
+    private var contentUri: Uri? = null
+    private var localPath: String? = null
 
     override suspend fun doWork(): Result {
         if (!areParametersValid()) return Result.failure()
         return try {
-            val documentFile = DocumentFile.fromSingleUri(appContext, contentUri)
-            documentFile?.delete()
+            when {
+                contentUri != null -> {
+                    // Delete content URI file using DocumentFile
+                    val documentFile = DocumentFile.fromSingleUri(appContext, contentUri!!)
+                    documentFile?.delete()
+                }
+                localPath != null -> {
+                    // Delete local filesystem file
+                    val file = File(localPath!!)
+                    if (file.exists()) {
+                        file.delete()
+                    }
+                }
+                else -> {
+                    Timber.w("No valid source to remove")
+                    return Result.failure()
+                }
+            }
             Result.success()
         } catch (throwable: Throwable) {
             Timber.e(throwable)
@@ -54,9 +73,12 @@ class RemoveSourceFileWorker(
 
     private fun areParametersValid(): Boolean {
         val paramContentUri = workerParameters.inputData.getString(KEY_PARAM_CONTENT_URI)
+        val paramLocalPath = workerParameters.inputData.getString(KEY_PARAM_LOCAL_PATH)
 
-        contentUri = paramContentUri?.toUri() ?: return false
+        contentUri = paramContentUri?.toUri()
+        localPath = paramLocalPath
 
-        return true
+        // At least one source must be provided
+        return contentUri != null || !localPath.isNullOrBlank()
     }
 }

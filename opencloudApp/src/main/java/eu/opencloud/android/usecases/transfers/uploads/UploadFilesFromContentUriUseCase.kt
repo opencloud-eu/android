@@ -40,7 +40,7 @@ import timber.log.Timber
  * It stores the upload in the database and then enqueue a new worker to upload the single file
  */
 class UploadFilesFromContentUriUseCase(
-    private val uploadFileFromContentUriUseCase: UploadFileFromContentUriUseCase,
+    private val uploadFileWithTusUseCase: UploadFileWithTusUseCase,
     private val transferRepository: TransferRepository,
 ) : BaseUseCase<Unit, UploadFilesFromContentUriUseCase.Params>() {
 
@@ -100,17 +100,14 @@ class UploadFilesFromContentUriUseCase(
         uploadIdInStorageManager: Long,
         uploadPath: String,
     ) {
-        val uploadFileParams = UploadFileFromContentUriUseCase.Params(
-            contentUri = contentUri,
+        val uploadFileParams = UploadFileWithTusUseCase.Params(
+            contentUri = contentUri.toString(),
             uploadPath = uploadPath,
-            lastModifiedInSeconds = lastModifiedInSeconds,
-            behavior = UploadBehavior.COPY.toString(),
+            behavior = UploadBehavior.MOVE.toString(),
             accountName = accountName,
-            uploadIdInStorageManager = uploadIdInStorageManager,
-            wifiOnly = false,
-            chargingOnly = false
+            uploadIdInStorageManager = uploadIdInStorageManager
         )
-        uploadFileFromContentUriUseCase(uploadFileParams)
+        uploadFileWithTusUseCase(uploadFileParams)
     }
 
     data class Params(

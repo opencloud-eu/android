@@ -40,6 +40,7 @@ import eu.opencloud.android.workers.OldLogsCollectorWorker
 import eu.opencloud.android.workers.RemoveLocallyFilesWithLastUsageOlderThanGivenTimeWorker
 import eu.opencloud.android.workers.UploadFileFromContentUriWorker
 import eu.opencloud.android.workers.UploadFileFromFileSystemWorker
+import eu.opencloud.android.workers.TusUploadWorker
 
 class WorkManagerProvider(
     val context: Context
@@ -123,7 +124,8 @@ class WorkManagerProvider(
         WorkManager.getInstance(context).getRunningWorkInfosLiveData(
             listOf(
                 UploadFileFromContentUriWorker::class.java.name,
-                UploadFileFromFileSystemWorker::class.java.name
+                UploadFileFromFileSystemWorker::class.java.name,
+                TusUploadWorker::class.java.name
             )
         )
 

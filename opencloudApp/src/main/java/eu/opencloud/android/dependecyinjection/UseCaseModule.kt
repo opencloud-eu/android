@@ -136,6 +136,7 @@ import eu.opencloud.android.usecases.transfers.uploads.UploadFileFromSystemUseCa
 import eu.opencloud.android.usecases.transfers.uploads.UploadFileInConflictUseCase
 import eu.opencloud.android.usecases.transfers.uploads.UploadFilesFromContentUriUseCase
 import eu.opencloud.android.usecases.transfers.uploads.UploadFilesFromSystemUseCase
+import eu.opencloud.android.usecases.transfers.uploads.UploadFileWithTusUseCase
 import org.koin.core.module.dsl.factoryOf
 import org.koin.dsl.module
 
@@ -251,6 +252,7 @@ val useCaseModule = module {
     factoryOf(::UpdatePendingUploadsPathUseCase)
     factoryOf(::UploadFileFromContentUriUseCase)
     factoryOf(::UploadFileFromSystemUseCase)
+    factoryOf(::UploadFileWithTusUseCase)
     factoryOf(::UploadFileInConflictUseCase)
     factoryOf(::UploadFilesFromContentUriUseCase)
     factoryOf(::UploadFilesFromSystemUseCase)

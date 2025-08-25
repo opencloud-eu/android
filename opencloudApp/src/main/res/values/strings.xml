@@ -211,6 +211,7 @@
     <string name="common_save_exit">Save &amp; exit</string>
     <string name="common_error">Error</string>
     <string name="common_loading">Loading&#8230;</string>
+    <string name="common_updating">Updating&#8230;</string>
     <string name="common_unknown">unknown</string>
     <string name="common_error_unknown">unknown error</string>
     <string name="common_pending">Pending</string>

@@ -27,6 +27,7 @@ import eu.opencloud.android.providers.ContextProvider
 import eu.opencloud.android.providers.CoroutinesDispatcherProvider
 import eu.opencloud.android.providers.LogsProvider
 import eu.opencloud.android.providers.MdmProvider
+import eu.opencloud.android.providers.UploadManager
 import eu.opencloud.android.providers.WorkManagerProvider
 import eu.opencloud.android.providers.implementation.OCContextProvider
 import org.koin.android.ext.koin.androidApplication
@@ -42,5 +43,6 @@ val commonModule = module {
     single { MdmProvider(androidContext()) }
     single { WorkManagerProvider(androidContext()) }
     single { AccountProvider(androidContext()) }
+    single { UploadManager(androidContext()) }
     single { WorkManager.getInstance(androidApplication()) }
 }

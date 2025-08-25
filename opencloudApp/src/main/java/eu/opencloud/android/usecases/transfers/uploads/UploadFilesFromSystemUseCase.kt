@@ -42,7 +42,7 @@ import java.io.File
  * It stores the upload in the database and then enqueue a new worker to upload the single file
  */
 class UploadFilesFromSystemUseCase(
-    private val uploadFileFromSystemUseCase: UploadFileFromSystemUseCase,
+    private val uploadFileWithTusUseCase: UploadFileWithTusUseCase,
     private val transferRepository: TransferRepository,
 ) : BaseUseCase<Unit, UploadFilesFromSystemUseCase.Params>() {
 
@@ -102,15 +102,14 @@ class UploadFilesFromSystemUseCase(
         uploadIdInStorageManager: Long,
         uploadPath: String,
     ) {
-        val uploadFileParams = UploadFileFromSystemUseCase.Params(
+        val uploadFileParams = UploadFileWithTusUseCase.Params(
             accountName = accountName,
             localPath = localPath,
-            lastModifiedInSeconds = lastModifiedInSeconds,
             behavior = UploadBehavior.MOVE.toString(),
             uploadPath = uploadPath,
             uploadIdInStorageManager = uploadIdInStorageManager
         )
-        uploadFileFromSystemUseCase(uploadFileParams)
+        uploadFileWithTusUseCase(uploadFileParams)
     }
 
     data class Params(
