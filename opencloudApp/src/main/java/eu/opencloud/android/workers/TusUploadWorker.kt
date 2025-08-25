@@ -7,6 +7,7 @@ import android.accounts.Account
 import android.content.Context
 import android.net.Uri
 import android.os.Build
+import android.content.pm.ServiceInfo
 import androidx.core.app.NotificationCompat
 import androidx.core.net.toUri
 import androidx.work.CoroutineWorker
@@ -291,7 +292,7 @@ class TusUploadWorker(
 
         // For Android 14+, declare dataSync type (permission added in manifest)
         return if (Build.VERSION.SDK_INT >= 34) {
-            ForegroundInfo(notificationId, notification, androidx.work.ForegroundServiceType.DATA_SYNC)
+            ForegroundInfo(notificationId, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
         } else {
             ForegroundInfo(notificationId, notification)
         }
