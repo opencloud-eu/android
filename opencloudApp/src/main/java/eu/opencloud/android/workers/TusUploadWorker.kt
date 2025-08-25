@@ -6,8 +6,11 @@ package eu.opencloud.android.workers
 import android.accounts.Account
 import android.content.Context
 import android.net.Uri
+import android.os.Build
+import androidx.core.app.NotificationCompat
 import androidx.core.net.toUri
 import androidx.work.CoroutineWorker
+import androidx.work.ForegroundInfo
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import eu.opencloud.android.R
@@ -67,6 +70,9 @@ class TusUploadWorker(
         transferRepository.updateTransferStatusToInProgressById(uploadIdInStorageManager)
 
         return try {
+            // Ensure foreground execution so the system does not stop the upload in background
+            setForeground(createForegroundInfo(progressPercent = null))
+
             val client = getClientForThisUpload()
             val tusClient = uploadManager.createTusClient(client)
 
@@ -108,6 +114,8 @@ class TusUploadWorker(
                         val progress = workDataOf(DownloadFileWorker.WORKER_KEY_PROGRESS to percent)
                         setProgress(progress)
                     }
+                    // Update foreground notification progress
+                    setForeground(createForegroundInfo(progressPercent = percent.takeIf { it in 0..100 }))
                     lastPercent = percent
                 }
             } while (uploader.uploadChunk() > -1)
@@ -258,6 +266,34 @@ class TusUploadWorker(
             }
         } else {
             t
+        }
+    }
+
+    private fun createForegroundInfo(progressPercent: Int?): ForegroundInfo {
+        val title = appContext.getString(R.string.app_name)
+        val content = if (progressPercent != null && progressPercent >= 0) {
+            appContext.getString(R.string.common_updating) + " " + progressPercent + "%"
+        } else {
+            appContext.getString(R.string.common_updating)
+        }
+
+        val notification = NotificationCompat.Builder(appContext, UPLOAD_NOTIFICATION_CHANNEL_ID)
+            .setSmallIcon(android.R.drawable.stat_sys_upload)
+            .setContentTitle(title)
+            .setContentText(content)
+            .setOngoing(true)
+            .setOnlyAlertOnce(true)
+            .setProgress(100, progressPercent ?: 0, progressPercent == null)
+            .build()
+
+        // Use a stable notification id for uploads
+        val notificationId = 11
+
+        // For Android 14+, declare dataSync type (permission added in manifest)
+        return if (Build.VERSION.SDK_INT >= 34) {
+            ForegroundInfo(notificationId, notification, androidx.work.ForegroundServiceType.DATA_SYNC)
+        } else {
+            ForegroundInfo(notificationId, notification)
         }
     }
 
