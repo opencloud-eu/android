@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  openCloud Android client application
+
+  Copyright (C) 2012  Bartek Przybylski
+  Copyright (C) 2020 ownCloud GmbH.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License version 2,
+  as published by the Free Software Foundation.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/action_search"
+        android:title="@string/actionbar_search"
+        app:actionViewClass="androidx.appcompat.widget.SearchView"
+        app:showAsAction="always" />
+    <item
+        android:id="@+id/action_select_all"
+        android:orderInCategory="1"
+        android:title="@string/actionbar_select_all"
+        android:visible="false" />
+    <item
+        android:id="@+id/action_share_current_folder"
+        android:title="@string/action_share"
+        android:icon="@drawable/ic_share_generic_white"
+        app:showAsAction="ifRoom"
+        android:orderInCategory="1" />
+
+</menu>

@@ -1,0 +1,80 @@
+###################################################################
+  OpenCloud Android client
+
+  Copyright (C) 2025 OpenCloud GmbH
+  Copyright (C) 2020 ownCloud GmbH.
+  Copyright (C) 2012  Bartek Przybylski
+###################################################################
+
+
+###########
+# LICENSE #
+###########
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 2,
+as published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+
+The source distribution of this program should include a full copy
+of the GNU GPL version 2 license in the LICENSE.txt file located
+in its root directory. If not, see <http://www.gnu.org/licenses/>.
+
+
+########################
+# THIRD PARTY LICENSES #
+########################
+
+Both the source and binary distributions of this software contain
+some third party software. All the third party software included
+or linked is redistributed under the terms and conditions of their
+original licenses. These licenses are compatible the GPL license
+that govern this software, for the purposes they are being used.
+
+The third party software included and used by this project is:
+
+ * Transifex client.
+   Copyright (C) Transifex.
+   Licensed under GNU General Public License.
+   Placed at third_party/transifex-client.
+   Used as a helper tool, not included in the openCloud client APK.
+   Original license document included at third_party/transifex-client/LICENSE.
+   See http://help.transifex.com/features/client/
+
+ * floatingactionbutton 1.10.1.
+   Copyright (c) 2014 Jerzy Chalupski
+   Licensed under Apache License, Version 2.0.
+   placed at libs/com-getbase-floatingactionbutton-1-10-0-exploded-aar has been exploded by ownCloud GmbH.
+   See https://github.com/futuresimple/android-floating-action-button
+
+*  PatternLockView, version 1.0.0
+   Copyright (C) 2017 aritraroy
+   Licensed under Apache License, Version 2.0.
+   Included in the openCloud client APK.
+   See https://github.com/aritraroy/PatternLockView
+
+ * Glide, version 4.6.1
+    Copyright (C) 2014 Google, Inc.
+    Licensed under BSD, part MIT and Apache 2.0.
+    Included in the openCloud client APK.
+    See https://github.com/bumptech/glide
+
+ * PhotoView, version 2.0.0
+    Copyright (C) 2017 Chris Banes
+    Licensed under Apache License, Version 2.0.
+    Included in the openCloud client APK.
+    See https://github.com/chrisbanes/PhotoView
+
+ * OkHttp, version 4.6.0
+   Licensed under Apache License, Version 2.0.
+   Included in the openCloud client APK.
+   See https://github.com/square/okhttp
+
+ * Dav4Jvm
+   Licensed under Mozilla Public License, Version 2.0.
+   Included in the openCloud client APK.
+   See https://gitlab.com/bitfireAT/dav4jvm

@@ -1,0 +1,273 @@
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+    dependencies {
+        classpath "com.android.tools.build:gradle:8.7.2"
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.20"
+        classpath "com.google.devtools.ksp:com.google.devtools.ksp.gradle.plugin:1.9.20-1.0.14"
+        classpath "io.gitlab.arturbosch.detekt:detekt-gradle-plugin:1.23.3"
+    }
+}
+
+tasks.register('clean', Delete) {
+    delete rootProject.buildDir
+}
+
+// The Android app configuration lives in the module: opencloudApp/build.gradle
+// apply plugin: 'com.android.application'
+// apply plugin: 'com.google.devtools.ksp'
+// apply plugin: 'kotlin-android'
+// apply plugin: 'kotlin-parcelize'
+
+/*
+def commitSHA1 = 'COMMIT_SHA1'
+def gitRemote = 'GIT_REMOTE'
+
+dependencies {
+    // Data and domain modules
+    implementation project(':opencloudDomain')
+    implementation project(':opencloudData')
+
+    // Kotlin
+    implementation libs.kotlin.stdlib
+    implementation libs.kotlinx.coroutines.core
+
+    // Android X
+    implementation libs.androidx.annotation
+    implementation libs.androidx.appcompat
+    implementation libs.androidx.biometric
+    implementation libs.androidx.constraintlayout
+    implementation libs.androidx.core.ktx
+    implementation libs.androidx.fragment.ktx
+    implementation libs.androidx.legacy.support
+    implementation libs.androidx.lifecycle.common.java8
+    implementation libs.androidx.lifecycle.extensions
+    implementation libs.androidx.lifecycle.livedata.ktx
+    implementation libs.androidx.lifecycle.runtime.ktx
+    implementation libs.androidx.lifecycle.viewmodel.ktx
+    implementation libs.androidx.preference.ktx
+    implementation libs.androidx.room.runtime
+    implementation libs.androidx.sqlite.ktx
+    implementation libs.androidx.work.runtime.ktx
+    implementation(libs.androidx.browser) { because "CustomTabs required for OAuth2 and OIDC" }
+    implementation(libs.androidx.enterprise.feedback) { because "MDM feedback" }
+
+    // Image loading
+    implementation libs.coil
+    implementation libs.glide
+    implementation libs.glide.vector
+
+    // Zooming Android ImageView.
+    implementation libs.photoview
+
+    // Koin dependency injector
+    implementation libs.koin.androidx.workmanager
+    implementation libs.koin.core
+
+    // Miscellaneous
+    implementation libs.disklrucache
+    implementation libs.media3.exoplayer
+    implementation libs.media3.ui
+    implementation libs.floatingactionbutton
+    implementation libs.material
+    implementation libs.patternlockview
+
+    // Markdown Preview
+    implementation libs.bundles.markwon
+
+    // Timber
+    implementation libs.timber
+
+    // Tests
+    testImplementation project(":opencloudTestUtil")
+    testImplementation libs.androidx.arch.core.testing
+    testImplementation libs.junit4
+    testImplementation libs.kotlinx.coroutines.test
+    testImplementation libs.mockk
+
+    // Instrumented tests
+    androidTestImplementation project(":opencloudTestUtil")
+    androidTestImplementation libs.androidx.annotation
+    androidTestImplementation libs.androidx.arch.core.testing
+    androidTestImplementation libs.androidx.test.core
+    androidTestImplementation libs.androidx.test.ext.junit
+    androidTestImplementation libs.androidx.test.rules
+    androidTestImplementation libs.androidx.test.runner
+    androidTestImplementation libs.androidx.test.uiautomator
+    androidTestImplementation libs.bundles.espresso
+    androidTestImplementation libs.dexopener
+    androidTestImplementation(libs.mockk.android) { exclude module: "objenesis" }
+
+    // Debug
+    debugImplementation libs.androidx.fragment.testing
+    debugImplementation libs.androidx.test.monitor
+    debugImplementation libs.stetho
+
+    // Detekt
+    detektPlugins libs.detekt.formatting
+    detektPlugins libs.detekt.libraries
+}
+
+/* android block moved to :opencloudApp
+android {
+    compileSdkVersion sdkCompileVersion
+
+    defaultConfig {
+        minSdkVersion sdkMinVersion
+        targetSdkVersion sdkTargetVersion
+
+        testInstrumentationRunner "eu.opencloud.android.utils.OCTestAndroidJUnitRunner"
+
+        versionCode = 2
+        versionName = "1.0.0"
+
+        buildConfigField "String", gitRemote, "\"" + getGitOriginRemote() + "\""
+        buildConfigField "String", commitSHA1, "\"" + getLatestGitHash() + "\""
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_17.toString()
+    }
+
+    sourceSets {
+        androidTest.java.srcDirs += "src/test-common/java"
+        test.java.srcDirs += "src/test-common/java"
+    }
+
+    lint {
+        abortOnError false
+        htmlOutput file('../lint-app-report.html')
+        ignoreWarnings false
+        xmlReport false
+    }
+
+    signingConfigs {
+        release {
+            if (System.env.OC_RELEASE_KEYSTORE) {
+                storeFile file(System.env.OC_RELEASE_KEYSTORE)  // use an absolute path
+                storePassword System.env.OC_RELEASE_KEYSTORE_PASSWORD
+                keyAlias System.env.OC_RELEASE_KEY_ALIAS
+                keyPassword System.env.OC_RELEASE_KEY_PASSWORD
+            }
+        }
+    }
+
+    buildTypes {
+
+        release {
+            if (System.env.OC_RELEASE_KEYSTORE) {
+                signingConfig signingConfigs.release
+            }
+        }
+
+        debug {
+            applicationIdSuffix ".debug"
+        }
+    }
+
+    flavorDimensions "management"
+    productFlavors {
+        original {
+            dimension "management"
+        }
+        //mdm {
+        //    dimension "management"
+        //}
+    }
+
+    applicationVariants.all { variant ->
+        def appName = System.env.OC_APP_NAME
+        setOutputFileName(variant, appName, project)
+    }
+
+    testOptions {
+        packagingOptions {
+            jniLibs {
+                useLegacyPackaging = true
+            }
+        }
+        unitTests.returnDefaultValues = true
+        animationsDisabled = true
+    }
+
+    buildFeatures {
+        viewBinding true
+    }
+
+    packagingOptions {
+        resources.excludes.add("META-INF/*")
+    }
+
+    namespace "eu.opencloud.android"
+    testNamespace "eu.opencloud.android.test"
+}
+
+// Updates output file names of a given variant to format
+// [appName].[variant.versionName].[OC_BUILD_NUMBER]-[variant.name].apk.
+//
+// OC_BUILD_NUMBER is an environment variable read directly in this method. If undefined, it's not added.
+//
+// @param variant           Build variant instance which output file name will be updated.
+// @param appName           String to use as first part of the new file name. May be undefined, the original
+//                          project.archivesBaseName property will be used instead.
+// @param callerProject     Caller project.
+
+def setOutputFileName(variant, appName, callerProject) {
+    logger.info("Setting new name for output of variant $variant.name")
+
+    def originalFile = variant.outputs[0].outputFile
+    def originalName = originalFile.name
+    println "originalName is $originalName"
+
+    def newName = ""
+
+    if (appName) {
+        newName += appName
+    } else {
+        newName += "OpenCloud"
+    }
+
+    def versionName = "$variant.mergedFlavor.versionName"
+    if (variant.mergedFlavor.manifestPlaceholders.versionName != null) {
+        versionName = "$variant.mergedFlavor.manifestPlaceholders.versionName"
+    }
+    if (variant.buildType.manifestPlaceholders.versionName != null) {
+        versionName = "$variant.buildType.manifestPlaceholders.versionName"
+    }
+    newName += "_$versionName"
+
+    def buildNumber = System.env.OC_BUILD_NUMBER
+    if (buildNumber) {
+        newName += "_$buildNumber"
+    }
+
+    newName += originalName.substring(callerProject.archivesBaseName.length())
+
+    println "$variant.name: newName is $newName"
+
+    variant.outputs.all {
+        outputFileName = newName
+    }
+}
+
+static def getLatestGitHash() {
+    def process = "git rev-parse --short HEAD".execute()
+    return process.text.toString().trim()
+}
+
+static def getGitOriginRemote() {
+    def process = "git remote -v".execute()
+    def values = process.text.toString().trim().split("\\r\\n|\\n|\\r")
+
+    def found = values.find { it.startsWith("origin") && it.endsWith("(push)") }
+    return found ? found.replace("origin", "").replace("(push)", "").replace(".git", "").trim() : ""
+}
+*/

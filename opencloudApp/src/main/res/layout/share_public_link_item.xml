@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?><!--
+  openCloud Android client application
+  Copyright (C) 2020 ownCloud GmbH.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License version 2,
+  as published by the Free Software Foundation.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:weightSum="1">
+
+        <TextView
+            android:id="@+id/publicLinkName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_marginBottom="@dimen/standard_half_margin"
+            android:layout_marginStart="@dimen/standard_half_margin"
+            android:layout_marginTop="@dimen/standard_half_margin"
+            android:layout_weight="1"
+            android:ellipsize="middle"
+            android:singleLine="true"
+            android:text="@string/username"
+            android:textColor="@color/textColor"
+            android:textSize="@dimen/two_line_primary_text_size" />
+
+        <ImageButton
+            android:id="@+id/getPublicLinkButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="center_vertical"
+            android:padding="14dp"
+            android:src="@drawable/copy_link"
+            android:scaleType="centerCrop"
+            android:background="@color/transparent"
+            android:contentDescription="@string/content_description_get_public_link" />
+
+        <ImageButton
+            android:id="@+id/deletePublicLinkButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="center_vertical"
+            android:padding="14dp"
+            android:src="@drawable/ic_action_delete_grey"
+            android:scaleType="centerCrop"
+            android:background="@color/transparent"
+            android:contentDescription="@string/content_description_delete_public_link" />
+
+        <ImageButton
+            android:id="@+id/editPublicLinkButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="center_vertical"
+            android:padding="14dp"
+            android:src="@drawable/ic_lead_pencil_grey"
+            android:background="@color/transparent"
+            android:contentDescription="@string/content_description_get_edit_public_link" />
+
+    </LinearLayout>
+
+</LinearLayout>

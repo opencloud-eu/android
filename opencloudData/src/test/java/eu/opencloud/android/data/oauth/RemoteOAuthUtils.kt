@@ -1,0 +1,91 @@
+/**
+ * openCloud Android client application
+ *
+ * @author Abel García de Prada
+ * Copyright (C) 2021 ownCloud GmbH.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2,
+ * as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package eu.opencloud.android.data.oauth
+
+import eu.opencloud.android.lib.resources.oauth.params.ClientRegistrationParams
+import eu.opencloud.android.lib.resources.oauth.params.TokenRequestParams
+import eu.opencloud.android.lib.resources.oauth.responses.ClientRegistrationResponse
+import eu.opencloud.android.lib.resources.oauth.responses.OIDCDiscoveryResponse
+import eu.opencloud.android.lib.resources.oauth.responses.TokenResponse
+import eu.opencloud.android.testutil.oauth.OC_CLIENT_REGISTRATION
+import eu.opencloud.android.testutil.oauth.OC_CLIENT_REGISTRATION_REQUEST
+import eu.opencloud.android.testutil.oauth.OC_OIDC_SERVER_CONFIGURATION
+import eu.opencloud.android.testutil.oauth.OC_TOKEN_REQUEST_ACCESS
+import eu.opencloud.android.testutil.oauth.OC_TOKEN_REQUEST_REFRESH
+import eu.opencloud.android.testutil.oauth.OC_TOKEN_RESPONSE
+
+val OC_REMOTE_OIDC_DISCOVERY_RESPONSE = OIDCDiscoveryResponse(
+    authorizationEndpoint = OC_OIDC_SERVER_CONFIGURATION.authorizationEndpoint,
+    checkSessionIframe = OC_OIDC_SERVER_CONFIGURATION.checkSessionIframe,
+    endSessionEndpoint = OC_OIDC_SERVER_CONFIGURATION.endSessionEndpoint,
+    issuer = OC_OIDC_SERVER_CONFIGURATION.issuer,
+    registrationEndpoint = OC_OIDC_SERVER_CONFIGURATION.registrationEndpoint,
+    responseTypesSupported = OC_OIDC_SERVER_CONFIGURATION.responseTypesSupported,
+    scopesSupported = OC_OIDC_SERVER_CONFIGURATION.scopesSupported,
+    tokenEndpoint = OC_OIDC_SERVER_CONFIGURATION.tokenEndpoint,
+    tokenEndpointAuthMethodsSupported = OC_OIDC_SERVER_CONFIGURATION.tokenEndpointAuthMethodsSupported,
+    userinfoEndpoint = OC_OIDC_SERVER_CONFIGURATION.userInfoEndpoint
+)
+
+val OC_REMOTE_TOKEN_REQUEST_PARAMS_ACCESS = TokenRequestParams.Authorization(
+    tokenEndpoint = OC_TOKEN_REQUEST_ACCESS.tokenEndpoint,
+    clientAuth = OC_TOKEN_REQUEST_ACCESS.clientAuth,
+    grantType = OC_TOKEN_REQUEST_ACCESS.grantType,
+    scope = OC_TOKEN_REQUEST_ACCESS.scope,
+    clientId = null,
+    clientSecret = null,
+    authorizationCode = OC_TOKEN_REQUEST_ACCESS.authorizationCode,
+    redirectUri = OC_TOKEN_REQUEST_ACCESS.redirectUri,
+    codeVerifier = OC_TOKEN_REQUEST_ACCESS.codeVerifier
+)
+
+val OC_REMOTE_TOKEN_REQUEST_PARAMS_REFRESH = TokenRequestParams.RefreshToken(
+    tokenEndpoint = OC_TOKEN_REQUEST_REFRESH.tokenEndpoint,
+    clientAuth = OC_TOKEN_REQUEST_REFRESH.clientAuth,
+    grantType = OC_TOKEN_REQUEST_REFRESH.grantType,
+    scope = OC_TOKEN_REQUEST_REFRESH.scope,
+    clientId = null,
+    clientSecret = null,
+    refreshToken = OC_TOKEN_REQUEST_REFRESH.refreshToken
+)
+
+val OC_REMOTE_TOKEN_RESPONSE = TokenResponse(
+    accessToken = OC_TOKEN_RESPONSE.accessToken,
+    expiresIn = OC_TOKEN_RESPONSE.expiresIn,
+    refreshToken = OC_TOKEN_RESPONSE.refreshToken,
+    tokenType = OC_TOKEN_RESPONSE.tokenType,
+    userId = OC_TOKEN_RESPONSE.userId,
+    scope = OC_TOKEN_RESPONSE.scope,
+    additionalParameters = OC_TOKEN_RESPONSE.additionalParameters
+)
+
+val OC_REMOTE_CLIENT_REGISTRATION_PARAMS = ClientRegistrationParams(
+    registrationEndpoint = OC_CLIENT_REGISTRATION_REQUEST.registrationEndpoint,
+    clientName = OC_CLIENT_REGISTRATION_REQUEST.clientName,
+    redirectUris = OC_CLIENT_REGISTRATION_REQUEST.redirectUris,
+    tokenEndpointAuthMethod = OC_CLIENT_REGISTRATION_REQUEST.tokenEndpointAuthMethod,
+    applicationType = OC_CLIENT_REGISTRATION_REQUEST.applicationType
+)
+
+val OC_REMOTE_CLIENT_REGISTRATION_RESPONSE = ClientRegistrationResponse(
+    clientId = OC_CLIENT_REGISTRATION.clientId,
+    clientSecret = OC_CLIENT_REGISTRATION.clientSecret,
+    clientIdIssuedAt = OC_CLIENT_REGISTRATION.clientIdIssuedAt,
+    clientSecretExpiration = OC_CLIENT_REGISTRATION.clientSecretExpiration
+)

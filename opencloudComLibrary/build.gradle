@@ -1,0 +1,69 @@
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+apply plugin: 'com.google.devtools.ksp'
+apply plugin: 'kotlin-parcelize'
+
+apply plugin: 'io.gitlab.arturbosch.detekt'
+
+dependencies {
+    api 'com.squareup.okhttp3:okhttp:4.9.2'
+    implementation libs.kotlin.stdlib
+    api 'com.github.opencloud-eu:android-dav:oc_support_2.1.5'
+
+    // Androidx
+    implementation libs.androidx.core.ktx
+    implementation libs.androidx.lifecycle.livedata.ktx
+    implementation libs.androidx.annotation
+
+    // Moshi
+    implementation(libs.moshi.kotlin) {
+        exclude module: "kotlin-reflect"
+    }
+    implementation 'org.apache.commons:commons-lang3:3.12.0'
+    ksp libs.moshi.kotlin.codegen
+
+    // Timber
+    implementation libs.timber
+
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.robolectric:robolectric:4.15.1'
+    // MockWebServer for HTTP integration tests
+    testImplementation 'com.squareup.okhttp3:mockwebserver:4.9.2'
+    // AndroidX test core to obtain application context in unit tests
+    testImplementation 'androidx.test:core:1.5.0'
+    debugImplementation 'com.facebook.stetho:stetho-okhttp3:1.6.0'
+
+    // Detekt
+    detektPlugins libs.detekt.formatting
+    detektPlugins libs.detekt.libraries
+}
+
+android {
+    compileSdkVersion sdkCompileVersion.toInteger()
+
+    defaultConfig {
+        minSdkVersion sdkMinVersion.toInteger()
+        targetSdkVersion sdkTargetVersion.toInteger()
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_17.toString()
+    }
+
+    lint {
+        abortOnError false
+        ignoreWarnings true
+    }
+
+    testOptions {
+        unitTests {
+            includeAndroidResources = true
+        }
+    }
+    namespace 'eu.opencloud.android.lib'
+}
