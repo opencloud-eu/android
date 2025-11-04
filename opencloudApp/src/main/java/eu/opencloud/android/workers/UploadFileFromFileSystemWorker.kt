@@ -467,6 +467,7 @@ class UploadFileFromFileSystemWorker(
             setProgress(progress)
         }
 
+        scheduleForegroundUpdate(percent)
         lastPercent = percent
     }
 
