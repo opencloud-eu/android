@@ -408,7 +408,7 @@ class UploadFileFromFileSystemWorker(
                     ocFile.copy(
                         needsToUpdateThumbnail = true,
                         etag = uploadFileOperation.etag,
-                        length = (File(ocTransfer.localPath).length()),
+                        length = fileSize,
                         lastSyncDateForData = currentTime,
                         modifiedAtLastSyncForData = currentTime,
                     )
