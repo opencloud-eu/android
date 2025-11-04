@@ -38,6 +38,12 @@ import eu.opencloud.android.data.executeRemoteOperation
 import eu.opencloud.android.data.providers.LocalStorageProvider
 import eu.opencloud.android.domain.automaticuploads.model.UploadBehavior
 import eu.opencloud.android.domain.exceptions.LocalFileNotFoundException
+import eu.opencloud.android.domain.exceptions.NetworkErrorException
+import eu.opencloud.android.domain.exceptions.NoConnectionWithServerException
+import eu.opencloud.android.domain.exceptions.NoNetworkConnectionException
+import eu.opencloud.android.domain.exceptions.ServerConnectionTimeoutException
+import eu.opencloud.android.domain.exceptions.ServerNotReachableException
+import eu.opencloud.android.domain.exceptions.ServerResponseTimeoutException
 import eu.opencloud.android.domain.exceptions.UnauthorizedException
 import eu.opencloud.android.domain.files.usecases.GetWebDavUrlForSpaceUseCase
 import eu.opencloud.android.domain.transfers.TransferRepository
@@ -396,6 +402,13 @@ class UploadFileFromContentUriWorker(
         if (throwable is UnauthorizedException || throwable is LocalFileNotFoundException) return false
         if (throwable is CancellationException) return true
         if (throwable is IOException) return true
+        // Retry on network-related exceptions
+        if (throwable is NoConnectionWithServerException) return true
+        if (throwable is NoNetworkConnectionException) return true
+        if (throwable is ServerNotReachableException) return true
+        if (throwable is ServerConnectionTimeoutException) return true
+        if (throwable is ServerResponseTimeoutException) return true
+        if (throwable is NetworkErrorException) return true
         return shouldRetry(throwable.cause)
     }
 

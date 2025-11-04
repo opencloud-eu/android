@@ -84,7 +84,7 @@ class TusUploadHelper(
             }
 
             if (createdLocation.isNullOrBlank()) {
-                throw IllegalStateException("TUS: unable to create upload resource for $remotePath")
+                throw java.io.IOException("TUS: unable to create upload resource for $remotePath")
             }
 
             tusUrl = createdLocation
@@ -102,7 +102,7 @@ class TusUploadHelper(
             )
         }
 
-        val resolvedTusUrl = tusUrl ?: throw IllegalStateException("TUS: missing upload URL for $remotePath")
+        val resolvedTusUrl = tusUrl ?: throw java.io.IOException("TUS: missing upload URL for $remotePath")
 
         var offset = runCatching {
             executeRemoteOperation {

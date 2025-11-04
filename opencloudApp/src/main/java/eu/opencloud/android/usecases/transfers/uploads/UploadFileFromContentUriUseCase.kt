@@ -23,12 +23,14 @@
 package eu.opencloud.android.usecases.transfers.uploads
 
 import android.net.Uri
+import androidx.work.BackoffPolicy
 import androidx.work.Constraints
 import androidx.work.Data
 import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
+import java.util.concurrent.TimeUnit
 import eu.opencloud.android.domain.BaseUseCase
 import eu.opencloud.android.domain.automaticuploads.model.UploadBehavior
 import eu.opencloud.android.workers.RemoveSourceFileWorker
@@ -65,6 +67,11 @@ class UploadFileFromContentUriUseCase(
         val uploadFileFromContentUriWorker = OneTimeWorkRequestBuilder<UploadFileFromContentUriWorker>()
             .setInputData(inputDataUploadFileFromContentUriWorker)
             .setConstraints(constraints)
+            .setBackoffCriteria(
+                BackoffPolicy.EXPONENTIAL,
+                10,
+                TimeUnit.SECONDS
+            )
             .addTag(params.accountName)
             .addTag(params.uploadIdInStorageManager.toString())
             .build()
