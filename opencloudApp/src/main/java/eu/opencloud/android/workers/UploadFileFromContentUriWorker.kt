@@ -23,11 +23,14 @@
 package eu.opencloud.android.workers
 
 import android.accounts.Account
+import android.app.Notification
 import android.content.Context
+import android.content.pm.ServiceInfo
 import android.net.Uri
 import androidx.core.net.toUri
 import androidx.documentfile.provider.DocumentFile
 import androidx.work.CoroutineWorker
+import androidx.work.ForegroundInfo
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import eu.opencloud.android.R
@@ -58,6 +61,7 @@ import eu.opencloud.android.utils.RemoteFileUtils.getAvailableRemotePath
 import eu.opencloud.android.utils.UPLOAD_NOTIFICATION_CHANNEL_ID
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
@@ -91,15 +95,22 @@ class UploadFileFromContentUriWorker(
     private lateinit var uploadFileOperation: UploadFileFromFileSystemOperation
     private val tusUploadHelper by lazy { TusUploadHelper(transferRepository) }
 
-    private var lastPercent = 0
+    private var lastPercent = -1
 
     private val transferRepository: TransferRepository by inject()
     private val getWebdavUrlForSpaceUseCase: GetWebDavUrlForSpaceUseCase by inject()
     private val getStoredCapabilitiesUseCase: GetStoredCapabilitiesUseCase by inject()
 
+    private val foregroundJob = SupervisorJob()
+    private val foregroundScope = CoroutineScope(Dispatchers.Default + foregroundJob)
+    @Volatile
+    private var currentForegroundProgress = Int.MIN_VALUE
+    private var foregroundInitialized = false
+
     override suspend fun doWork(): Result {
         return try {
             prepareFile()
+            startForeground()
             val clientForThisUpload = getClientForThisUpload()
             checkParentFolderExistence(clientForThisUpload)
             checkNameCollisionAndGetAnAvailableOneInCase(clientForThisUpload)
@@ -325,12 +336,9 @@ class UploadFileFromContentUriWorker(
             )
         }
 
-        if (attemptedTus) {
-            clearTusState()
-        }
-
         Timber.d("Falling back to single PUT upload for %s", uploadPath)
         uploadPlainFile(client)
+        clearTusState()
         removeCacheFile()
     }
 
@@ -346,7 +354,10 @@ class UploadFileFromContentUriWorker(
             addDataTransferProgressListener(this@UploadFileFromContentUriWorker)
         }
 
-        executeRemoteOperation { uploadFileOperation.execute(client) }
+        val result = executeRemoteOperation { uploadFileOperation.execute(client) }
+        if (result == Unit) {
+            clearTusState()
+        }
     }
 
     private fun updateProgressFromTus(offset: Long, totalSize: Long) {
@@ -358,6 +369,7 @@ class UploadFileFromContentUriWorker(
             val progress = workDataOf(DownloadFileWorker.WORKER_KEY_PROGRESS to percent)
             setProgress(progress)
         }
+        scheduleForegroundUpdate(percent)
         lastPercent = percent
     }
 
@@ -443,7 +455,76 @@ class UploadFileFromContentUriWorker(
             setProgress(progress)
         }
 
+        scheduleForegroundUpdate(percent)
         lastPercent = percent
+    }
+
+    private suspend fun startForeground() {
+        if (foregroundInitialized) return
+        foregroundInitialized = true
+        currentForegroundProgress = Int.MIN_VALUE
+        try {
+            setForeground(createForegroundInfo(-1))
+        } catch (e: Exception) {
+            Timber.w(e, "Failed to set foreground for upload worker")
+        }
+        currentForegroundProgress = -1
+    }
+
+    private fun scheduleForegroundUpdate(progress: Int) {
+        if (!foregroundInitialized) return
+        if (progress == currentForegroundProgress) return
+        currentForegroundProgress = progress
+        foregroundScope.launch {
+            try {
+                setForeground(createForegroundInfo(progress))
+            } catch (e: Exception) {
+                Timber.w(e, "Failed to update foreground notification")
+            }
+        }
+    }
+
+    private fun createForegroundInfo(progress: Int): ForegroundInfo =
+        ForegroundInfo(
+            computeNotificationId(),
+            buildForegroundNotification(progress),
+            ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
+        )
+
+    private fun buildForegroundNotification(progress: Int): Notification {
+        val fileName = File(uploadPath).name
+        val builder = NotificationUtils
+            .newNotificationBuilder(appContext, UPLOAD_NOTIFICATION_CHANNEL_ID)
+            .setContentTitle(appContext.getString(R.string.uploader_upload_in_progress_ticker))
+            .setContentIntent(NotificationUtils.composePendingIntentToUploadList(appContext))
+            .setOnlyAlertOnce(true)
+            .setOngoing(true)
+            .setSubText(fileName)
+
+        if (progress in 0..100) {
+            builder.setContentText(
+                appContext.getString(
+                    R.string.uploader_upload_in_progress_content,
+                    progress,
+                    fileName
+                )
+            )
+            builder.setProgress(100, progress, false)
+        } else {
+            builder.setContentText(appContext.getString(R.string.uploader_upload_in_progress_ticker))
+            builder.setProgress(0, 0, true)
+        }
+
+        return builder.build()
+    }
+
+    private fun computeNotificationId(): Int {
+        val id = uploadIdInStorageManager
+        return if (id in Int.MIN_VALUE.toLong()..Int.MAX_VALUE.toLong()) {
+            id.toInt()
+        } else {
+            id.hashCode()
+        }
     }
 
     companion object {
