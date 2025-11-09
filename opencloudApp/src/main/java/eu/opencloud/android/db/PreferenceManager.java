@@ -61,6 +61,8 @@ public abstract class PreferenceManager {
     public static final String PREF__CAMERA_PICTURE_UPLOADS_LAST_SYNC = "picture_uploads_last_sync";
     public static final String PREF__CAMERA_VIDEO_UPLOADS_LAST_SYNC = "video_uploads_last_sync";
     public static final String PREF__CAMERA_UPLOADS_DEFAULT_PATH = "/CameraUpload";
+    public static final String PREF__CAMERA_PICTURE_UPLOADS_USE_SUBFOLDERS_BEHAVIOUR = "picture_uploads_use_subfolders_behaviour";
+    public static final String PREF__CAMERA_VIDEO_UPLOADS_USE_SUBFOLDERS_BEHAVIOUR = "video_uploads_use_subfolders_behaviour";
     public static final String PREF__LEGACY_FINGERPRINT = "set_fingerprint";
     /**
      * Constant to access value of last path selected by the user to upload a file shared from other app.

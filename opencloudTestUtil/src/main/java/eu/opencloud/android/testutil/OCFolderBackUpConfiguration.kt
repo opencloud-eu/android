@@ -20,10 +20,11 @@
 
 package eu.opencloud.android.testutil
 
-import eu.opencloud.android.domain.automaticuploads.model.FolderBackUpConfiguration
-import eu.opencloud.android.domain.automaticuploads.model.UploadBehavior
 import eu.opencloud.android.data.folderbackup.db.FolderBackUpEntity
 import eu.opencloud.android.domain.automaticuploads.model.AutomaticUploadsConfiguration
+import eu.opencloud.android.domain.automaticuploads.model.FolderBackUpConfiguration
+import eu.opencloud.android.domain.automaticuploads.model.UploadBehavior
+import eu.opencloud.android.domain.automaticuploads.model.UseSubfoldersBehaviour
 
 val OC_BACKUP = FolderBackUpConfiguration(
     accountName = "",
@@ -33,6 +34,7 @@ val OC_BACKUP = FolderBackUpConfiguration(
     wifiOnly = true,
     chargingOnly = true,
     lastSyncTimestamp = 1542628397,
+    useSubfoldersBehaviour = UseSubfoldersBehaviour.YEAR,
     name = "",
     spaceId = null,
 )
@@ -45,6 +47,7 @@ val OC_BACKUP_ENTITY = FolderBackUpEntity(
     wifiOnly = true,
     chargingOnly = true,
     lastSyncTimestamp = 1542628397,
+    useSubfoldersBehaviour = UseSubfoldersBehaviour.YEAR.name,
     name = "",
     spaceId = null,
 )
