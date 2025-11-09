@@ -75,14 +75,11 @@ enum class UseSubfoldersBehaviour {
 
     companion object {
         fun fromString(string: String): UseSubfoldersBehaviour =
-            if (string.equals(YEAR.name, ignoreCase = true)) {
-                YEAR
-            } else if (string.equals(YEAR_MONTH.name, ignoreCase = true)) {
-                YEAR_MONTH
-            } else if (string.equals(YEAR_MONTH_DAY.name, ignoreCase = true)) {
-                YEAR_MONTH_DAY
-            } else {
-                NONE
+            when (string.uppercase()) {
+                YEAR.name -> YEAR
+                YEAR_MONTH.name -> YEAR_MONTH
+                YEAR_MONTH_DAY.name -> YEAR_MONTH_DAY
+                else -> NONE
             }
     }
 }

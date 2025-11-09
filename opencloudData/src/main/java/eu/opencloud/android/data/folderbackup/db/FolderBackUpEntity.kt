@@ -30,7 +30,7 @@ data class FolderBackUpEntity(
     val sourcePath: String,
     val uploadPath: String,
     val wifiOnly: Boolean,
-    @ColumnInfo(name = "useSubfoldersBehaviour", defaultValue = "YEAR")
+    @ColumnInfo(name = "useSubfoldersBehaviour", defaultValue = "NONE")
     val useSubfoldersBehaviour: String,
     val chargingOnly: Boolean,
     val name: String,

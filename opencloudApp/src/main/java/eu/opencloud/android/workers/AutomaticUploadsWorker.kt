@@ -181,21 +181,27 @@ class AutomaticUploadsWorker(
         val pathBuilder = StringBuilder(folderBackUpConfiguration.uploadPath.plus(File.separator))
 
         val lastModifiedDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(documentFile.lastModified()), ZoneId.systemDefault())
-        val yearStr = lastModifiedDateTime.format(DateTimeFormatter.ofPattern("YYYY"))
+        val yearStr = lastModifiedDateTime.format(DateTimeFormatter.ofPattern("yyyy"))
         val monthStr = lastModifiedDateTime.format(DateTimeFormatter.ofPattern("MM"))
         val dayStr = lastModifiedDateTime.format(DateTimeFormatter.ofPattern("dd"))
 
-        if (folderBackUpConfiguration.useSubfoldersBehaviour == UseSubfoldersBehaviour.YEAR) {
-            pathBuilder.append(yearStr).append(File.separator)
-        }
-        if (folderBackUpConfiguration.useSubfoldersBehaviour == UseSubfoldersBehaviour.YEAR_MONTH) {
-            pathBuilder.append(yearStr).append(File.separator)
-            pathBuilder.append(monthStr).append(File.separator)
-        }
-        if (folderBackUpConfiguration.useSubfoldersBehaviour == UseSubfoldersBehaviour.YEAR_MONTH_DAY) {
-            pathBuilder.append(yearStr).append(File.separator)
-            pathBuilder.append(monthStr).append(File.separator)
-            pathBuilder.append(dayStr).append(File.separator)
+        when (folderBackUpConfiguration.useSubfoldersBehaviour) {
+            UseSubfoldersBehaviour.YEAR_MONTH_DAY -> {
+                pathBuilder.append(yearStr).append(File.separator)
+                pathBuilder.append(monthStr).append(File.separator)
+                pathBuilder.append(dayStr).append(File.separator)
+            }
+
+            UseSubfoldersBehaviour.YEAR_MONTH -> {
+                pathBuilder.append(yearStr).append(File.separator)
+                pathBuilder.append(monthStr).append(File.separator)
+            }
+
+            UseSubfoldersBehaviour.YEAR -> {
+                pathBuilder.append(yearStr).append(File.separator)
+            }
+
+            else -> {}
         }
         return pathBuilder.append(documentFile.name).toString()
     }
