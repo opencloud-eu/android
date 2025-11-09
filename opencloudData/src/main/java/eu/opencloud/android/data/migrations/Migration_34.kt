@@ -30,6 +30,7 @@ import eu.opencloud.android.domain.automaticuploads.model.FolderBackUpConfigurat
 import eu.opencloud.android.domain.automaticuploads.model.FolderBackUpConfiguration.Companion.pictureUploadsName
 import eu.opencloud.android.domain.automaticuploads.model.FolderBackUpConfiguration.Companion.videoUploadsName
 import eu.opencloud.android.domain.automaticuploads.model.UploadBehavior
+import eu.opencloud.android.domain.automaticuploads.model.UseSubfoldersBehaviour
 import java.io.File
 
 val MIGRATION_33_34 = object : Migration(33, 34) {
@@ -54,6 +55,7 @@ class CameraUploadsMigrationToRoom(val sharedPreferencesProvider: SharedPreferen
             sourcePath = getSourcePathForPreference(PREF__CAMERA_PICTURE_UPLOADS_SOURCE),
             behavior = getBehaviorForPreference(PREF__CAMERA_PICTURE_UPLOADS_BEHAVIOUR),
             lastSyncTimestamp = timestamp,
+            useSubfoldersBehaviour = UseSubfoldersBehaviour.YEAR,
             name = pictureUploadsName,
             chargingOnly = false,
             spaceId = null,
@@ -71,6 +73,7 @@ class CameraUploadsMigrationToRoom(val sharedPreferencesProvider: SharedPreferen
             behavior = getBehaviorForPreference(PREF__CAMERA_VIDEO_UPLOADS_BEHAVIOUR),
             lastSyncTimestamp = timestamp,
             name = videoUploadsName,
+            useSubfoldersBehaviour = UseSubfoldersBehaviour.YEAR,
             chargingOnly = false,
             spaceId = null,
         )

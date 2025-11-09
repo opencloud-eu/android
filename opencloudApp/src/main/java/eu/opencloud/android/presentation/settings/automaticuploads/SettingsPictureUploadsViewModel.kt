@@ -31,6 +31,7 @@ import eu.opencloud.android.db.PreferenceManager.PREF__CAMERA_UPLOADS_DEFAULT_PA
 import eu.opencloud.android.domain.automaticuploads.model.FolderBackUpConfiguration
 import eu.opencloud.android.domain.automaticuploads.model.FolderBackUpConfiguration.Companion.pictureUploadsName
 import eu.opencloud.android.domain.automaticuploads.model.UploadBehavior
+import eu.opencloud.android.domain.automaticuploads.model.UseSubfoldersBehaviour
 import eu.opencloud.android.domain.automaticuploads.usecases.GetPictureUploadsConfigurationStreamUseCase
 import eu.opencloud.android.domain.automaticuploads.usecases.ResetPictureUploadsUseCase
 import eu.opencloud.android.domain.automaticuploads.usecases.SavePictureUploadsConfigurationUseCase
@@ -121,6 +122,16 @@ class SettingsPictureUploadsViewModel(
         }
     }
 
+    fun handleSelectUseSubfoldersBehaviour(behaviourString: String) {
+        val behaviour = UseSubfoldersBehaviour.fromString(behaviourString)
+
+        viewModelScope.launch(coroutinesDispatcherProvider.io) {
+            savePictureUploadsConfigurationUseCase(
+                SavePictureUploadsConfigurationUseCase.Params(composePictureUploadsConfiguration(useSubfoldersBehaviour = behaviour))
+            )
+        }
+    }
+
     fun getPictureUploadsAccount() = _pictureUploads.value?.accountName
 
     fun getPictureUploadsPath() = _pictureUploads.value?.uploadPath ?: PREF__CAMERA_UPLOADS_DEFAULT_PATH
@@ -196,6 +207,7 @@ class SettingsPictureUploadsViewModel(
         chargingOnly: Boolean? = _pictureUploads.value?.chargingOnly,
         sourcePath: String? = _pictureUploads.value?.sourcePath,
         behavior: UploadBehavior? = _pictureUploads.value?.behavior,
+        useSubfoldersBehaviour: UseSubfoldersBehaviour? = _pictureUploads.value?.useSubfoldersBehaviour,
         timestamp: Long? = _pictureUploads.value?.lastSyncTimestamp,
         spaceId: String? = _pictureUploads.value?.spaceId,
     ): FolderBackUpConfiguration = FolderBackUpConfiguration(
@@ -205,6 +217,7 @@ class SettingsPictureUploadsViewModel(
         uploadPath = uploadPath ?: PREF__CAMERA_UPLOADS_DEFAULT_PATH,
         wifiOnly = wifiOnly ?: false,
         chargingOnly = chargingOnly ?: false,
+        useSubfoldersBehaviour = useSubfoldersBehaviour ?: UseSubfoldersBehaviour.YEAR,
         lastSyncTimestamp = timestamp ?: System.currentTimeMillis(),
         name = _pictureUploads.value?.name ?: pictureUploadsName,
         spaceId = spaceId,

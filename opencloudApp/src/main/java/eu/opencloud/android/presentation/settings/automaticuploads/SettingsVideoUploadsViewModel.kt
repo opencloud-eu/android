@@ -31,6 +31,7 @@ import eu.opencloud.android.db.PreferenceManager.PREF__CAMERA_UPLOADS_DEFAULT_PA
 import eu.opencloud.android.domain.automaticuploads.model.FolderBackUpConfiguration
 import eu.opencloud.android.domain.automaticuploads.model.FolderBackUpConfiguration.Companion.videoUploadsName
 import eu.opencloud.android.domain.automaticuploads.model.UploadBehavior
+import eu.opencloud.android.domain.automaticuploads.model.UseSubfoldersBehaviour
 import eu.opencloud.android.domain.automaticuploads.usecases.GetVideoUploadsConfigurationStreamUseCase
 import eu.opencloud.android.domain.automaticuploads.usecases.ResetVideoUploadsUseCase
 import eu.opencloud.android.domain.automaticuploads.usecases.SaveVideoUploadsConfigurationUseCase
@@ -207,6 +208,7 @@ class SettingsVideoUploadsViewModel(
             wifiOnly = wifiOnly ?: false,
             chargingOnly = chargingOnly ?: false,
             lastSyncTimestamp = timestamp ?: System.currentTimeMillis(),
+            useSubfoldersBehaviour = UseSubfoldersBehaviour.NONE,
             name = _videoUploads.value?.name ?: videoUploadsName,
             spaceId = spaceId,
         ).also {
