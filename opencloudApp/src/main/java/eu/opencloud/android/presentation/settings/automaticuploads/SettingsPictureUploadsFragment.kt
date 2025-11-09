@@ -48,7 +48,7 @@ import eu.opencloud.android.db.PreferenceManager.PREF__CAMERA_PICTURE_UPLOADS_LA
 import eu.opencloud.android.db.PreferenceManager.PREF__CAMERA_PICTURE_UPLOADS_PATH
 import eu.opencloud.android.db.PreferenceManager.PREF__CAMERA_PICTURE_UPLOADS_SOURCE
 import eu.opencloud.android.db.PreferenceManager.PREF__CAMERA_PICTURE_UPLOADS_WIFI_ONLY
-import eu.opencloud.android.db.PreferenceManager.PREF__CAMERA_UPLOADS_USE_SUBFOLDERS_BEHAVIOUR
+import eu.opencloud.android.db.PreferenceManager.PREF__CAMERA_PICTURE_UPLOADS_USE_SUBFOLDERS_BEHAVIOUR
 import eu.opencloud.android.domain.automaticuploads.model.UploadBehavior
 import eu.opencloud.android.domain.automaticuploads.model.UseSubfoldersBehaviour
 import eu.opencloud.android.extensions.collectLatestLifecycleFlow
@@ -112,7 +112,7 @@ class SettingsPictureUploadsFragment : PreferenceFragmentCompat() {
             ).toTypedArray()
             entryValues = listOf(UploadBehavior.COPY.name, UploadBehavior.MOVE.name).toTypedArray()
         }
-        prefPictureUploadsUseSubfolderBehaviour = findPreference<ListPreference>(PREF__CAMERA_UPLOADS_USE_SUBFOLDERS_BEHAVIOUR)?.apply {
+        prefPictureUploadsUseSubfolderBehaviour = findPreference<ListPreference>(PREF__CAMERA_PICTURE_UPLOADS_USE_SUBFOLDERS_BEHAVIOUR)?.apply {
             entries = listOf(
                 getString(R.string.pref_use_subfolders_behaviour_none),
                 getString(R.string.pref_use_subfolders_behaviour_year),

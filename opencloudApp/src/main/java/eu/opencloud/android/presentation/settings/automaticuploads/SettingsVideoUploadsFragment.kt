@@ -47,8 +47,10 @@ import eu.opencloud.android.db.PreferenceManager.PREF__CAMERA_VIDEO_UPLOADS_CHAR
 import eu.opencloud.android.db.PreferenceManager.PREF__CAMERA_VIDEO_UPLOADS_ENABLED
 import eu.opencloud.android.db.PreferenceManager.PREF__CAMERA_VIDEO_UPLOADS_PATH
 import eu.opencloud.android.db.PreferenceManager.PREF__CAMERA_VIDEO_UPLOADS_SOURCE
+import eu.opencloud.android.db.PreferenceManager.PREF__CAMERA_VIDEO_UPLOADS_USE_SUBFOLDERS_BEHAVIOUR
 import eu.opencloud.android.db.PreferenceManager.PREF__CAMERA_VIDEO_UPLOADS_WIFI_ONLY
 import eu.opencloud.android.domain.automaticuploads.model.UploadBehavior
+import eu.opencloud.android.domain.automaticuploads.model.UseSubfoldersBehaviour
 import eu.opencloud.android.extensions.collectLatestLifecycleFlow
 import eu.opencloud.android.extensions.showAlertDialog
 import eu.opencloud.android.extensions.showMessageInSnackbar
@@ -71,6 +73,7 @@ class SettingsVideoUploadsFragment : PreferenceFragmentCompat() {
     private var prefVideoUploadsOnCharging: CheckBoxPreference? = null
     private var prefVideoUploadsSourcePath: Preference? = null
     private var prefVideoUploadsBehaviour: ListPreference? = null
+    private var prefVideoUploadsUseSubfolderBehaviour: ListPreference? = null
     private var prefVideoUploadsAccount: ListPreference? = null
     private var prefVideoUploadsLastSync: Preference? = null
     private var spaceId: String? = null
@@ -106,6 +109,20 @@ class SettingsVideoUploadsFragment : PreferenceFragmentCompat() {
             entries = listOf(getString(R.string.pref_behaviour_entries_keep_file),
                 getString(R.string.pref_behaviour_entries_remove_original_file)).toTypedArray()
             entryValues = listOf(UploadBehavior.COPY.name, UploadBehavior.MOVE.name).toTypedArray()
+        }
+        prefVideoUploadsUseSubfolderBehaviour = findPreference<ListPreference>(PREF__CAMERA_VIDEO_UPLOADS_USE_SUBFOLDERS_BEHAVIOUR)?.apply {
+            entries = listOf(
+                getString(R.string.pref_use_subfolders_behaviour_none),
+                getString(R.string.pref_use_subfolders_behaviour_year),
+                getString(R.string.pref_use_subfolders_behaviour_year_month),
+                getString(R.string.pref_use_subfolders_behaviour_year_month_day),
+            ).toTypedArray()
+            entryValues = listOf(
+                UseSubfoldersBehaviour.NONE.name,
+                UseSubfoldersBehaviour.YEAR.name,
+                UseSubfoldersBehaviour.YEAR_MONTH.name,
+                UseSubfoldersBehaviour.YEAR_MONTH_DAY.name
+            ).toTypedArray()
         }
         prefVideoUploadsAccount = findPreference<ListPreference>(PREF__CAMERA_VIDEO_UPLOADS_ACCOUNT_NAME)
 
@@ -153,6 +170,7 @@ class SettingsVideoUploadsFragment : PreferenceFragmentCompat() {
                                 prefVideoUploadsOnWifi?.isChecked = it.wifiOnly
                                 prefVideoUploadsOnCharging?.isChecked = it.chargingOnly
                                 prefVideoUploadsBehaviour?.value = it.behavior.name
+                                prefVideoUploadsUseSubfolderBehaviour?.value = it.useSubfoldersBehaviour.name
                                 prefVideoUploadsLastSync?.summary = DisplayUtils.unixTimeToHumanReadable(it.lastSyncTimestamp)
                                 spaceId = it.spaceId
                             } ?: resetFields()
@@ -221,6 +239,12 @@ class SettingsVideoUploadsFragment : PreferenceFragmentCompat() {
             true
         }
 
+        prefVideoUploadsUseSubfolderBehaviour?.setOnPreferenceChangeListener { _, newValue ->
+            newValue as String
+            videosViewModel.handleSelectUseSubfoldersBehaviour(newValue)
+            true
+        }
+
         prefVideoUploadsOnWifi?.setOnPreferenceChangeListener { _, newValue ->
             newValue as Boolean
             videosViewModel.useWifiOnly(newValue)
@@ -262,6 +286,7 @@ class SettingsVideoUploadsFragment : PreferenceFragmentCompat() {
         prefVideoUploadsSourcePath?.isEnabled = value
         prefVideoUploadsBehaviour?.isEnabled = value
         prefVideoUploadsAccount?.isEnabled = value
+        prefVideoUploadsUseSubfolderBehaviour?.isEnabled = value
         prefVideoUploadsLastSync?.isEnabled = value
     }
 
@@ -272,6 +297,7 @@ class SettingsVideoUploadsFragment : PreferenceFragmentCompat() {
         prefVideoUploadsOnWifi?.isChecked = false
         prefVideoUploadsOnCharging?.isChecked = false
         prefVideoUploadsBehaviour?.value = UploadBehavior.COPY.name
+        prefVideoUploadsUseSubfolderBehaviour?.value = UseSubfoldersBehaviour.NONE.name
         prefVideoUploadsLastSync?.summary = null
     }
 

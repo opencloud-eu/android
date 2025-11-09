@@ -122,6 +122,16 @@ class SettingsVideoUploadsViewModel(
         }
     }
 
+    fun handleSelectUseSubfoldersBehaviour(behaviourString: String) {
+        val behaviour = UseSubfoldersBehaviour.fromString(behaviourString)
+
+        viewModelScope.launch(coroutinesDispatcherProvider.io) {
+            saveVideoUploadsConfigurationUseCase(
+                SaveVideoUploadsConfigurationUseCase.Params(composeVideoUploadsConfiguration(useSubfoldersBehaviour = behaviour))
+            )
+        }
+    }
+
     fun getVideoUploadsAccount() = _videoUploads.value?.accountName
 
     fun getVideoUploadsPath() = _videoUploads.value?.uploadPath ?: PREF__CAMERA_UPLOADS_DEFAULT_PATH
@@ -197,6 +207,7 @@ class SettingsVideoUploadsViewModel(
         chargingOnly: Boolean? = _videoUploads.value?.chargingOnly,
         sourcePath: String? = _videoUploads.value?.sourcePath,
         behavior: UploadBehavior? = _videoUploads.value?.behavior,
+        useSubfoldersBehaviour: UseSubfoldersBehaviour? = _videoUploads.value?.useSubfoldersBehaviour,
         timestamp: Long? = _videoUploads.value?.lastSyncTimestamp,
         spaceId: String? = _videoUploads.value?.spaceId,
     ): FolderBackUpConfiguration =
@@ -208,7 +219,7 @@ class SettingsVideoUploadsViewModel(
             wifiOnly = wifiOnly ?: false,
             chargingOnly = chargingOnly ?: false,
             lastSyncTimestamp = timestamp ?: System.currentTimeMillis(),
-            useSubfoldersBehaviour = UseSubfoldersBehaviour.NONE,
+            useSubfoldersBehaviour = useSubfoldersBehaviour ?: UseSubfoldersBehaviour.NONE,
             name = _videoUploads.value?.name ?: videoUploadsName,
             spaceId = spaceId,
         ).also {

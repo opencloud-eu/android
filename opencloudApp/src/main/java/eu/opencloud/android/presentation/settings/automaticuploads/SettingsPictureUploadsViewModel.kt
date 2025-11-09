@@ -217,7 +217,7 @@ class SettingsPictureUploadsViewModel(
         uploadPath = uploadPath ?: PREF__CAMERA_UPLOADS_DEFAULT_PATH,
         wifiOnly = wifiOnly ?: false,
         chargingOnly = chargingOnly ?: false,
-        useSubfoldersBehaviour = useSubfoldersBehaviour ?: UseSubfoldersBehaviour.YEAR,
+        useSubfoldersBehaviour = useSubfoldersBehaviour ?: UseSubfoldersBehaviour.NONE,
         lastSyncTimestamp = timestamp ?: System.currentTimeMillis(),
         name = _pictureUploads.value?.name ?: pictureUploadsName,
         spaceId = spaceId,
