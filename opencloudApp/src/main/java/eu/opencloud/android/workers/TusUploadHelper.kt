@@ -166,6 +166,12 @@ class TusUploadHelper(
                     // Server is at same offset, we need to retry the same chunk
                     Timber.d("TUS: server confirmed offset %d, will retry same chunk", offset)
                     // Don't update offset, will retry after backoff
+                } else if (recoveredOffset != null && recoveredOffset < offset) {
+                    // Server is behind our position (e.g. crash/data loss). Rewind and continue.
+                    Timber.w("TUS: server offset %d is behind current %d. Rewinding...", recoveredOffset, offset)
+                    offset = recoveredOffset
+                    consecutiveFailures = 0
+                    continue
                 } else {
                     // Recovery failed or returned invalid offset
                     Timber.w("TUS: offset recovery failed (recovered=%s, current=%d)", recoveredOffset, offset)
@@ -266,7 +272,7 @@ class TusUploadHelper(
                     // Server is at same position, return it to confirm
                     Timber.d("TUS: server confirmed current offset %d", currentOffset)
                 } else {
-                    // Server is behind our position - should not happen
+                    // Server is behind our position - can happen if server lost data (crash)
                     Timber.w("TUS: server offset %d is behind current %d", newOffset, currentOffset)
                 }
                 newOffset
