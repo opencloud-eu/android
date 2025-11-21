@@ -93,6 +93,12 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 import timber.log.Timber
 import java.io.File
 
+private const val KEY_SERVER_BASE_URL = "KEY_SERVER_BASE_URL"
+private const val KEY_OIDC_SUPPORTED = "KEY_OIDC_SUPPORTED"
+private const val KEY_CODE_VERIFIER = "KEY_CODE_VERIFIER"
+private const val KEY_CODE_CHALLENGE = "KEY_CODE_CHALLENGE"
+private const val KEY_OIDC_STATE = "KEY_OIDC_STATE"
+
 class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrustedCertListener, SecurityEnforced {
 
     private val authenticationViewModel by viewModel<AuthenticationViewModel>()
@@ -112,9 +118,26 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
     // For handling AbstractAccountAuthenticator responses
     private var accountAuthenticatorResponse: AccountAuthenticatorResponse? = null
     private var resultBundle: Bundle? = null
+    private var pendingAuthorizationIntent: Intent? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Log OAuth redirect details for debugging (especially Firefox issues)
+        Timber.d("onCreate called with intent data: ${intent.data}, isTaskRoot: $isTaskRoot")
+
+        if (intent.data != null && (intent.data?.getQueryParameter("code") != null || intent.data?.getQueryParameter("error") != null)) {
+            Timber.d("OAuth redirect detected with code or error parameter")
+            if (!isTaskRoot) {
+                Timber.d("Not task root, forwarding OAuth redirect to existing LoginActivity instance")
+                val newIntent = Intent(this, LoginActivity::class.java)
+                newIntent.data = intent.data
+                newIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                startActivity(newIntent)
+                finish()
+                return
+            }
+        }
 
         checkPasscodeEnforced(this)
 
@@ -134,6 +157,11 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
             authenticationViewModel.supportsOAuth2((userAccount as Account).name)
         } else if (savedInstanceState != null) {
             authTokenType = savedInstanceState.getString(KEY_AUTH_TOKEN_TYPE)
+            savedInstanceState.getString(KEY_SERVER_BASE_URL)?.let { serverBaseUrl = it }
+            oidcSupported = savedInstanceState.getBoolean(KEY_OIDC_SUPPORTED)
+            savedInstanceState.getString(KEY_CODE_VERIFIER)?.let { authenticationViewModel.codeVerifier = it }
+            savedInstanceState.getString(KEY_CODE_CHALLENGE)?.let { authenticationViewModel.codeChallenge = it }
+            savedInstanceState.getString(KEY_OIDC_STATE)?.let { authenticationViewModel.oidcState = it }
         }
 
         // UI initialization
@@ -160,6 +188,17 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
             userAccount?.let {
                 AccountUtils.getUsernameForAccount(it)?.let { username ->
                     binding.accountUsername.setText(username)
+                }
+            }
+        } else {
+            // Restore UI state
+            if (::serverBaseUrl.isInitialized && serverBaseUrl.isNotEmpty()) {
+                binding.hostUrlInput.setText(serverBaseUrl)
+
+                if (authTokenType == BASIC_TOKEN_TYPE) {
+                    showOrHideBasicAuthFields(shouldBeVisible = true)
+                } else if (authTokenType == OAUTH_TOKEN_TYPE) {
+                    showOrHideBasicAuthFields(shouldBeVisible = false)
                 }
             }
         }
@@ -192,10 +231,25 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
         accountAuthenticatorResponse?.onRequestContinued()
 
         initLiveDataObservers()
+
+        if (intent.data != null && (intent.data?.getQueryParameter("code") != null || intent.data?.getQueryParameter("error") != null)) {
+            if (savedInstanceState == null) {
+                restoreAuthState()
+            }
+            handleGetAuthorizationCodeResponse(intent)
+        }
+
+        // Process any pending intent that arrived before binding was ready
+        pendingAuthorizationIntent?.let {
+            handleGetAuthorizationCodeResponse(it)
+            pendingAuthorizationIntent = null
+        }
+
+
     }
 
     private fun handleDeepLink() {
-        if (intent.data != null) {
+        if (intent.data != null && intent.data?.getQueryParameter("code") == null && intent.data?.getQueryParameter("error") == null) {
             authenticationViewModel.launchedFromDeepLink = true
             if (getAccounts(baseContext).isNotEmpty()) {
                 launchFileDisplayActivity()
@@ -467,6 +521,7 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
         setResult(Activity.RESULT_OK, intent)
 
         authenticationViewModel.discoverAccount(accountName = accountName, discoveryNeeded = loginAction == ACTION_CREATE)
+        clearAuthState()
     }
 
     private fun loginIsLoading() {
@@ -496,6 +551,7 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
                 }
             }
         }
+        clearAuthState()
     }
 
     /**
@@ -536,6 +592,11 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
         val customTabsBuilder: CustomTabsIntent.Builder = CustomTabsIntent.Builder()
         val customTabsIntent: CustomTabsIntent = customTabsBuilder.build()
 
+        // Add flags to improve compatibility with Firefox and other browsers
+        // FLAG_ACTIVITY_NEW_TASK ensures the browser opens in a separate task,
+        // which helps Firefox properly handle the OAuth redirect back to the app
+        customTabsIntent.intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+
         val authorizationEndpointUri = OAuthUtils.buildAuthorizationRequest(
             authorizationEndpoint = authorizationEndpoint,
             redirectUri = OAuthUtils.buildRedirectUri(applicationContext).toString(),
@@ -551,6 +612,7 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
         )
 
         try {
+            saveAuthState()
             customTabsIntent.launchUrl(
                 this,
                 authorizationEndpointUri
@@ -565,6 +627,8 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
         intent?.let {
+            Timber.d("onNewIntent received with data: ${it.data}")
+            setIntent(it)
             handleGetAuthorizationCodeResponse(it)
         }
     }
@@ -851,6 +915,13 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putString(KEY_AUTH_TOKEN_TYPE, authTokenType)
+        if (::serverBaseUrl.isInitialized) {
+            outState.putString(KEY_SERVER_BASE_URL, serverBaseUrl)
+        }
+        outState.putBoolean(KEY_OIDC_SUPPORTED, oidcSupported)
+        outState.putString(KEY_CODE_VERIFIER, authenticationViewModel.codeVerifier)
+        outState.putString(KEY_CODE_CHALLENGE, authenticationViewModel.codeChallenge)
+        outState.putString(KEY_OIDC_STATE, authenticationViewModel.oidcState)
     }
 
     override fun finish() {
@@ -870,5 +941,27 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
 
     override fun optionLockSelected(type: LockType) {
         manageOptionLockSelected(type)
+    }
+
+    private fun saveAuthState() {
+        val prefs = getSharedPreferences("auth_state", android.content.Context.MODE_PRIVATE)
+        prefs.edit().apply {
+            putString(KEY_CODE_VERIFIER, authenticationViewModel.codeVerifier)
+            putString(KEY_CODE_CHALLENGE, authenticationViewModel.codeChallenge)
+            putString(KEY_OIDC_STATE, authenticationViewModel.oidcState)
+            apply()
+        }
+    }
+
+    private fun restoreAuthState() {
+        val prefs = getSharedPreferences("auth_state", android.content.Context.MODE_PRIVATE)
+        prefs.getString(KEY_CODE_VERIFIER, null)?.let { authenticationViewModel.codeVerifier = it }
+        prefs.getString(KEY_CODE_CHALLENGE, null)?.let { authenticationViewModel.codeChallenge = it }
+        prefs.getString(KEY_OIDC_STATE, null)?.let { authenticationViewModel.oidcState = it }
+    }
+
+    private fun clearAuthState() {
+        val prefs = getSharedPreferences("auth_state", android.content.Context.MODE_PRIVATE)
+        prefs.edit().clear().apply()
     }
 }

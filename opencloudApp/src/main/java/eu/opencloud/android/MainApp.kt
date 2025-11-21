@@ -39,6 +39,7 @@ import android.widget.CheckBox
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.pm.PackageInfoCompat
 import eu.opencloud.android.data.providers.implementation.OCSharedPreferencesProvider
+
 import eu.opencloud.android.datamodel.ThumbnailsCacheManager
 import eu.opencloud.android.db.PreferenceManager
 import eu.opencloud.android.dependecyinjection.commonModule
@@ -98,6 +99,15 @@ class MainApp : Application() {
         super.onCreate()
 
         appContext = applicationContext
+
+        // Ensure Logcat shows Timber logs in debug builds
+        if (BuildConfig.DEBUG) {
+            try {
+                Timber.plant(Timber.DebugTree())
+            } catch (_: Throwable) {
+                // ignore if already planted
+            }
+        }
 
         startLogsIfEnabled()
 

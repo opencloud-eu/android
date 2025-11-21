@@ -72,9 +72,9 @@ class AuthenticationViewModel(
     private val contextProvider: ContextProvider,
 ) : ViewModel() {
 
-    val codeVerifier: String = OAuthUtils().generateRandomCodeVerifier()
-    val codeChallenge: String = OAuthUtils().generateCodeChallenge(codeVerifier)
-    val oidcState: String = OAuthUtils().generateRandomState()
+    var codeVerifier: String = OAuthUtils().generateRandomCodeVerifier()
+    var codeChallenge: String = OAuthUtils().generateCodeChallenge(codeVerifier)
+    var oidcState: String = OAuthUtils().generateRandomState()
 
     private val _legacyWebfingerHost = MediatorLiveData<Event<UIResult<String>>>()
     val legacyWebfingerHost: LiveData<Event<UIResult<String>>> = _legacyWebfingerHost

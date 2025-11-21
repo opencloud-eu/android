@@ -242,7 +242,7 @@
             android:name=".presentation.authentication.LoginActivity"
             android:exported="true"
             android:label="@string/login_label"
-            android:launchMode="singleTask"
+            android:launchMode="singleTop"
             android:theme="@style/Theme.openCloud.Toolbar">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
