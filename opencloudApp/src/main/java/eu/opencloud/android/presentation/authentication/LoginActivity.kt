@@ -666,28 +666,41 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
 
         val clientRegistrationInfo = authenticationViewModel.registerClient.value?.peekContent()?.getStoredData()
 
-        val clientAuth = if (clientRegistrationInfo?.clientId != null && clientRegistrationInfo.clientSecret != null) {
-            OAuthUtils.getClientAuth(clientRegistrationInfo.clientSecret as String, clientRegistrationInfo.clientId)
-
-        } else {
-            OAuthUtils.getClientAuth(getString(R.string.oauth2_client_secret), getString(R.string.oauth2_client_id))
-        }
-
         // Use oidc discovery one, or build an oauth endpoint using serverBaseUrl + Setup string.
         val tokenEndPoint: String
 
         var clientId: String? = null
         var clientSecret: String? = null
+        var clientAuth: String? = null
 
         val serverInfo = authenticationViewModel.serverInfo.value?.peekContent()?.getStoredData()
         if (serverInfo is ServerInfo.OIDCServer) {
             tokenEndPoint = serverInfo.oidcServerConfiguration.tokenEndpoint
-            if (serverInfo.oidcServerConfiguration.isTokenEndpointAuthMethodSupportedClientSecretPost()) {
+
+            // RFC 7636: Public clients (token_endpoint_auth_method: none) must not send Authorization header
+            if (serverInfo.oidcServerConfiguration.isTokenEndpointAuthMethodNone()) {
+                clientAuth = null
+                clientId = clientRegistrationInfo?.clientId ?: contextProvider.getString(R.string.oauth2_client_id)
+            } else if (serverInfo.oidcServerConfiguration.isTokenEndpointAuthMethodSupportedClientSecretPost()) {
+                // For client_secret_post, credentials go in body, not Authorization header
+                clientAuth = null
                 clientId = clientRegistrationInfo?.clientId ?: contextProvider.getString(R.string.oauth2_client_id)
                 clientSecret = clientRegistrationInfo?.clientSecret ?: contextProvider.getString(R.string.oauth2_client_secret)
+            } else {
+                // For other methods (e.g., client_secret_basic), use Basic auth header
+                clientAuth = if (clientRegistrationInfo?.clientId != null && clientRegistrationInfo.clientSecret != null) {
+                    OAuthUtils.getClientAuth(clientRegistrationInfo.clientSecret as String, clientRegistrationInfo.clientId)
+                } else {
+                    OAuthUtils.getClientAuth(getString(R.string.oauth2_client_secret), getString(R.string.oauth2_client_id))
+                }
             }
         } else {
             tokenEndPoint = "$serverBaseUrl${File.separator}${contextProvider.getString(R.string.oauth2_url_endpoint_access)}"
+            clientAuth = if (clientRegistrationInfo?.clientId != null && clientRegistrationInfo.clientSecret != null) {
+                OAuthUtils.getClientAuth(clientRegistrationInfo.clientSecret as String, clientRegistrationInfo.clientId)
+            } else {
+                OAuthUtils.getClientAuth(getString(R.string.oauth2_client_secret), getString(R.string.oauth2_client_id))
+            }
         }
 
         val scope = resources.getString(R.string.oauth2_openid_scope)
