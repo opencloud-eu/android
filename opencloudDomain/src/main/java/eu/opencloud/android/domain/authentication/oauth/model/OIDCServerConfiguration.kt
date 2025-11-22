@@ -35,4 +35,7 @@ data class OIDCServerConfiguration(
 ) {
     fun isTokenEndpointAuthMethodSupportedClientSecretPost(): Boolean =
         tokenEndpointAuthMethodsSupported?.any { it == "client_secret_post" } ?: false
+
+    fun isTokenEndpointAuthMethodNone(): Boolean =
+        tokenEndpointAuthMethodsSupported?.any { it == "none" } ?: false
 }

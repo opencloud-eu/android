@@ -24,7 +24,7 @@ package eu.opencloud.android.domain.authentication.oauth.model
 sealed class TokenRequest(
     val baseUrl: String,
     val tokenEndpoint: String,
-    val clientAuth: String,
+    val clientAuth: String?,
     val grantType: String,
     val scope: String,
     val clientId: String?,
@@ -33,7 +33,7 @@ sealed class TokenRequest(
     class AccessToken(
         baseUrl: String,
         tokenEndpoint: String,
-        clientAuth: String,
+        clientAuth: String?,
         scope: String,
         clientId: String? = null,
         clientSecret: String? = null,
@@ -45,7 +45,7 @@ sealed class TokenRequest(
     class RefreshToken(
         baseUrl: String,
         tokenEndpoint: String,
-        clientAuth: String,
+        clientAuth: String?,
         scope: String,
         clientId: String? = null,
         clientSecret: String? = null,
