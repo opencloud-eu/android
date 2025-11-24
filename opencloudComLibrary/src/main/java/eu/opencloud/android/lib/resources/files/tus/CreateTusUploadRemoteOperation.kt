@@ -22,6 +22,7 @@ import java.nio.channels.FileChannel
 class CreateTusUploadRemoteOperation(
     private val file: File,
     private val remotePath: String,
+    @Suppress("UnusedPrivateProperty")
     private val mimetype: String,
     private val metadata: Map<String, String>,
     private val useCreationWithUpload: Boolean,
@@ -30,25 +31,20 @@ class CreateTusUploadRemoteOperation(
     private val collectionUrlOverride: String? = null,
 ) : RemoteOperation<String>() {
 
-    companion object {
-        // Use 10MB for first chunk like the browser does
-        const val DEFAULT_FIRST_CHUNK = 10 * 1024 * 1024L // 10MB
-    }
 
-    override fun run(client: OpenCloudClient): RemoteOperationResult<String> {
-        return try {
-            // Determine TUS endpoint URL based on provided parameters
-            val targetFileUrl = when {
-                !tusUrl.isNullOrBlank() -> tusUrl
-                else -> {
-                    val baseCollection = (collectionUrlOverride
-                        ?: client.userFilesWebDavUri.toString()).trim()
-                    // Remove trailing slash - OpenCloud expects no slash on space endpoints
-                    val resolvedCollection = buildCollectionUrl(baseCollection, remotePath).trimEnd('/')
-                    Timber.d("TUS resolved collection: %s", resolvedCollection)
-                    resolvedCollection
-                }
-            }
+
+    override fun run(client: OpenCloudClient): RemoteOperationResult<String> = try {
+        // Determine TUS endpoint URL based on provided parameters
+        val targetFileUrl = if (!tusUrl.isNullOrBlank()) {
+            tusUrl
+        } else {
+            val baseCollection = (collectionUrlOverride
+                ?: client.userFilesWebDavUri.toString()).trim()
+            // Remove trailing slash - OpenCloud expects no slash on space endpoints
+            val resolvedCollection = buildCollectionUrl(baseCollection, remotePath).trimEnd('/')
+            Timber.d("TUS resolved collection: %s", resolvedCollection)
+            resolvedCollection
+        }
 
             Timber.d("TUS Creation URL: %s", targetFileUrl)
 
@@ -75,7 +71,6 @@ class CreateTusUploadRemoteOperation(
             postMethod.setRequestHeader(HttpConstants.TUS_RESUMABLE, "1.0.0")
             postMethod.setRequestHeader(HttpConstants.UPLOAD_LENGTH, file.length().toString())
             postMethod.setRequestHeader(HttpConstants.CONTENT_TYPE_HEADER, HttpConstants.CONTENT_TYPE_OFFSET_OCTET_STREAM)
-            
             // Set TUS-Extension header to indicate which extensions we want to use
             val extensions = if (useCreationWithUpload && (firstChunkSize ?: 0L) > 0L) {
                 "creation,creation-with-upload"
@@ -100,7 +95,6 @@ class CreateTusUploadRemoteOperation(
 
             val status = client.executeHttpMethod(postMethod)
             Timber.d("TUS Creation [%s] - %d%s", targetFileUrl, status, if (!isSuccess(status)) " (FAIL)" else "")
-            
             if (!isSuccess(status)) {
                 Timber.w("TUS Creation failed - Status: %d", status)
                 Timber.w("  Target URL: %s", targetFileUrl)
@@ -112,7 +106,7 @@ class CreateTusUploadRemoteOperation(
                 Timber.w("  Upload-Length: %s", postMethod.getRequestHeader(HttpConstants.UPLOAD_LENGTH))
                 Timber.w("  Upload-Metadata: %s", postMethod.getRequestHeader(HttpConstants.UPLOAD_METADATA))
             }
-            
+
             // Debug logging for troubleshooting
             if (status == 412) {
                 Timber.w("HTTP 412 Precondition Failed - Request headers:")
@@ -130,7 +124,6 @@ class CreateTusUploadRemoteOperation(
             if (isSuccess(status)) {
                 val locationHeader = postMethod.getResponseHeader(HttpConstants.LOCATION_HEADER)
                     ?: postMethod.getResponseHeader(HttpConstants.LOCATION_HEADER_LOWER)
-                
                 val base = URL(postMethod.getFinalUrl().toString())
                 val resolved = resolveLocationToAbsolute(locationHeader, base)
 
@@ -139,7 +132,7 @@ class CreateTusUploadRemoteOperation(
                     RemoteOperationResult<String>(ResultCode.OK).apply { data = resolved }
                 } else {
                     Timber.e("Location header is missing in TUS creation response")
-                    RemoteOperationResult<String>(IllegalStateException("Location header missing")).apply { 
+                    RemoteOperationResult<String>(IllegalStateException("Location header missing")).apply {
                         data = ""
                     }
                 }
@@ -147,14 +140,13 @@ class CreateTusUploadRemoteOperation(
                 Timber.w("TUS creation failed with status: %d", status)
                 RemoteOperationResult<String>(postMethod).apply { data = "" }
             }
-        } catch (e: Exception) {
-            val result = RemoteOperationResult<String>(e)
-            Timber.e(e, "TUS creation operation failed")
-            result
-        }
+    } catch (e: Exception) {
+        val result = RemoteOperationResult<String>(e)
+        Timber.e(e, "TUS creation operation failed")
+        result
     }
 
-    private fun isSuccess(status: Int) = 
+    private fun isSuccess(status: Int) =
         status.isOneOf(HttpConstants.HTTP_CREATED, HttpConstants.HTTP_OK)
 
     private fun encodeTusMetadata(metadata: Map<String, String>): String =
@@ -173,8 +165,7 @@ class CreateTusUploadRemoteOperation(
         }
     }
 
-    private fun String.ensureTrailingSlash(): String =
-        if (this.endsWith("/")) this else "$this/"
+
 
     private fun buildCollectionUrl(base: String, remotePath: String): String {
         val normalizedBase = base.trim().trimEnd('/')
@@ -194,5 +185,10 @@ class CreateTusUploadRemoteOperation(
         } else {
             "$normalizedBase/$parentSegment"
         }
+    }
+
+    companion object {
+        // Use 10MB for first chunk like the browser does
+        const val DEFAULT_FIRST_CHUNK = 10 * 1024 * 1024L // 10MB
     }
 }

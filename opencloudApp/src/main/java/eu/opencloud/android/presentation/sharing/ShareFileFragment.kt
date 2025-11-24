@@ -125,7 +125,8 @@ class ShareFileFragment : Fragment(), ShareUserListAdapter.ShareUserAdapterListe
                 R.string.share_via_link_default_name_template,
                 file?.fileName
             )
-            val defaultNameNumberedRegex = QUOTE_START + defaultName + QUOTE_END + DEFAULT_NAME_REGEX_SUFFIX
+            val defaultNameNumberedRegex =
+                QUOTE_START + defaultName + QUOTE_END + DEFAULT_NAME_REGEX_SUFFIX
             val usedNumbers = ArrayList<Int>()
             var isDefaultNameSet = false
             var number: String
@@ -217,7 +218,8 @@ class ShareFileFragment : Fragment(), ShareUserListAdapter.ShareUserAdapterListe
         _binding = ShareFileLayoutBinding.inflate(inflater, container, false)
         return binding.root.apply {
             // Allow or disallow touches with other visible windows
-            filterTouchesWhenObscured = PreferenceUtils.shouldDisallowTouchesWithOtherVisibleWindows(context)
+            filterTouchesWhenObscured =
+                PreferenceUtils.shouldDisallowTouchesWithOtherVisibleWindows(context)
         }
     }
 

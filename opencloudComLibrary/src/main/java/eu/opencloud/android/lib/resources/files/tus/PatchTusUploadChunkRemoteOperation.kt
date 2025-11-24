@@ -56,11 +56,12 @@ class PatchTusUploadChunkRemoteOperation(
                     return RemoteOperationResult<Long>(OperationCancelledException())
                 }
 
-                val method = when (httpMethodOverride?.uppercase(Locale.ROOT)) {
-                    "POST" -> PostMethod(URL(uploadUrl), body).apply {
+                val method = if (httpMethodOverride?.uppercase(Locale.ROOT) == "POST") {
+                    PostMethod(URL(uploadUrl), body).apply {
                         setRequestHeader(HttpConstants.X_HTTP_METHOD_OVERRIDE, "PATCH")
                     }
-                    else -> PatchMethod(URL(uploadUrl), body)
+                } else {
+                    PatchMethod(URL(uploadUrl), body)
                 }.apply {
                     setRequestHeader(HttpConstants.TUS_RESUMABLE, HttpConstants.TUS_RESUMABLE_VERSION_1_0_0)
                     setRequestHeader(HttpConstants.UPLOAD_OFFSET, offset.toString())
@@ -91,7 +92,9 @@ class PatchTusUploadChunkRemoteOperation(
         } catch (e: Exception) {
             val result = if (activeMethod?.isAborted == true) {
                 RemoteOperationResult<Long>(OperationCancelledException())
-            } else RemoteOperationResult<Long>(e)
+            } else {
+                RemoteOperationResult<Long>(e)
+            }
             Timber.e(result.exception, "Patch TUS upload chunk failed: ${result.logMessage}")
             result
         }

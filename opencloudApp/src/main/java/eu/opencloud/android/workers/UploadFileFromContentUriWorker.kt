@@ -116,13 +116,13 @@ class UploadFileFromContentUriWorker(
         uploadDocument(clientForThisUpload)
         updateUploadsDatabaseWithResult(null)
         Result.success()
-    } catch (throwable: Throwable) {
+    }catch (throwable: Throwable) {
         Timber.e(throwable)
 
         if (shouldRetry(throwable)) {
             Timber.i("Retrying upload %d after transient failure", uploadIdInStorageManager)
             Result.retry()
-        } else {
+        }else {
             showNotification(throwable)
             updateUploadsDatabaseWithResult(throwable)
             Result.failure()
@@ -172,7 +172,7 @@ class UploadFileFromContentUriWorker(
             if (it != null) {
                 Timber.d("Upload with id ($uploadIdInStorageManager) has been found in database.")
                 Timber.d("Upload info: $it")
-            } else {
+            }else {
                 Timber.w("Upload with id ($uploadIdInStorageManager) has not been found in database.")
                 Timber.w("$uploadPath won't be uploaded")
             }
@@ -313,7 +313,7 @@ class UploadFileFromContentUriWorker(
                     spaceWebDavUrl = spaceWebDavUrl,
                 )
                 true
-            } catch (throwable: Throwable) {
+            }catch (throwable: Throwable) {
                 Timber.w(throwable, "TUS upload failed, falling back to single PUT")
                 if (shouldRetry(throwable)) {
                     throw throwable
@@ -326,7 +326,7 @@ class UploadFileFromContentUriWorker(
                 Timber.d("TUS upload completed for %s", uploadPath)
                 return
             }
-        } else {
+        }else {
             Timber.d(
                 "Skipping TUS: file too small or unsupported (size=%d, threshold=%d, supportsTus=%s)",
                 fileSize,
@@ -417,7 +417,7 @@ class UploadFileFromContentUriWorker(
     private fun getUploadStatusForThrowable(throwable: Throwable?): TransferStatus =
         if (throwable == null) {
             TransferStatus.TRANSFER_SUCCEEDED
-        } else {
+        }else {
             TransferStatus.TRANSFER_FAILED
         }
 
@@ -430,7 +430,7 @@ class UploadFileFromContentUriWorker(
 
         val pendingIntent = if (needsToUpdateCredentials) {
             NotificationUtils.composePendingIntentToRefreshCredentials(appContext, account)
-        } else {
+        }else {
             NotificationUtils.composePendingIntentToUploadList(appContext)
         }
 
