@@ -38,8 +38,8 @@ class PatchTusUploadChunkRemoteOperation(
     private val dataTransferListeners: MutableSet<OnDatatransferProgressListener> = HashSet()
     private var activeMethod: HttpBaseMethod? = null
 
-    override fun run(client: OpenCloudClient): RemoteOperationResult<Long> =
-        try {
+    override fun run(client: OpenCloudClient): RemoteOperationResult<Long> {
+        return try {
             val file = File(localPath)
             RandomAccessFile(file, "r").use { raf ->
                 val channel: FileChannel = raf.channel

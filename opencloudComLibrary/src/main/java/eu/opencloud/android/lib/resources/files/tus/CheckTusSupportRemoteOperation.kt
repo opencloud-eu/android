@@ -18,7 +18,8 @@ class CheckTusSupportRemoteOperation(
     private val collectionUrlOverride: String? = null,
 ) : RemoteOperation<Boolean>() {
 
-    override fun run(client: OpenCloudClient): RemoteOperationResult<Boolean> = try {
+    override fun run(client: OpenCloudClient): RemoteOperationResult<Boolean> {
+        return try {
             val base = (collectionUrlOverride ?: client.userFilesWebDavUri.toString()).trim()
             val candidates = linkedSetOf(base, base.ensureTrailingSlash())
             var lastResult: RemoteOperationResult<Boolean>? = null
