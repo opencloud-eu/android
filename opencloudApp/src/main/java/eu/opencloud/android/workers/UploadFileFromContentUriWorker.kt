@@ -75,7 +75,7 @@ import timber.log.Timber
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
-import java.io.InputStream
+
 import kotlin.coroutines.cancellation.CancellationException
 
 class UploadFileFromContentUriWorker(
@@ -136,6 +136,7 @@ class UploadFileFromContentUriWorker(
             Result.failure()
         }
     }
+
 
     private fun prepareFile() {
         if (!areParametersValid()) return

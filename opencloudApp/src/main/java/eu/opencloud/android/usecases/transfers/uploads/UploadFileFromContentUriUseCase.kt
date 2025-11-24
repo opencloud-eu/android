@@ -78,7 +78,7 @@ class UploadFileFromContentUriUseCase(
 
         // Use unique work name based on upload ID to prevent concurrent uploads of same file
         val uniqueWorkName = "upload_content_uri_${params.uploadIdInStorageManager}"
-        
+
         val behavior = UploadBehavior.fromString(params.behavior)
         if (behavior == UploadBehavior.MOVE) {
             val removeSourceFileWorker = OneTimeWorkRequestBuilder<RemoveSourceFileWorker>()
