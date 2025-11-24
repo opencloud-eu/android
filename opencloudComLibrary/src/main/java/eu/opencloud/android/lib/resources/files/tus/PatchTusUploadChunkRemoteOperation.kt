@@ -38,8 +38,9 @@ class PatchTusUploadChunkRemoteOperation(
     private val dataTransferListeners: MutableSet<OnDatatransferProgressListener> = HashSet()
     private var activeMethod: HttpBaseMethod? = null
 
-    override fun run(client: OpenCloudClient): RemoteOperationResult<Long> =
-        try {
+    @Suppress("ExpressionBodySyntax")
+    override fun run(client: OpenCloudClient): RemoteOperationResult<Long> {
+        return try {
             val file = File(localPath)
             RandomAccessFile(file, "r").use { raf ->
                 val channel: FileChannel = raf.channel
@@ -98,6 +99,7 @@ class PatchTusUploadChunkRemoteOperation(
             Timber.e(result.exception, "Patch TUS upload chunk failed: ${result.logMessage}")
             result
         }
+    }
 
     fun addDataTransferProgressListener(listener: OnDatatransferProgressListener) {
         synchronized(dataTransferListeners) { dataTransferListeners.add(listener) }

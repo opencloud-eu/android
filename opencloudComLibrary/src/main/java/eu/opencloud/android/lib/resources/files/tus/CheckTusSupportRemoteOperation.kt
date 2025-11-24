@@ -18,7 +18,9 @@ class CheckTusSupportRemoteOperation(
     private val collectionUrlOverride: String? = null,
 ) : RemoteOperation<Boolean>() {
 
-    override fun run(client: OpenCloudClient): RemoteOperationResult<Boolean> = try {
+    @Suppress("ExpressionBodySyntax")
+    override fun run(client: OpenCloudClient): RemoteOperationResult<Boolean> {
+        return try {
             val base = (collectionUrlOverride ?: client.userFilesWebDavUri.toString()).trim()
             val candidates = linkedSetOf(base, base.ensureTrailingSlash())
             var lastResult: RemoteOperationResult<Boolean>? = null
@@ -56,6 +58,7 @@ class CheckTusSupportRemoteOperation(
             Timber.w(e, "TUS detection failed, assuming unsupported")
             result.apply { data = false }
         }
+    }
 
     private fun isSuccess(status: Int) =
         status.isOneOf(HttpConstants.HTTP_NO_CONTENT, HttpConstants.HTTP_OK)

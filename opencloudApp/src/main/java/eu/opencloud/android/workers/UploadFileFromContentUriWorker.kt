@@ -67,7 +67,6 @@ import eu.opencloud.android.utils.RemoteFileUtils.getAvailableRemotePath
 import eu.opencloud.android.utils.UPLOAD_NOTIFICATION_CHANNEL_ID
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
