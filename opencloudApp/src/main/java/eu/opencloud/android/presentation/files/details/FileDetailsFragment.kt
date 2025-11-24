@@ -22,6 +22,8 @@
 
 package eu.opencloud.android.presentation.files.details
 
+@Suppress("UnusedImports")
+
 import android.accounts.Account
 import android.content.Intent
 import android.graphics.Bitmap
@@ -439,7 +441,11 @@ class FileDetailsFragment : FileFragment() {
                         if (thumbnail == null) {
                             thumbnail = ThumbnailsCacheManager.mDefaultImg
                         }
-                        val asyncDrawable = ThumbnailsCacheManager.AsyncThumbnailDrawable(MainApp.appContext.resources, thumbnail, task)
+                        val asyncDrawable = ThumbnailsCacheManager.AsyncThumbnailDrawable(
+                            MainApp.appContext.resources,
+                            thumbnail,
+                            task
+                        )
                         imageView.setImageDrawable(asyncDrawable)
                         task.execute(ocFile)
                     }

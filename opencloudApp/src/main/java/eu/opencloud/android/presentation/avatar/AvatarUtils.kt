@@ -53,8 +53,8 @@ class AvatarUtils : KoinComponent {
     fun loadAvatarForAccount(
         imageView: ImageView,
         account: Account,
-        fetchIfNotCached: Boolean = false,
-        displayRadius: Float
+        @Suppress("UnusedParameter") fetchIfNotCached: Boolean = false,
+        @Suppress("UnusedParameter") displayRadius: Float
     ) {
         // Tech debt: Move this to a viewModel and use its viewModelScope instead
         CoroutineScope(Dispatchers.IO).launch {
@@ -76,8 +76,8 @@ class AvatarUtils : KoinComponent {
     fun loadAvatarForAccount(
         menuItem: MenuItem,
         account: Account,
-        fetchIfNotCached: Boolean = false,
-        displayRadius: Float
+        @Suppress("UnusedParameter") fetchIfNotCached: Boolean = false,
+        @Suppress("UnusedParameter") displayRadius: Float
     ) {
         CoroutineScope(Dispatchers.IO).launch {
             val drawable = avatarManager.getAvatarForAccount(
