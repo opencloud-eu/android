@@ -140,7 +140,6 @@ class TusUploadHelper(
             Timber.e("TUS: upload loop exited but offset=%d != fileSize=%d", offset, fileSize)
             throw java.io.IOException("TUS: upload incomplete - offset $offset does not match file size $fileSize")
         }
-        
         transferRepository.updateTusState(
             id = uploadId,
             tusUploadUrl = null,
@@ -313,11 +312,11 @@ class TusUploadHelper(
                 Timber.w("TUS: invalid recovered offset %d (total=%d)", newOffset, totalSize)
                 null
             }
+        } catch (e: java.io.IOException) {
+            Timber.w(e, "TUS: recover offset failed")
+            throw e
         } catch (recoverError: Throwable) {
             Timber.w(recoverError, "TUS: recover offset failed")
-            if (recoverError is java.io.IOException) {
-                throw recoverError
-            }
             null
         }
 
