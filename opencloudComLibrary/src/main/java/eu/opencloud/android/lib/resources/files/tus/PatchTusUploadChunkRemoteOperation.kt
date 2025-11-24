@@ -98,6 +98,7 @@ class PatchTusUploadChunkRemoteOperation(
             Timber.e(result.exception, "Patch TUS upload chunk failed: ${result.logMessage}")
             result
         }
+    }
 
     fun addDataTransferProgressListener(listener: OnDatatransferProgressListener) {
         synchronized(dataTransferListeners) { dataTransferListeners.add(listener) }
