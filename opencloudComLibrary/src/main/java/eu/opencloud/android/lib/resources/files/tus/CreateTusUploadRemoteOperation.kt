@@ -27,7 +27,7 @@ class CreateTusUploadRemoteOperation(
     private val metadata: Map<String, String>,
     private val useCreationWithUpload: Boolean,
     private val firstChunkSize: Long?,
-    private val tusUrl: String,
+    private val tusUrl: String?,
     private val collectionUrlOverride: String? = null,
 ) : RemoteOperation<String>() {
 

@@ -103,14 +103,17 @@ class TusIntegrationTest {
             metadata = mapOf("filename" to "test.bin"),
             useCreationWithUpload = false,
             firstChunkSize = null,
-            tusUrl = "",
+            tusUrl = null,
             collectionUrlOverride = server.url(collectionPath).toString(),
         )
         val createResult = create.execute(client)
-        assertTrue(createResult.isSuccess)
+        assertTrue("Create operation failed", createResult.isSuccess)
         val absoluteLocation = createResult.data
         assertNotNull(absoluteLocation)
-        assertTrue(absoluteLocation!!.endsWith(locationPath))
+        println("absoluteLocation: $absoluteLocation")
+        println("locationPath: $locationPath")
+        println("endsWith: ${absoluteLocation!!.endsWith(locationPath)}")
+        assertTrue(absoluteLocation.endsWith(locationPath))
 
         // Verify POST request headers
         val postReq = server.takeRequest()
