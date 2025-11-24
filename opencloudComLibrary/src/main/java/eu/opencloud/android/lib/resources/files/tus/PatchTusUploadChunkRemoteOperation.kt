@@ -40,6 +40,11 @@ class PatchTusUploadChunkRemoteOperation(
 
     @Suppress("ExpressionBodySyntax")
     override fun run(client: OpenCloudClient): RemoteOperationResult<Long> {
+        // Fast-path: if caller requested cancellation before execution, honour it without hitting the network.
+        if (cancellationRequested.get()) {
+            return RemoteOperationResult<Long>(ResultCode.CANCELLED)
+        }
+
         return try {
             val file = File(localPath)
             RandomAccessFile(file, "r").use { raf ->
