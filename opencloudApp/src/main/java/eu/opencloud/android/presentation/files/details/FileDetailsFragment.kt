@@ -22,8 +22,6 @@
 
 package eu.opencloud.android.presentation.files.details
 
-@Suppress("UnusedImports")
-
 import android.accounts.Account
 import android.content.Intent
 import android.graphics.Bitmap

@@ -51,6 +51,18 @@ import eu.opencloud.android.lib.common.network.OnDatatransferProgressListener
 import eu.opencloud.android.lib.common.operations.RemoteOperationResult.ResultCode
 import eu.opencloud.android.lib.resources.files.CheckPathExistenceRemoteOperation
 import eu.opencloud.android.lib.resources.files.CreateRemoteFolderOperation
+import eu.opencloud.android.presentation.authentication.AccountUtils
+import eu.opencloud.android.utils.NotificationUtils
+import eu.opencloud.android.utils.UPLOAD_NOTIFICATION_CHANNEL_ID
+import eu.opencloud.android.utils.RemoteFileUtils.getAvailableRemotePath
+import eu.opencloud.android.lib.resources.files.UploadFileFromFileSystemOperation
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
+import timber.log.Timber
+import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 
