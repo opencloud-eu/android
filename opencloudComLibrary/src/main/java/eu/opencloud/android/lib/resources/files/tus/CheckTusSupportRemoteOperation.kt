@@ -52,7 +52,7 @@ class CheckTusSupportRemoteOperation(
                 }
             }
 
-            lastResult ?: RemoteOperationResult<Boolean>(ResultCode.OK).apply { data = false }
+        lastResult ?: RemoteOperationResult<Boolean>(ResultCode.OK).apply { data = false }
         } catch (e: Exception) {
             val result = RemoteOperationResult<Boolean>(e)
             Timber.w(e, "TUS detection failed, assuming unsupported")

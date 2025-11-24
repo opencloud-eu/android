@@ -63,6 +63,9 @@ class TusIntegrationTest {
 
         val collectionPath = "/remote.php/dav/uploads/$userId"
         val locationPath = "$collectionPath/UPLD-123"
+        val localFile = File.createTempFile("tus", ".bin").apply {
+            writeBytes(byteArrayOf(1, 2, 3, 4, 5))
+        }
 
         // 1) POST Create -> 201 + Location
         server.enqueue(
@@ -93,7 +96,16 @@ class TusIntegrationTest {
         )
 
         // Create
-        val create = CreateTusUploadRemoteOperation(uploadLength = 5, deferLength = false, metadata = mapOf("filename" to "test.bin"))
+        val create = CreateTusUploadRemoteOperation(
+            file = localFile,
+            remotePath = "/test.bin",
+            mimetype = "application/octet-stream",
+            metadata = mapOf("filename" to "test.bin"),
+            useCreationWithUpload = false,
+            firstChunkSize = null,
+            tusUrl = "",
+            collectionUrlOverride = server.url(collectionPath).toString(),
+        )
         val createResult = create.execute(client)
         assertTrue(createResult.isSuccess)
         val absoluteLocation = createResult.data
@@ -108,13 +120,9 @@ class TusIntegrationTest {
         assertEquals("5", postReq.getHeader("Upload-Length"))
         assertEquals(collectionPath, postReq.path)
 
-        // Prepare local file of 5 bytes
-        val tmp = File.createTempFile("tus", ".bin")
-        tmp.writeBytes(byteArrayOf(1,2,3,4,5))
-
         // Patch
         val patch = PatchTusUploadChunkRemoteOperation(
-            localPath = tmp.absolutePath,
+            localPath = localFile.absolutePath,
             uploadUrl = absoluteLocation,
             offset = 0,
             chunkSize = 5

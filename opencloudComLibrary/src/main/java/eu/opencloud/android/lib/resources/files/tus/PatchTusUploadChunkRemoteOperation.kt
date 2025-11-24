@@ -53,10 +53,6 @@ class PatchTusUploadChunkRemoteOperation(
 
                 body.setOffset(offset)
 
-                if (cancellationRequested.get()) {
-                    return RemoteOperationResult<Long>(OperationCancelledException())
-                }
-
                 val method = if (httpMethodOverride?.uppercase(Locale.ROOT) == "POST") {
                     PostMethod(URL(uploadUrl), body).apply {
                         setRequestHeader(HttpConstants.X_HTTP_METHOD_OVERRIDE, "PATCH")
@@ -90,7 +86,7 @@ class PatchTusUploadChunkRemoteOperation(
                     RemoteOperationResult<Long>(method)
                 }
             }
-        } catch (e: Exception) {
+
             val result = if (activeMethod?.isAborted == true) {
                 RemoteOperationResult<Long>(OperationCancelledException())
             } else {
