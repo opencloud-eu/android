@@ -107,30 +107,22 @@ class UploadFileFromContentUriWorker(
     private val getWebdavUrlForSpaceUseCase: GetWebDavUrlForSpaceUseCase by inject()
     private val getStoredCapabilitiesUseCase: GetStoredCapabilitiesUseCase by inject()
 
-    private val foregroundJob = SupervisorJob()
-    private val foregroundScope = CoroutineScope(Dispatchers.Default + foregroundJob)
-    @Volatile
-    private var currentForegroundProgress = Int.MIN_VALUE
-    private var foregroundInitialized = false
+    override suspend fun doWork(): Result = try {
+        prepareFile()
+        startForeground()
+        val clientForThisUpload = getClientForThisUpload()
+        checkParentFolderExistence(clientForThisUpload)
+        checkNameCollisionAndGetAnAvailableOneInCase(clientForThisUpload)
+        uploadDocument(clientForThisUpload)
+        updateUploadsDatabaseWithResult(null)
+        Result.success()
+    } catch (throwable: Throwable) {
+        Timber.e(throwable)
 
-    override suspend fun doWork(): Result {
-        return try {
-            prepareFile()
-            startForeground()
-            val clientForThisUpload = getClientForThisUpload()
-            checkParentFolderExistence(clientForThisUpload)
-            checkNameCollisionAndGetAnAvailableOneInCase(clientForThisUpload)
-            uploadDocument(clientForThisUpload)
-            updateUploadsDatabaseWithResult(null)
-            Result.success()
-        } catch (throwable: Throwable) {
-            Timber.e(throwable)
-
-            if (shouldRetry(throwable)) {
-                Timber.i("Retrying upload %d after transient failure", uploadIdInStorageManager)
-                return Result.retry()
-            }
-
+        if (shouldRetry(throwable)) {
+            Timber.i("Retrying upload %d after transient failure", uploadIdInStorageManager)
+            Result.retry()
+        } else {
             showNotification(throwable)
             updateUploadsDatabaseWithResult(throwable)
             Result.failure()
