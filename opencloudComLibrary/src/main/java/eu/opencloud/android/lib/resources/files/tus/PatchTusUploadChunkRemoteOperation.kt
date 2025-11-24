@@ -86,7 +86,7 @@ class PatchTusUploadChunkRemoteOperation(
                     RemoteOperationResult<Long>(method)
                 }
             }
-
+        } catch (e: Exception) {
             val result = if (activeMethod?.isAborted == true) {
                 RemoteOperationResult<Long>(OperationCancelledException())
             } else {

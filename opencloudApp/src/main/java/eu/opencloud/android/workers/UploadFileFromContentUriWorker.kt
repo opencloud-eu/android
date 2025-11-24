@@ -102,6 +102,10 @@ class UploadFileFromContentUriWorker(
 
     private var lastPercent = -1
 
+    private var foregroundInitialized = false
+    private var currentForegroundProgress = -1
+    private val foregroundScope = CoroutineScope(Dispatchers.IO)
+
     private val transferRepository: TransferRepository by inject()
     private val getWebdavUrlForSpaceUseCase: GetWebDavUrlForSpaceUseCase by inject()
     private val getStoredCapabilitiesUseCase: GetStoredCapabilitiesUseCase by inject()
