@@ -6,7 +6,7 @@ import eu.opencloud.android.domain.transfers.TransferRepository
 import eu.opencloud.android.domain.transfers.model.OCTransfer
 import eu.opencloud.android.lib.common.OpenCloudClient
 import eu.opencloud.android.lib.common.network.OnDatatransferProgressListener
-import eu.opencloud.android.lib.common.network.WebdavUtils
+
 import eu.opencloud.android.lib.resources.files.chunks.ChunkedUploadFromFileSystemOperation
 import eu.opencloud.android.lib.resources.files.tus.CreateTusUploadRemoteOperation
 import eu.opencloud.android.lib.resources.files.tus.GetTusUploadOffsetRemoteOperation
@@ -71,7 +71,6 @@ class TusUploadHelper(
 
             val collectionUrl = resolveTusCollectionUrl(
                 client = client,
-                remotePath = remotePath,
                 spaceWebDavUrl = spaceWebDavUrl
             )
 
@@ -111,20 +110,61 @@ class TusUploadHelper(
 
         val resolvedTusUrl = tusUrl ?: throw IllegalStateException("TUS: missing upload URL for $remotePath")
 
-        var offset = runCatching {
+        var offset = try {
             executeRemoteOperation {
                 GetTusUploadOffsetRemoteOperation(resolvedTusUrl).execute(client)
             }
-        }.onFailure { throwable ->
-            Timber.w(throwable, "TUS: failed to fetch current offset")
-            if (throwable is java.io.IOException) {
-                throw throwable
-            }
-        }.getOrDefault(0L)
-            .coerceAtLeast(0L)
+        } catch (e: java.io.IOException) {
+            Timber.w(e, "TUS: failed to fetch current offset")
+            throw e
+        } catch (e: Throwable) {
+            Timber.w(e, "TUS: failed to fetch current offset")
+            0L
+        }.coerceAtLeast(0L)
         Timber.d("TUS: resume offset %d / %d", offset, fileSize)
         progressCallback?.invoke(offset, fileSize)
 
+        offset = performUploadLoop(
+            client = client,
+            resolvedTusUrl = resolvedTusUrl,
+            localPath = localPath,
+            fileSize = fileSize,
+            tusSupport = tusSupport,
+            progressListener = progressListener,
+            progressCallback = progressCallback,
+            initialOffset = offset
+        )
+
+        // Verify upload is actually complete
+        if (offset != fileSize) {
+            Timber.e("TUS: upload loop exited but offset=%d != fileSize=%d", offset, fileSize)
+            throw java.io.IOException("TUS: upload incomplete - offset $offset does not match file size $fileSize")
+        }
+        
+        transferRepository.updateTusState(
+            id = uploadId,
+            tusUploadUrl = null,
+            tusUploadLength = null,
+            tusUploadMetadata = null,
+            tusUploadChecksum = null,
+            tusResumableVersion = null,
+            tusUploadExpires = null,
+            tusUploadConcat = null,
+        )
+        Timber.i("TUS: upload completed for %s (size=%d)", remotePath, fileSize)
+    }
+
+    private fun performUploadLoop(
+        client: OpenCloudClient,
+        resolvedTusUrl: String,
+        localPath: String,
+        fileSize: Long,
+        tusSupport: OCCapability.TusSupport?,
+        progressListener: OnDatatransferProgressListener?,
+        progressCallback: ((Long, Long) -> Unit)?,
+        initialOffset: Long
+    ): Long {
+        var offset = initialOffset
         val serverMaxChunk = tusSupport?.maxChunkSize?.takeIf { it > 0 }?.toLong()
         val httpOverride = tusSupport?.httpMethodOverride
         var consecutiveFailures = 0
@@ -167,7 +207,7 @@ class TusUploadHelper(
                     totalSize = fileSize,
                     progressCallback = progressCallback,
                 )
-                
+
                 if (recoveredOffset != null && recoveredOffset > offset) {
                     // Server has progressed beyond our current offset, update and reset retry counter
                     Timber.d("TUS: server advanced from %d to %d, continuing", offset, recoveredOffset)
@@ -188,7 +228,7 @@ class TusUploadHelper(
                     // Recovery failed or returned invalid offset
                     Timber.w("TUS: offset recovery failed (recovered=%s, current=%d)", recoveredOffset, offset)
                 }
-                
+
                 // Check if we've exhausted retries
                 if (consecutiveFailures >= MAX_RETRIES) {
                     throw java.io.IOException(
@@ -196,7 +236,7 @@ class TusUploadHelper(
                         IllegalStateException("TUS: max retries exceeded")
                     )
                 }
-                
+
                 // Exponential backoff before retry
                 val delayMs = min(MAX_RETRY_DELAY_MS, BASE_RETRY_DELAY_MS shl (consecutiveFailures - 1))
                 try {
@@ -221,46 +261,28 @@ class TusUploadHelper(
                 Timber.e("TUS: server returned offset %d exceeds file size %d", newOffset, fileSize)
                 throw java.io.IOException("TUS: server offset $newOffset exceeds file size $fileSize")
             }
-            
+
             offset = newOffset
             progressCallback?.invoke(offset, fileSize)
             consecutiveFailures = 0
         }
-
-        // Verify upload is actually complete
-        if (offset != fileSize) {
-            Timber.e("TUS: upload loop exited but offset=%d != fileSize=%d", offset, fileSize)
-            throw java.io.IOException("TUS: upload incomplete - offset $offset does not match file size $fileSize")
-        }
-        
-        transferRepository.updateTusState(
-            id = uploadId,
-            tusUploadUrl = null,
-            tusUploadLength = null,
-            tusUploadMetadata = null,
-            tusUploadChecksum = null,
-            tusResumableVersion = null,
-            tusUploadExpires = null,
-            tusUploadConcat = null,
-        )
-        Timber.i("TUS: upload completed for %s (size=%d)", remotePath, fileSize)
+        return offset
     }
 
     private fun resolveTusCollectionUrl(
         client: OpenCloudClient,
-        remotePath: String,
         spaceWebDavUrl: String?,
     ): String {
         // For OpenCloud, TUS works on the WebDAV space endpoint
         // Use the space WebDAV URL if available, otherwise fall back to user files
         val base = (spaceWebDavUrl?.takeIf { it.isNotBlank() }
             ?: client.userFilesWebDavUri.toString()).trim()
-        
+
         // Use the space root directly for TUS (no trailing slash for OpenCloud)
         val normalizedBase = base.trimEnd('/')
-        
+
         Timber.d("TUS: using collection endpoint: %s", normalizedBase)
-        
+
         return normalizedBase
     }
 
@@ -270,8 +292,7 @@ class TusUploadHelper(
         currentOffset: Long,
         totalSize: Long,
         progressCallback: ((Long, Long) -> Unit)?,
-    ): Long? {
-        return try {
+    ): Long? = try {
             val newOffset = executeRemoteOperation {
                 GetTusUploadOffsetRemoteOperation(tusUrl).execute(client)
             }
@@ -299,7 +320,7 @@ class TusUploadHelper(
             }
             null
         }
-    }
+
 
     companion object {
         const val DEFAULT_CHUNK_SIZE = ChunkedUploadFromFileSystemOperation.CHUNK_SIZE

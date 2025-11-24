@@ -70,7 +70,7 @@ class UploadFileFromSystemUseCase(
 
         // Use unique work name based on upload ID to prevent concurrent uploads of same file
         val uniqueWorkName = "upload_file_system_${params.uploadIdInStorageManager}"
-        
+
         val behavior = UploadBehavior.fromString(params.behavior)
         if (behavior == UploadBehavior.MOVE && params.sourcePath != null) {
             val removeSourceFileWorker = OneTimeWorkRequestBuilder<RemoveSourceFileWorker>()
