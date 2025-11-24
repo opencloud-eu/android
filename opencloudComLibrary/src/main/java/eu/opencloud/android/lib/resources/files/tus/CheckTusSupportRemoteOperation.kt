@@ -18,46 +18,46 @@ class CheckTusSupportRemoteOperation(
     private val collectionUrlOverride: String? = null,
 ) : RemoteOperation<Boolean>() {
 
-    override fun run(client: OpenCloudClient): RemoteOperationResult<Boolean> {
-        return try {
-            val base = (collectionUrlOverride ?: client.userFilesWebDavUri.toString()).trim()
-            val candidates = linkedSetOf(base, base.ensureTrailingSlash())
-            var lastResult: RemoteOperationResult<Boolean>? = null
+    override fun run(client: OpenCloudClient): RemoteOperationResult<Boolean> = try {
+        val base = (collectionUrlOverride ?: client.userFilesWebDavUri.toString()).trim()
+        val candidates = linkedSetOf(base, base.ensureTrailingSlash())
+        var lastResult: RemoteOperationResult<Boolean>? = null
+        var foundSupported = false
 
-            for (endpoint in candidates) {
-                val options = OptionsMethod(URL(endpoint)).apply {
-                    setRequestHeader(HttpConstants.TUS_RESUMABLE, HttpConstants.TUS_RESUMABLE_VERSION_1_0_0)
-                }
-                val status = client.executeHttpMethod(options)
-                Timber.d("TUS OPTIONS %s - %d", endpoint, status)
-                if (isSuccess(status)) {
-                    val version = options.getResponseHeader(HttpConstants.TUS_VERSION) ?: ""
-                    val extensions = options.getResponseHeader(HttpConstants.TUS_EXTENSION) ?: ""
-                    val versionSupported = version.split(',').any { it.trim() == HttpConstants.TUS_RESUMABLE_VERSION_1_0_0 }
-                    val creationSupported = extensions.split(',')
-                        .map { it.trim().lowercase() }
-                        .any { it == "creation" || it == "creation-with-upload" }
+        for (endpoint in candidates) {
+            if (foundSupported) break
 
-                    Timber.d("TUS supported (headers) at %s: version=%s extensions=%s", endpoint, version, extensions)
-
-                    val supported = versionSupported && creationSupported
-                    val result = RemoteOperationResult<Boolean>(ResultCode.OK).apply { data = supported }
-                    if (supported) {
-                        return result
-                    }
-                    lastResult = result
-                } else if (status != 0) {
-                    lastResult = RemoteOperationResult<Boolean>(options).apply { data = false }
-                }
+            val options = OptionsMethod(URL(endpoint)).apply {
+                setRequestHeader(HttpConstants.TUS_RESUMABLE, HttpConstants.TUS_RESUMABLE_VERSION_1_0_0)
             }
+            val status = client.executeHttpMethod(options)
+            Timber.d("TUS OPTIONS %s - %d", endpoint, status)
+            if (isSuccess(status)) {
+                val version = options.getResponseHeader(HttpConstants.TUS_VERSION) ?: ""
+                val extensions = options.getResponseHeader(HttpConstants.TUS_EXTENSION) ?: ""
+                val versionSupported = version.split(',').any { it.trim() == HttpConstants.TUS_RESUMABLE_VERSION_1_0_0 }
+                val creationSupported = extensions.split(',')
+                    .map { it.trim().lowercase() }
+                    .any { it == "creation" || it == "creation-with-upload" }
 
-            lastResult ?: RemoteOperationResult<Boolean>(ResultCode.OK).apply { data = false }
+                Timber.d("TUS supported (headers) at %s: version=%s extensions=%s", endpoint, version, extensions)
+
+                val supported = versionSupported && creationSupported
+                lastResult = RemoteOperationResult<Boolean>(ResultCode.OK).apply { data = supported }
+                if (supported) {
+                    foundSupported = true
+                }
+            } else if (status != 0) {
+                lastResult = RemoteOperationResult<Boolean>(options).apply { data = false }
+            }
+        }
+
+        lastResult ?: RemoteOperationResult<Boolean>(ResultCode.OK).apply { data = false }
         } catch (e: Exception) {
             val result = RemoteOperationResult<Boolean>(e)
             Timber.w(e, "TUS detection failed, assuming unsupported")
             result.apply { data = false }
         }
-    }
 
     private fun isSuccess(status: Int) =
         status.isOneOf(HttpConstants.HTTP_NO_CONTENT, HttpConstants.HTTP_OK)

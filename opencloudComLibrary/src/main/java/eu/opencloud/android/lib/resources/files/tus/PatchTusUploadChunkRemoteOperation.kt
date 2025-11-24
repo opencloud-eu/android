@@ -38,9 +38,11 @@ class PatchTusUploadChunkRemoteOperation(
     private val dataTransferListeners: MutableSet<OnDatatransferProgressListener> = HashSet()
     private var activeMethod: HttpBaseMethod? = null
 
-    override fun run(client: OpenCloudClient): RemoteOperationResult<Long> {
-        return try {
-            val file = File(localPath)
+    override fun run(client: OpenCloudClient): RemoteOperationResult<Long> = try {
+        val file = File(localPath)
+        if (cancellationRequested.get()) {
+            RemoteOperationResult<Long>(OperationCancelledException())
+        } else {
             RandomAccessFile(file, "r").use { raf ->
                 val channel: FileChannel = raf.channel
                 val body = ChunkFromFileRequestBody(
@@ -51,10 +53,6 @@ class PatchTusUploadChunkRemoteOperation(
                 ).also { synchronized(dataTransferListeners) { it.addDatatransferProgressListeners(dataTransferListeners) } }
 
                 body.setOffset(offset)
-
-                if (cancellationRequested.get()) {
-                    return RemoteOperationResult<Long>(OperationCancelledException())
-                }
 
                 val method = if (httpMethodOverride?.uppercase(Locale.ROOT) == "POST") {
                     PostMethod(URL(uploadUrl), body).apply {
@@ -89,6 +87,7 @@ class PatchTusUploadChunkRemoteOperation(
                     RemoteOperationResult<Long>(method)
                 }
             }
+        }
         } catch (e: Exception) {
             val result = if (activeMethod?.isAborted == true) {
                 RemoteOperationResult<Long>(OperationCancelledException())
@@ -98,7 +97,6 @@ class PatchTusUploadChunkRemoteOperation(
             Timber.e(result.exception, "Patch TUS upload chunk failed: ${result.logMessage}")
             result
         }
-    }
 
     fun addDataTransferProgressListener(listener: OnDatatransferProgressListener) {
         synchronized(dataTransferListeners) { dataTransferListeners.add(listener) }

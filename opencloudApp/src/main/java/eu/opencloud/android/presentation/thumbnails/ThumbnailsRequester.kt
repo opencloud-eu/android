@@ -20,8 +20,6 @@
 
 package eu.opencloud.android.presentation.thumbnails
 
-@Suppress("UnusedImports")
-
 import android.accounts.Account
 import android.net.Uri
 import coil.ImageLoader
