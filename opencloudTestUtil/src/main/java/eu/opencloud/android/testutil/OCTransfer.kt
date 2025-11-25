@@ -24,18 +24,19 @@ import eu.opencloud.android.domain.automaticuploads.model.UploadBehavior
 import eu.opencloud.android.domain.transfers.model.OCTransfer
 import eu.opencloud.android.domain.transfers.model.TransferStatus
 import eu.opencloud.android.domain.transfers.model.UploadEnqueuedBy
+import java.io.File
 
 val OC_TRANSFER = OCTransfer(
     id = 0L,
-    localPath = "/local/path",
-    remotePath = "/remote/path",
+    localPath = "${File.separator}local${File.separator}path",
+    remotePath = "${File.separator}remote${File.separator}path",
     accountName = OC_ACCOUNT_NAME,
     fileSize = 1024L,
     status = TransferStatus.TRANSFER_IN_PROGRESS,
     localBehaviour = UploadBehavior.MOVE,
     forceOverwrite = true,
     createdBy = UploadEnqueuedBy.ENQUEUED_BY_USER,
-    sourcePath = "/source/path",
+    sourcePath = "${File.separator}source${File.separator}path",
 )
 
 val OC_FINISHED_TRANSFER = OC_TRANSFER.copy(

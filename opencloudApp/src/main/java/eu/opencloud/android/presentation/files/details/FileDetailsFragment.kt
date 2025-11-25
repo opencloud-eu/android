@@ -439,7 +439,11 @@ class FileDetailsFragment : FileFragment() {
                         if (thumbnail == null) {
                             thumbnail = ThumbnailsCacheManager.mDefaultImg
                         }
-                        val asyncDrawable = ThumbnailsCacheManager.AsyncThumbnailDrawable(MainApp.appContext.resources, thumbnail, task)
+                        val asyncDrawable = ThumbnailsCacheManager.AsyncThumbnailDrawable(
+                            MainApp.appContext.resources,
+                            thumbnail,
+                            task
+                        )
                         imageView.setImageDrawable(asyncDrawable)
                         task.execute(ocFile)
                     }

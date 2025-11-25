@@ -9,6 +9,7 @@ import eu.opencloud.android.lib.common.OpenCloudClient
 import eu.opencloud.android.lib.common.accounts.AccountUtils
 import eu.opencloud.android.lib.common.authentication.OpenCloudCredentialsFactory
 import eu.opencloud.android.lib.common.operations.RemoteOperationResult
+import eu.opencloud.android.lib.resources.files.tus.CreateTusUploadRemoteOperation.Base64Encoder
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.After
@@ -18,6 +19,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import java.io.File
+import java.util.Base64
 
 @RunWith(RobolectricTestRunner::class)
 class TusIntegrationTest {
@@ -63,6 +65,9 @@ class TusIntegrationTest {
 
         val collectionPath = "/remote.php/dav/uploads/$userId"
         val locationPath = "$collectionPath/UPLD-123"
+        val localFile = File.createTempFile("tus", ".bin").apply {
+            writeBytes(byteArrayOf(1, 2, 3, 4, 5))
+        }
 
         // 1) POST Create -> 201 + Location
         server.enqueue(
@@ -93,12 +98,33 @@ class TusIntegrationTest {
         )
 
         // Create
-        val create = CreateTusUploadRemoteOperation(uploadLength = 5, deferLength = false, metadata = mapOf("filename" to "test.bin"))
+        val create = CreateTusUploadRemoteOperation(
+            file = localFile,
+            remotePath = "/test.bin",
+            mimetype = "application/octet-stream",
+            metadata = mapOf("filename" to "test.bin"),
+            useCreationWithUpload = false,
+            firstChunkSize = null,
+            tusUrl = null,
+            collectionUrlOverride = server.url(collectionPath).toString(),
+            base64Encoder = object : Base64Encoder {
+                override fun encode(bytes: ByteArray): String =
+                    Base64.getEncoder().encodeToString(bytes)
+            }
+        )
         val createResult = create.execute(client)
-        assertTrue(createResult.isSuccess)
+        if (!createResult.isSuccess) {
+            val msg = "DEBUG: Create operation failed. Code: ${createResult.code}, " +
+                "HttpCode: ${createResult.httpCode}, Exception: ${createResult.exception}"
+            throw RuntimeException(msg, createResult.exception)
+        }
+        assertTrue("Create operation failed", createResult.isSuccess)
         val absoluteLocation = createResult.data
         assertNotNull(absoluteLocation)
-        assertTrue(absoluteLocation!!.endsWith(locationPath))
+        println("absoluteLocation: $absoluteLocation")
+        println("locationPath: $locationPath")
+        println("endsWith: ${absoluteLocation!!.endsWith(locationPath)}")
+        assertTrue(absoluteLocation.endsWith(locationPath))
 
         // Verify POST request headers
         val postReq = server.takeRequest()
@@ -108,13 +134,9 @@ class TusIntegrationTest {
         assertEquals("5", postReq.getHeader("Upload-Length"))
         assertEquals(collectionPath, postReq.path)
 
-        // Prepare local file of 5 bytes
-        val tmp = File.createTempFile("tus", ".bin")
-        tmp.writeBytes(byteArrayOf(1,2,3,4,5))
-
         // Patch
         val patch = PatchTusUploadChunkRemoteOperation(
-            localPath = tmp.absolutePath,
+            localPath = localFile.absolutePath,
             uploadUrl = absoluteLocation,
             offset = 0,
             chunkSize = 5

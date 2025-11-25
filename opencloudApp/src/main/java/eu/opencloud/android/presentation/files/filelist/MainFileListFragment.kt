@@ -272,9 +272,12 @@ class MainFileListFragment : Fragment(),
                         "${getString(R.string.actionbar_select_inverse)} $roleAccessibilityDescription"
                     findItem(R.id.action_open_file_with)?.contentDescription =
                         "${getString(R.string.actionbar_open_with)} $roleAccessibilityDescription"
-                    findItem(R.id.action_rename_file)?.contentDescription = "${getString(R.string.common_rename)} $roleAccessibilityDescription"
-                    findItem(R.id.action_move)?.contentDescription = "${getString(R.string.actionbar_move)} $roleAccessibilityDescription"
-                    findItem(R.id.action_copy)?.contentDescription = "${getString(R.string.copy)} $roleAccessibilityDescription"
+                    findItem(R.id.action_rename_file)?.contentDescription =
+                        "${getString(R.string.common_rename)} $roleAccessibilityDescription"
+                    findItem(R.id.action_move)?.contentDescription =
+                        "${getString(R.string.actionbar_move)} $roleAccessibilityDescription"
+                    findItem(R.id.action_copy)?.contentDescription =
+                        "${getString(R.string.copy)} $roleAccessibilityDescription"
                     findItem(R.id.action_send_file)?.contentDescription =
                         "${getString(R.string.actionbar_send_file)} $roleAccessibilityDescription"
                     findItem(R.id.action_set_available_offline)?.contentDescription =
@@ -283,7 +286,8 @@ class MainFileListFragment : Fragment(),
                         "${getString(R.string.unset_available_offline)} $roleAccessibilityDescription"
                     findItem(R.id.action_see_details)?.contentDescription =
                         "${getString(R.string.actionbar_see_details)} $roleAccessibilityDescription"
-                    findItem(R.id.action_remove_file)?.contentDescription = "${getString(R.string.common_remove)} $roleAccessibilityDescription"
+                    findItem(R.id.action_remove_file)?.contentDescription =
+                        "${getString(R.string.common_remove)} $roleAccessibilityDescription"
                 }
             }
         }
@@ -368,7 +372,10 @@ class MainFileListFragment : Fragment(),
         // Set view and footer correctly
         if (mainFileListViewModel.isGridModeSetAsPreferred()) {
             layoutManager =
-                StaggeredGridLayoutManager(ColumnQuantity(requireContext(), R.layout.grid_item).calculateNoOfColumns(), RecyclerView.VERTICAL)
+                StaggeredGridLayoutManager(
+                    ColumnQuantity(requireContext(), R.layout.grid_item).calculateNoOfColumns(),
+                    RecyclerView.VERTICAL
+                )
             viewType = ViewType.VIEW_TYPE_GRID
         } else {
             layoutManager = StaggeredGridLayoutManager(1, RecyclerView.VERTICAL)
@@ -494,7 +501,9 @@ class MainFileListFragment : Fragment(),
             fileActions?.onCurrentFolderUpdated(currentFolderDisplayed, mainFileListViewModel.getSpace())
             val fileListOption = mainFileListViewModel.fileListOption.value
             val refreshFolderNeeded = fileListOption.isAllFiles() ||
-                    (!fileListOption.isAllFiles() && currentFolderDisplayed.remotePath != ROOT_PATH && !fileListOption.isAvailableOffline())
+                    (!fileListOption.isAllFiles() &&
+                            currentFolderDisplayed.remotePath != ROOT_PATH &&
+                            !fileListOption.isAvailableOffline())
             if (refreshFolderNeeded) {
                 fileOperationsViewModel.performOperation(
                     FileOperation.RefreshFolderOperation(
@@ -543,7 +552,8 @@ class MainFileListFragment : Fragment(),
                     // Mimetypes not supported via open in web, send 500
                     if (uiResult.error is InstanceNotConfiguredException) {
                         val message =
-                            getString(R.string.open_in_web_error_generic) + " " + getString(R.string.error_reason) +
+                            getString(R.string.open_in_web_error_generic) + " " +
+                                    getString(R.string.error_reason) +
                                     " " + getString(R.string.open_in_web_error_not_supported)
                         this.showMessageInSnackbar(message, Snackbar.LENGTH_LONG)
                     } else if (uiResult.error is TooEarlyException) {
@@ -602,19 +612,27 @@ class MainFileListFragment : Fragment(),
                     thumbnailBottomSheet.setImageResource(R.drawable.ic_menu_archive)
                 } else {
                     // Set file icon depending on its mimetype. Ask for thumbnail later.
-                    thumbnailBottomSheet.setImageResource(MimetypeIconUtil.getFileTypeIconId(file.mimeType, file.fileName))
+                    thumbnailBottomSheet.setImageResource(
+                        MimetypeIconUtil.getFileTypeIconId(file.mimeType, file.fileName)
+                    )
                     if (file.remoteId != null) {
                         val thumbnail = ThumbnailsCacheManager.getBitmapFromDiskCache(file.remoteId)
                         if (thumbnail != null) {
                             thumbnailBottomSheet.setImageBitmap(thumbnail)
                         }
-                        if (file.needsToUpdateThumbnail && ThumbnailsCacheManager.cancelPotentialThumbnailWork(file, thumbnailBottomSheet)) {
+                        if (file.needsToUpdateThumbnail &&
+                            ThumbnailsCacheManager.cancelPotentialThumbnailWork(file, thumbnailBottomSheet)
+                        ) {
                             // generate new Thumbnail
                             val task = ThumbnailsCacheManager.ThumbnailGenerationTask(
                                 thumbnailBottomSheet,
                                 AccountUtils.getCurrentOpenCloudAccount(requireContext())
                             )
-                            val asyncDrawable = ThumbnailsCacheManager.AsyncThumbnailDrawable(resources, thumbnail, task)
+                            val asyncDrawable = ThumbnailsCacheManager.AsyncThumbnailDrawable(
+                                resources,
+                                thumbnail,
+                                task
+                            )
 
                             // If drawable is not visible, do not update it.
                             if (asyncDrawable.minimumHeight > 0 && asyncDrawable.minimumWidth > 0) {
@@ -624,7 +642,9 @@ class MainFileListFragment : Fragment(),
                         }
 
                         if (file.mimeType == "image/png") {
-                            thumbnailBottomSheet.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.background_color))
+                            thumbnailBottomSheet.setBackgroundColor(
+                                ContextCompat.getColor(requireContext(), R.color.background_color)
+                            )
                         }
                     }
                 }

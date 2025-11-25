@@ -128,8 +128,14 @@ public class OpenCloudClient extends HttpClient {
             // Header to allow tracing requests in apache and openCloud logs
             Timber.d("Executing in request with id %s", requestId);
             method.setRequestHeader(HttpConstants.OC_X_REQUEST_ID, requestId);
-            method.setRequestHeader(HttpConstants.USER_AGENT_HEADER, SingleSessionManager.getUserAgent());
-            method.setRequestHeader(HttpConstants.ACCEPT_LANGUAGE_HEADER, Locale.getDefault().getLanguage());
+            String userAgent = SingleSessionManager.getUserAgent();
+            if (userAgent != null && !userAgent.isEmpty()) {
+                method.setRequestHeader(HttpConstants.USER_AGENT_HEADER, userAgent);
+            }
+            String language = Locale.getDefault().getLanguage();
+            if (language != null && !language.isEmpty()) {
+                method.setRequestHeader(HttpConstants.ACCEPT_LANGUAGE_HEADER, language);
+            }
             method.setRequestHeader(HttpConstants.ACCEPT_ENCODING_HEADER, HttpConstants.ACCEPT_ENCODING_IDENTITY);
             if (mCredentials.getHeaderAuth() != null && !mCredentials.getHeaderAuth().isEmpty()) {
                 method.setRequestHeader(AUTHORIZATION_HEADER, mCredentials.getHeaderAuth());

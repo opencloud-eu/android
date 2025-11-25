@@ -24,7 +24,6 @@
 
 package eu.opencloud.android.lib.resources.files
 
-import android.net.Uri
 import android.os.Parcelable
 import androidx.annotation.VisibleForTesting
 import at.bitfire.dav4jvm.PropStat
@@ -39,7 +38,6 @@ import at.bitfire.dav4jvm.property.OCId
 import at.bitfire.dav4jvm.property.OCPermissions
 import at.bitfire.dav4jvm.property.OCPrivatelink
 import at.bitfire.dav4jvm.property.OCSize
-import eu.opencloud.android.lib.common.OpenCloudClient
 import eu.opencloud.android.lib.common.http.HttpConstants
 import eu.opencloud.android.lib.common.http.methods.webdav.properties.OCShareTypes
 import eu.opencloud.android.lib.common.utils.isOneOf
@@ -48,7 +46,8 @@ import eu.opencloud.android.lib.resources.shares.ShareType.Companion.fromValue
 import kotlinx.parcelize.Parcelize
 import okhttp3.HttpUrl
 import timber.log.Timber
-import java.io.File
+import java.net.URLDecoder
+import java.nio.charset.StandardCharsets
 
 /**
  * Contains the data of a Remote File from a WebDavEntry
@@ -77,11 +76,11 @@ data class RemoteFile(
 ) : Parcelable {
 
     // To do: Quotas not used. Use or remove them.
-    init {
-        require(
-            !(remotePath.isEmpty() || !remotePath.startsWith(File.separator))
-        ) { "Trying to create a OCFile with a non valid remote path: $remotePath" }
-    }
+    // init {
+    //   require(
+    //       !(remotePath.isEmpty() || !remotePath.startsWith("/"))
+    //   ) { "Trying to create a OCFile with a non valid remote path: $remotePath" }
+    // }
 
     /**
      * Use this to find out if this file is a folder.
@@ -176,8 +175,12 @@ data class RemoteFile(
             userId: String,
             spaceWebDavUrl: String? = null,
         ): String {
-            val davFilesPath = spaceWebDavUrl ?: (OpenCloudClient.WEBDAV_FILES_PATH_4_0 + userId)
-            val absoluteDavPath = if (spaceWebDavUrl != null) Uri.decode(url.toString()) else Uri.decode(url.encodedPath)
+            val davFilesPath = spaceWebDavUrl ?: ("/remote.php/dav/files/" + userId)
+            val absoluteDavPath = if (spaceWebDavUrl != null) {
+                URLDecoder.decode(url.toString(), StandardCharsets.UTF_8.name())
+            } else {
+                URLDecoder.decode(url.encodedPath, StandardCharsets.UTF_8.name())
+            }
             val pathToOc = absoluteDavPath.split(davFilesPath).first()
             return absoluteDavPath.replace(pathToOc + davFilesPath, "")
         }

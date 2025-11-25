@@ -85,19 +85,17 @@ object ThumbnailsRequester : KoinComponent {
             .build()
     }
 
-    fun getPreviewUriForSpaceSpecial(spaceSpecial: SpaceSpecial): String {
-        // Converts dp to pixel
-        val spacesThumbnailSize = appContext.resources.getDimension(R.dimen.spaces_thumbnail_height).roundToInt()
-        return String.format(
+    fun getPreviewUriForSpaceSpecial(spaceSpecial: SpaceSpecial): String =
+        String.format(
             Locale.ROOT,
             SPACE_SPECIAL_PREVIEW_URI,
             spaceSpecial.webDavUrl,
-            spacesThumbnailSize,
-            spacesThumbnailSize,
+            appContext.resources.getDimension(R.dimen.spaces_thumbnail_height).roundToInt(),
+            appContext.resources.getDimension(R.dimen.spaces_thumbnail_height).roundToInt(),
             spaceSpecial.eTag
         )
-    }
 
+    @Suppress("ExpressionBodySyntax")
     fun getPreviewUriForFile(ocFile: OCFileWithSyncInfo, account: Account): String {
         var baseUrl = getOpenCloudClient().baseUri.toString() + "/remote.php/dav/files/" + account.name.split("@".toRegex())
             .dropLastWhile { it.isEmpty() }

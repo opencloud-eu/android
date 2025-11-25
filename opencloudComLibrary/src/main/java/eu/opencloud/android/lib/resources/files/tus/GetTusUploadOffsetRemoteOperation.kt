@@ -30,9 +30,14 @@ class GetTusUploadOffsetRemoteOperation(
             if (isSuccess(status)) {
                 val offsetHeader = headMethod.getResponseHeader(HttpConstants.UPLOAD_OFFSET)
                 val offset = offsetHeader?.toLongOrNull()
-                if (offset != null) RemoteOperationResult<Long>(ResultCode.OK).apply { data = offset }
-                else RemoteOperationResult<Long>(headMethod).apply { data = -1L }
-            } else RemoteOperationResult<Long>(headMethod).apply { data = -1L }
+                if (offset != null) {
+                    RemoteOperationResult<Long>(ResultCode.OK).apply { data = offset }
+                } else {
+                    RemoteOperationResult<Long>(headMethod).apply { data = -1L }
+                }
+            } else {
+                RemoteOperationResult<Long>(headMethod).apply { data = -1L }
+            }
         } catch (e: Exception) {
             val result = RemoteOperationResult<Long>(e)
             Timber.e(e, "Get TUS upload offset failed")
