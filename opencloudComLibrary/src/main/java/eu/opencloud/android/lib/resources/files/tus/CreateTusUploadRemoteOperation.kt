@@ -30,7 +30,12 @@ class CreateTusUploadRemoteOperation(
     private val tusUrl: String?,
     private val collectionUrlOverride: String? = null,
     private val base64Encoder: Base64Encoder = DefaultBase64Encoder()
-) : RemoteOperation<String>() {
+) : RemoteOperation<CreateTusUploadRemoteOperation.CreationResult>() {
+
+    data class CreationResult(
+        val uploadUrl: String,
+        val uploadOffset: Long
+    )
 
     interface Base64Encoder {
         fun encode(bytes: ByteArray): String
@@ -41,7 +46,7 @@ class CreateTusUploadRemoteOperation(
             Base64.encodeToString(bytes, Base64.NO_WRAP)
     }
 
-    override fun run(client: OpenCloudClient): RemoteOperationResult<String> = try {
+    override fun run(client: OpenCloudClient): RemoteOperationResult<CreationResult> = try {
         // Determine TUS endpoint URL based on provided parameters
         val targetFileUrl = if (!tusUrl.isNullOrBlank()) {
             tusUrl
@@ -135,21 +140,26 @@ class CreateTusUploadRemoteOperation(
                 val base = URL(postMethod.getFinalUrl().toString())
                 val resolved = resolveLocationToAbsolute(locationHeader, base)
 
+                val offsetHeader = postMethod.getResponseHeader(HttpConstants.UPLOAD_OFFSET)
+                val offset = offsetHeader?.toLongOrNull() ?: 0L
+
                 if (resolved != null) {
-                    Timber.d("TUS upload resource created: %s", resolved)
-                    RemoteOperationResult<String>(ResultCode.OK).apply { data = resolved }
+                    Timber.d("TUS upload resource created: %s (offset=%d)", resolved, offset)
+                    RemoteOperationResult<CreationResult>(ResultCode.OK).apply {
+                        data = CreationResult(resolved, offset)
+                    }
                 } else {
                     Timber.e("Location header is missing in TUS creation response")
-                    RemoteOperationResult<String>(IllegalStateException("Location header missing")).apply {
-                        data = ""
+                    RemoteOperationResult<CreationResult>(IllegalStateException("Location header missing")).apply {
+                        data = null
                     }
                 }
             } else {
                 Timber.w("TUS creation failed with status: %d", status)
-                RemoteOperationResult<String>(postMethod).apply { data = "" }
+                RemoteOperationResult<CreationResult>(postMethod).apply { data = null }
             }
     } catch (e: Exception) {
-        val result = RemoteOperationResult<String>(e)
+        val result = RemoteOperationResult<CreationResult>(e)
         Timber.e(e, "TUS creation operation failed")
         result
     }

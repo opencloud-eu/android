@@ -119,12 +119,16 @@ class TusIntegrationTest {
             throw RuntimeException(msg, createResult.exception)
         }
         assertTrue("Create operation failed", createResult.isSuccess)
-        val absoluteLocation = createResult.data
-        assertNotNull(absoluteLocation)
+        val creationResult = createResult.data
+        assertNotNull(creationResult)
+        val absoluteLocation = creationResult!!.uploadUrl
+        val offset = creationResult.uploadOffset
+        
         println("absoluteLocation: $absoluteLocation")
         println("locationPath: $locationPath")
-        println("endsWith: ${absoluteLocation!!.endsWith(locationPath)}")
+        println("endsWith: ${absoluteLocation.endsWith(locationPath)}")
         assertTrue(absoluteLocation.endsWith(locationPath))
+        assertEquals(0L, offset)
 
         // Verify POST request headers
         val postReq = server.takeRequest()

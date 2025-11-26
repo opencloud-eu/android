@@ -45,6 +45,7 @@ class TusUploadHelper(
 
         var tusUrl = transfer.tusUploadUrl
         val checksumHex = transfer.tusUploadChecksum?.substringAfter("sha256:")
+        var createdOffset: Long? = null
 
         if (tusUrl.isNullOrBlank()) {
             val fileName = File(remotePath).name
@@ -69,24 +70,13 @@ class TusUploadHelper(
 
             // Use creation-with-upload like the browser does for OpenCloud compatibility
             val firstChunkSize = minOf(CreateTusUploadRemoteOperation.DEFAULT_FIRST_CHUNK, fileSize)
-            val createdLocation = executeRemoteOperation {
+            val creationResult = executeRemoteOperation {
                 CreateTusUploadRemoteOperation(
                     file = File(localPath),
                     remotePath = remotePath,
                     mimetype = mimeType,
                     metadata = metadata,
                     useCreationWithUpload = true,
-                    firstChunkSize = firstChunkSize,
-                    tusUrl = "",
-                    collectionUrlOverride = collectionUrl,
-                ).execute(client)
-            }
-
-            if (createdLocation.isNullOrBlank()) {
-                throw IllegalStateException("TUS: unable to create upload resource for $remotePath")
-            }
-
-            tusUrl = createdLocation
             val metadataString = metadata.entries.joinToString(";") { (key, value) -> "$key=$value" }
 
             transferRepository.updateTusState(
@@ -103,16 +93,20 @@ class TusUploadHelper(
 
         val resolvedTusUrl = tusUrl ?: throw IllegalStateException("TUS: missing upload URL for $remotePath")
 
-        var offset = try {
-            executeRemoteOperation {
-                GetTusUploadOffsetRemoteOperation(resolvedTusUrl).execute(client)
+        var offset = if (createdOffset != null) {
+            createdOffset
+        } else {
+            try {
+                executeRemoteOperation {
+                    GetTusUploadOffsetRemoteOperation(resolvedTusUrl).execute(client)
+                }
+            } catch (e: java.io.IOException) {
+                Timber.w(e, "TUS: failed to fetch current offset")
+                throw e
+            } catch (e: Throwable) {
+                Timber.w(e, "TUS: failed to fetch current offset")
+                0L
             }
-        } catch (e: java.io.IOException) {
-            Timber.w(e, "TUS: failed to fetch current offset")
-            throw e
-        } catch (e: Throwable) {
-            Timber.w(e, "TUS: failed to fetch current offset")
-            0L
         }.coerceAtLeast(0L)
         Timber.d("TUS: resume offset %d / %d", offset, fileSize)
         progressCallback?.invoke(offset, fileSize)
