@@ -123,7 +123,6 @@ class TusIntegrationTest {
         assertNotNull(creationResult)
         val absoluteLocation = creationResult!!.uploadUrl
         val offset = creationResult.uploadOffset
-        
         println("absoluteLocation: $absoluteLocation")
         println("locationPath: $locationPath")
         println("endsWith: ${absoluteLocation.endsWith(locationPath)}")
