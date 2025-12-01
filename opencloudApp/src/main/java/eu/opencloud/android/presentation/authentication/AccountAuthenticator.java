@@ -345,6 +345,7 @@ public class AccountAuthenticator extends AbstractAccountAuthenticator {
 
         String clientIdForRequest = null;
         String clientSecretForRequest = null;
+        String clientAuth = null;
 
         if (clientId == null) {
             Timber.d("Client Id not stored. Let's use the hardcoded one");
@@ -362,19 +363,28 @@ public class AccountAuthenticator extends AbstractAccountAuthenticator {
             // Use token endpoint retrieved from oidc discovery
             tokenEndpoint = oidcServerConfigurationUseCaseResult.getDataOrNull().getTokenEndpoint();
 
+            // RFC 7636: Public clients (token_endpoint_auth_method: none) must not send Authorization header
             if (oidcServerConfigurationUseCaseResult.getDataOrNull() != null &&
-            oidcServerConfigurationUseCaseResult.getDataOrNull().isTokenEndpointAuthMethodSupportedClientSecretPost()) {
+                    oidcServerConfigurationUseCaseResult.getDataOrNull().isTokenEndpointAuthMethodNone()) {
+                clientAuth = null;
+                clientIdForRequest = clientId;
+            } else if (oidcServerConfigurationUseCaseResult.getDataOrNull() != null &&
+                    oidcServerConfigurationUseCaseResult.getDataOrNull().isTokenEndpointAuthMethodSupportedClientSecretPost()) {
+                // For client_secret_post, credentials go in body, not Authorization header
+                clientAuth = null;
                 clientIdForRequest = clientId;
                 clientSecretForRequest = clientSecret;
+            } else {
+                // For other methods (e.g., client_secret_basic), use Basic auth header
+                clientAuth = OAuthUtils.Companion.getClientAuth(clientSecret, clientId);
             }
         } else {
             Timber.d("OIDC Discovery failed. Server discovery info: [ %s ]",
                     oidcServerConfigurationUseCaseResult.getThrowableOrNull().toString());
 
             tokenEndpoint = baseUrl + File.separator + mContext.getString(R.string.oauth2_url_endpoint_access);
+            clientAuth = OAuthUtils.Companion.getClientAuth(clientSecret, clientId);
         }
-
-        String clientAuth = OAuthUtils.Companion.getClientAuth(clientSecret, clientId);
 
         String scope = mContext.getResources().getString(R.string.oauth2_openid_scope);
 
