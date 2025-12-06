@@ -91,7 +91,9 @@ class ClientManager(
             }
         } else {
             Timber.d("Reusing anonymous client for ${safeClient.baseUri}")
-            safeClient
+            safeClient.apply {
+                credentials = openCloudCredentials
+            }
         }
     }
 
