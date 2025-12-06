@@ -23,11 +23,11 @@ import android.accounts.Account
 import android.accounts.AccountManager
 import eu.opencloud.android.MainApp.Companion.appContext
 import eu.opencloud.android.domain.capabilities.usecases.GetStoredCapabilitiesUseCase
-import eu.opencloud.android.domain.user.usecases.GetUserAvatarAsyncUseCase
+
 import eu.opencloud.android.domain.user.usecases.GetUserInfoAsyncUseCase
 import eu.opencloud.android.domain.user.usecases.RefreshUserQuotaFromServerAsyncUseCase
 import eu.opencloud.android.lib.common.accounts.AccountUtils
-import eu.opencloud.android.presentation.avatar.AvatarManager
+
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -79,12 +79,8 @@ class SyncProfileOperation(
                     }
                     val shouldFetchAvatar = storedCapabilities?.isFetchingAvatarAllowed() ?: true
                     if (shouldFetchAvatar) {
-                        val getUserAvatarAsyncUseCase: GetUserAvatarAsyncUseCase by inject()
-                        val userAvatarResult = getUserAvatarAsyncUseCase(GetUserAvatarAsyncUseCase.Params(account.name))
-                        AvatarManager().handleAvatarUseCaseResult(account, userAvatarResult)
-                        if (userAvatarResult.isSuccess) {
-                            Timber.d("Avatar synchronized for account ${account.name}")
-                        }
+                        // Avatar fetching is now handled by Coil on demand
+                        Timber.d("Avatar sync handled by Coil for account ${account.name}")
                     } else {
                         Timber.d("Avatar for this account: ${account.name} won't be synced due to capabilities ")
                     }

@@ -42,6 +42,11 @@ import eu.opencloud.android.presentation.accounts.ManageAccountsDialogFragment
 import eu.opencloud.android.presentation.accounts.ManageAccountsDialogFragment.Companion.MANAGE_ACCOUNTS_DIALOG
 import eu.opencloud.android.presentation.authentication.AccountUtils
 import eu.opencloud.android.presentation.avatar.AvatarUtils
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import eu.opencloud.android.presentation.thumbnails.ThumbnailsRequester
 
 /**
  * Base class providing toolbar registration functionality, see [.setupToolbar].
@@ -112,12 +117,18 @@ abstract class ToolbarActivity : BaseActivity() {
 
         AccountUtils.getCurrentOpenCloudAccount(baseContext) ?: return
         if (isAvatarRequested) {
-            AvatarUtils().loadAvatarForAccount(
-                avatarView,
-                AccountUtils.getCurrentOpenCloudAccount(baseContext),
-                true,
-                baseContext.resources.getDimension(R.dimen.toolbar_avatar_radius)
-            )
+            lifecycleScope.launch(Dispatchers.IO) {
+                val account = AccountUtils.getCurrentOpenCloudAccount(baseContext)
+                val imageLoader = ThumbnailsRequester.getCoilImageLoader(account)
+                withContext(Dispatchers.Main) {
+                    AvatarUtils().loadAvatarForAccount(
+                        avatarView,
+                        account,
+                        baseContext.resources.getDimension(R.dimen.toolbar_avatar_radius),
+                        imageLoader
+                    )
+                }
+            }
         }
         avatarView.setOnClickListener {
             val dialog = ManageAccountsDialogFragment.newInstance(AccountUtils.getCurrentOpenCloudAccount(applicationContext))

@@ -78,6 +78,12 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.koin.core.parameter.parametersOf
 import timber.log.Timber
 
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import eu.opencloud.android.presentation.thumbnails.ThumbnailsRequester
+
 /**
  * Base class to handle setup of the drawer implementation including avatar fetching and fallback
  * generation.
@@ -451,11 +457,17 @@ abstract class DrawerActivity : ToolbarActivity() {
             }
 
             getDrawerCurrentAccount()?.let {
-                AvatarUtils().loadAvatarForAccount(
-                    imageView = it,
-                    account = account,
-                    displayRadius = currentAccountAvatarRadiusDimension
-                )
+                lifecycleScope.launch(Dispatchers.IO) {
+                    val imageLoader = ThumbnailsRequester.getCoilImageLoader(account)
+                    withContext(Dispatchers.Main) {
+                        AvatarUtils().loadAvatarForAccount(
+                            imageView = it,
+                            account = account,
+                            displayRadius = currentAccountAvatarRadiusDimension,
+                            imageLoader = imageLoader
+                        )
+                    }
+                }
                 drawerViewModel.getUserQuota(account.name)
                 updateQuota()
             }
