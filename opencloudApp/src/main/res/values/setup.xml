@@ -69,8 +69,8 @@
     <bool name="recommend_enabled">true</bool>
     <bool name="feedback_enabled">true</bool>
     <bool name="privacy_policy_enabled">true</bool>
-    <bool name="wizard_enabled">true</bool>
-    <bool name="release_notes_enabled">true</bool>
+    <bool name="wizard_enabled">false</bool>
+    <bool name="release_notes_enabled">false</bool>
     <string name="url_privacy_policy" formatted="false">https://opencloud.eu/en/data-protection-notice</string> <!-- FIXME: app specific -->
     <string name="url_help" formatted="false">https://docs.opencloud.eu/</string>
     <string name="url_imprint" formatted="false"></string>
