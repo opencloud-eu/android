@@ -25,7 +25,7 @@ package eu.opencloud.android.ui.adapter;
 
 import android.accounts.Account;
 import android.content.Context;
-import android.graphics.Bitmap;
+
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -36,8 +36,8 @@ import android.widget.TextView;
 
 import eu.opencloud.android.R;
 import eu.opencloud.android.datamodel.FileDataStorageManager;
-import eu.opencloud.android.datamodel.ThumbnailsCacheManager;
-import eu.opencloud.android.datamodel.ThumbnailsCacheManager.AsyncThumbnailDrawable;
+import eu.opencloud.android.presentation.thumbnails.ThumbnailsRequester;
+import coil.ImageLoader;
 import eu.opencloud.android.db.PreferenceManager;
 import eu.opencloud.android.domain.files.model.OCFile;
 import eu.opencloud.android.extensions.VectorExtKt;
@@ -62,9 +62,9 @@ public class ReceiveExternalFilesAdapter extends BaseAdapter implements ListAdap
     private Boolean mShowHiddenFiles;
 
     public ReceiveExternalFilesAdapter(Context context,
-                                       FileDataStorageManager storageManager,
-                                       Account account,
-                                       boolean showHiddenFiles) {
+            FileDataStorageManager storageManager,
+            Account account,
+            boolean showHiddenFiles) {
         mStorageManager = storageManager;
         mContext = context;
         mInflater = (LayoutInflater) mContext
@@ -123,8 +123,7 @@ public class ReceiveExternalFilesAdapter extends BaseAdapter implements ListAdap
 
             // Allow or disallow touches with other visible windows
             vi.setFilterTouchesWhenObscured(
-                    PreferenceUtils.shouldDisallowTouchesWithOtherVisibleWindows(mContext)
-            );
+                    PreferenceUtils.shouldDisallowTouchesWithOtherVisibleWindows(mContext));
         }
 
         OCFile file = mFiles.get(position);
@@ -147,33 +146,25 @@ public class ReceiveExternalFilesAdapter extends BaseAdapter implements ListAdap
 
         // get Thumbnail if file is image
         if (file.isImage() && file.getRemoteId() != null) {
-            // Thumbnail in Cache?
-            Bitmap thumbnail = ThumbnailsCacheManager.getBitmapFromDiskCache(
-                    String.valueOf(file.getRemoteId())
-            );
-            if (thumbnail != null && !file.getNeedsToUpdateThumbnail()) {
-                fileIcon.setImageBitmap(thumbnail);
-            } else {
-                // generate new Thumbnail
-                if (ThumbnailsCacheManager.cancelPotentialThumbnailWork(file, fileIcon)) {
-                    final ThumbnailsCacheManager.ThumbnailGenerationTask task =
-                            new ThumbnailsCacheManager.ThumbnailGenerationTask(fileIcon, mAccount);
-                    if (thumbnail == null) {
-                        thumbnail = ThumbnailsCacheManager.mDefaultImg;
-                    }
-                    final AsyncThumbnailDrawable asyncDrawable = new AsyncThumbnailDrawable(
-                            mContext.getResources(),
-                            thumbnail,
-                            task
-                    );
-                    fileIcon.setImageDrawable(asyncDrawable);
-                    task.execute(file);
-                }
-            }
+            String uri = ThumbnailsRequester.INSTANCE.getPreviewUriForFile(file, mAccount, null, 384, 384);
+            ImageLoader imageLoader = ThumbnailsRequester.INSTANCE.getCoilImageLoader(mAccount);
+            coil.request.ImageRequest request = new coil.request.ImageRequest.Builder(mContext)
+                    .data(uri)
+                    .target(fileIcon)
+                    .placeholder(MimetypeIconUtil.getFileTypeIconId(file.getMimeType(), file.getFileName()))
+                    .error(MimetypeIconUtil.getFileTypeIconId(file.getMimeType(), file.getFileName()))
+                    .crossfade(true)
+                    .build();
+            imageLoader.enqueue(request);
         } else {
+            ImageLoader imageLoader = ThumbnailsRequester.INSTANCE.getCoilImageLoader(mAccount);
+            coil.request.ImageRequest request = new coil.request.ImageRequest.Builder(mContext)
+                    .data(null)
+                    .target(fileIcon)
+                    .build();
+            imageLoader.enqueue(request);
             fileIcon.setImageResource(
-                    MimetypeIconUtil.getFileTypeIconId(file.getMimeType(), file.getFileName())
-            );
+                    MimetypeIconUtil.getFileTypeIconId(file.getMimeType(), file.getFileName()));
         }
         return vi;
     }
@@ -187,8 +178,7 @@ public class ReceiveExternalFilesAdapter extends BaseAdapter implements ListAdap
             new SortFilesUtils().sortFiles(
                     (Vector<OCFile>) mFiles,
                     FileStorageUtils.mSortOrderFileDisp,
-                    FileStorageUtils.mSortAscendingFileDisp
-            );
+                    FileStorageUtils.mSortAscendingFileDisp);
         }
         notifyDataSetChanged();
     }
@@ -201,7 +191,8 @@ public class ReceiveExternalFilesAdapter extends BaseAdapter implements ListAdap
             mOnSearchQueryUpdateListener.updateEmptyListMessage(
                     mContext.getString(R.string.local_file_list_search_with_no_matches));
         } else {
-            mOnSearchQueryUpdateListener.updateEmptyListMessage(mContext.getString(R.string.file_list_empty_title_all_files));
+            mOnSearchQueryUpdateListener
+                    .updateEmptyListMessage(mContext.getString(R.string.file_list_empty_title_all_files));
         }
 
         notifyDataSetChanged();

@@ -24,7 +24,7 @@ package eu.opencloud.android.presentation.files.details
 
 import android.accounts.Account
 import android.content.Intent
-import android.graphics.Bitmap
+
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -38,10 +38,12 @@ import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.view.isVisible
 import androidx.work.WorkInfo
 import com.google.android.material.snackbar.Snackbar
-import eu.opencloud.android.MainApp
+
 import eu.opencloud.android.R
+import coil.load
 import eu.opencloud.android.databinding.FileDetailsFragmentBinding
-import eu.opencloud.android.datamodel.ThumbnailsCacheManager
+
+import eu.opencloud.android.presentation.thumbnails.ThumbnailsRequester
 import eu.opencloud.android.domain.exceptions.AccountNotFoundException
 import eu.opencloud.android.domain.exceptions.InstanceNotConfiguredException
 import eu.opencloud.android.domain.exceptions.TooEarlyException
@@ -428,25 +430,18 @@ class FileDetailsFragment : FileFragment() {
                 }
             }
             if (ocFile.isImage) {
-                val tagId = ocFile.remoteId.toString()
-                var thumbnail: Bitmap? = ThumbnailsCacheManager.getBitmapFromDiskCache(tagId)
-                if (thumbnail != null && !ocFile.needsToUpdateThumbnail) {
-                    imageView.setImageBitmap(thumbnail)
-                } else {
-                    // generate new Thumbnail
-                    if (ThumbnailsCacheManager.cancelPotentialThumbnailWork(ocFile, imageView)) {
-                        val task = ThumbnailsCacheManager.ThumbnailGenerationTask(imageView, fileDetailsViewModel.getAccount())
-                        if (thumbnail == null) {
-                            thumbnail = ThumbnailsCacheManager.mDefaultImg
-                        }
-                        val asyncDrawable = ThumbnailsCacheManager.AsyncThumbnailDrawable(
-                            MainApp.appContext.resources,
-                            thumbnail,
-                            task
-                        )
-                        imageView.setImageDrawable(asyncDrawable)
-                        task.execute(ocFile)
-                    }
+                imageView.load(
+                    ThumbnailsRequester.getPreviewUriForFile(
+                        OCFileWithSyncInfo(ocFile, null),
+                        fileDetailsViewModel.getAccount(),
+                        1024,
+                        1024
+                    ),
+                    ThumbnailsRequester.getCoilImageLoader(fileDetailsViewModel.getAccount())
+                ) {
+                    placeholder(MimetypeIconUtil.getFileTypeIconId(ocFile.mimeType, ocFile.fileName))
+                    error(MimetypeIconUtil.getFileTypeIconId(ocFile.mimeType, ocFile.fileName))
+                    crossfade(true)
                 }
             } else {
                 // Name of the file, to deduce the icon to use in case the MIME type is not precise enough

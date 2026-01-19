@@ -347,7 +347,7 @@ class OCFileRepository(
             it.copy(spaceId = spaceId)
         }
         val remoteFolder = fetchFolderResult.first()
-        val remoteFolderContent = fetchFolderResult.drop(1)
+        val remoteFolderContent = fetchFolderResult.drop(1).distinctBy { it.remotePath }
 
         // Final content for this folder, we will update the folder content all together
         val folderContentUpdated = mutableListOf<OCFile>()

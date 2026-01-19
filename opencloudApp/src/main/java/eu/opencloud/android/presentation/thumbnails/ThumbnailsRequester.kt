@@ -21,14 +21,16 @@
 package eu.opencloud.android.presentation.thumbnails
 
 import android.accounts.Account
+import android.accounts.AccountManager
 import android.net.Uri
 import coil.ImageLoader
 import coil.disk.DiskCache
 import coil.memory.MemoryCache
 import coil.util.DebugLogger
 import eu.opencloud.android.MainApp.Companion.appContext
-import eu.opencloud.android.R
 import eu.opencloud.android.data.ClientManager
+import java.util.concurrent.ConcurrentHashMap
+import eu.opencloud.android.domain.files.model.OCFile
 import eu.opencloud.android.domain.files.model.OCFileWithSyncInfo
 import eu.opencloud.android.domain.spaces.model.SpaceSpecial
 import eu.opencloud.android.lib.common.SingleSessionManager
@@ -46,91 +48,150 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import timber.log.Timber
 import java.util.Locale
-import kotlin.math.roundToInt
 
 object ThumbnailsRequester : KoinComponent {
     private val clientManager: ClientManager by inject()
 
     private const val SPACE_SPECIAL_PREVIEW_URI = "%s?scalingup=0&a=1&x=%d&y=%d&c=%s&preview=1"
-    private const val FILE_PREVIEW_URI = "%s%s?x=%d&y=%d&c=%s&preview=1&id=%s"
+    private const val FILE_PREVIEW_URI = "%s/remote.php/webdav%s?x=%d&y=%d&c=%s&preview=1"
 
-    private const val DISK_CACHE_SIZE: Long = 1024 * 1024 * 10 // 10MB
+    private const val DISK_CACHE_SIZE: Long = 1024 * 1024 * 100 // 100MB
+
+    private val imageLoaders = ConcurrentHashMap<String, ImageLoader>()
+    private val sharedDiskCache: DiskCache by lazy {
+        DiskCache.Builder()
+            .directory(appContext.cacheDir.resolve("thumbnails_coil_cache"))
+            .maxSizeBytes(DISK_CACHE_SIZE)
+            .build()
+    }
+
+    private val sharedMemoryCache: MemoryCache by lazy {
+        MemoryCache.Builder(appContext)
+            .maxSizePercent(0.25)
+            .build()
+    }
+
+    fun getAvatarUri(account: Account): String {
+        val accountManager = AccountManager.get(appContext)
+        val baseUrl =
+            accountManager.getUserData(account, eu.opencloud.android.lib.common.accounts.AccountUtils.Constants.KEY_OC_BASE_URL)
+                ?.trimEnd('/')
+                .orEmpty()
+        val username = AccountUtils.getUsernameOfAccount(account.name)
+        return "$baseUrl/index.php/avatar/${android.net.Uri.encode(username)}/384"
+    }
+
+    fun getPreviewUriForFile(file: OCFile, account: Account, etag: String? = null, width: Int = 1024, height: Int = 1024): String =
+        getPreviewUri(file.remotePath, etag ?: file.etag, account, width, height)
+
+    fun getPreviewUriForFile(fileWithSyncInfo: OCFileWithSyncInfo, account: Account, width: Int = 1024, height: Int = 1024): String =
+        getPreviewUriForFile(fileWithSyncInfo.file, account, null, width, height)
+
+    fun getPreviewUriForSpaceSpecial(spaceSpecial: SpaceSpecial): String =
+        String.format(Locale.US, SPACE_SPECIAL_PREVIEW_URI, spaceSpecial.webDavUrl, 1024, 1024, spaceSpecial.eTag)
+
+    private fun getPreviewUri(remotePath: String?, etag: String?, account: Account, width: Int, height: Int): String {
+        val accountManager = AccountManager.get(appContext)
+        val baseUrl = accountManager.getUserData(account, eu.opencloud.android.lib.common.accounts.AccountUtils.Constants.KEY_OC_BASE_URL)
+            ?.trimEnd('/')
+            .orEmpty()
+        val path = if (remotePath?.startsWith("/") == true) remotePath else "/$remotePath"
+        val encodedPath = Uri.encode(path, "/")
+
+        return String.format(Locale.US, FILE_PREVIEW_URI, baseUrl, encodedPath, width, height, etag)
+    }
 
     fun getCoilImageLoader(): ImageLoader {
-        val openCloudClient = getOpenCloudClient()
+        val account = AccountUtils.getCurrentOpenCloudAccount(appContext)
+        return getCoilImageLoader(account)
+    }
 
-        val coilRequestHeaderInterceptor = CoilRequestHeaderInterceptor(
-            requestHeaders = hashMapOf(
+    fun getCoilImageLoader(account: Account): ImageLoader {
+        val accountName = account.name
+        return imageLoaders.getOrPut(accountName) {
+            val openCloudClient = clientManager.getClientForCoilThumbnails(accountName)
+
+            val coilRequestHeaderInterceptor = CoilRequestHeaderInterceptor(
+                clientManager = clientManager,
+                accountName = accountName
+            )
+
+            ImageLoader(appContext).newBuilder().okHttpClient(
+                okHttpClient = openCloudClient.okHttpClient.newBuilder()
+                    .addInterceptor(coilRequestHeaderInterceptor).build()
+            ).logger(DebugLogger())
+                .memoryCache {
+                    sharedMemoryCache
+                }
+                .diskCache {
+                    sharedDiskCache
+                }
+                .build()
+        }
+    }
+
+    private class CoilRequestHeaderInterceptor(
+        private val clientManager: ClientManager,
+        private val accountName: String
+    ) : Interceptor {
+
+        override fun intercept(chain: Interceptor.Chain): Response {
+            val openCloudClient = clientManager.getClientForCoilThumbnails(accountName)
+            val requestHeaders = hashMapOf(
                 AUTHORIZATION_HEADER to openCloudClient.credentials.headerAuth,
                 ACCEPT_ENCODING_HEADER to ACCEPT_ENCODING_IDENTITY,
                 USER_AGENT_HEADER to SingleSessionManager.getUserAgent(),
                 OC_X_REQUEST_ID to RandomUtils.generateRandomUUID(),
             )
-        )
 
-        return ImageLoader(appContext).newBuilder().okHttpClient(
-            okHttpClient = openCloudClient.okHttpClient.newBuilder().addNetworkInterceptor(coilRequestHeaderInterceptor).build()
-        ).logger(DebugLogger())
-            .memoryCache {
-                MemoryCache.Builder(appContext)
-                    .maxSizePercent(0.1)
-                    .build()
+            val requestBuilder = chain.request().newBuilder()
+            requestHeaders.toHeaders().forEach { requestBuilder.addHeader(it.first, it.second) }
+            val requestWithHeaders = requestBuilder.build()
+
+            var response = chain.proceed(requestWithHeaders)
+
+            val originalUrl = requestWithHeaders.url.toString()
+            if (
+                originalUrl.contains("/index.php/avatar/") &&
+                (!response.isSuccessful || !isProbablyAnImage(response))
+            ) {
+                response.close()
+
+                val baseUrl = originalUrl.substringBefore("/index.php/avatar/").trimEnd('/')
+                val graphUrl = "$baseUrl/graph/v1.0/me/photo/\$value"
+
+                val graphRequest = requestWithHeaders.newBuilder().url(graphUrl).build()
+                response = chain.proceed(graphRequest)
             }
-            .diskCache {
-                DiskCache.Builder()
-                    .directory(appContext.cacheDir.resolve("thumbnails_coil_cache"))
-                    .maxSizeBytes(DISK_CACHE_SIZE)
-                    .build()
+
+            var builder = response.newBuilder()
+            var changed = false
+
+            val cacheControl = response.header("Cache-Control")
+            if (cacheControl.isNullOrEmpty() || cacheControl.contains("no-cache")) {
+                builder.removeHeader("Cache-Control")
+                builder.addHeader("Cache-Control", "max-age=5000, must-revalidate")
+                changed = true
             }
-            .build()
-    }
 
-    fun getPreviewUriForSpaceSpecial(spaceSpecial: SpaceSpecial): String =
-        String.format(
-            Locale.ROOT,
-            SPACE_SPECIAL_PREVIEW_URI,
-            spaceSpecial.webDavUrl,
-            appContext.resources.getDimension(R.dimen.spaces_thumbnail_height).roundToInt(),
-            appContext.resources.getDimension(R.dimen.spaces_thumbnail_height).roundToInt(),
-            spaceSpecial.eTag
-        )
+            val finalRequestUrl = response.request.url.toString()
+            if (
+                (finalRequestUrl.contains("/avatar/") || finalRequestUrl.contains("/photo/\$value")) &&
+                response.header("Content-Type").isNullOrEmpty()
+            ) {
+                builder.addHeader("Content-Type", "image/png")
+                changed = true
+            }
 
-    @Suppress("ExpressionBodySyntax")
-    fun getPreviewUriForFile(ocFile: OCFileWithSyncInfo, account: Account): String {
-        var baseUrl = getOpenCloudClient().baseUri.toString() + "/remote.php/dav/files/" + account.name.split("@".toRegex())
-            .dropLastWhile { it.isEmpty() }
-            .toTypedArray()[0]
-        ocFile.space?.getSpaceSpecialImage()?.let {
-            baseUrl = it.webDavUrl
+            if (changed) {
+                return builder.build().also { Timber.d("Header :" + it.headers) }
+            }
+            return response
         }
 
-        // Converts dp to pixel
-        val fileThumbnailSize = appContext.resources.getDimension(R.dimen.file_icon_size_grid).roundToInt()
-        return String.format(
-            Locale.ROOT,
-            FILE_PREVIEW_URI,
-            baseUrl,
-            Uri.encode(ocFile.file.remotePath, "/"),
-            fileThumbnailSize,
-            fileThumbnailSize,
-            ocFile.file.etag,
-            "${ocFile.file.remoteId}${ocFile.file.modificationTimestamp}",
-        )
-    }
-
-    private fun getOpenCloudClient() = clientManager.getClientForCoilThumbnails(
-        accountName = AccountUtils.getCurrentOpenCloudAccount(appContext).name
-    )
-
-    private class CoilRequestHeaderInterceptor(
-        private val requestHeaders: HashMap<String, String>
-    ) : Interceptor {
-
-        override fun intercept(chain: Interceptor.Chain): Response {
-            val request = chain.request().newBuilder()
-            requestHeaders.toHeaders().forEach { request.addHeader(it.first, it.second) }
-            return chain.proceed(request.build()).newBuilder().removeHeader("Cache-Control")
-                .addHeader("Cache-Control", "max-age=5000 , must-revalidate, value").build().also { Timber.d("Header :" + it.headers) }
+        private fun isProbablyAnImage(response: Response): Boolean {
+            val contentType = response.header("Content-Type")
+            return contentType.isNullOrEmpty() || contentType.startsWith("image")
         }
     }
 }

@@ -23,21 +23,17 @@ import android.accounts.Account
 import android.view.MenuItem
 import android.widget.ImageView
 import eu.opencloud.android.R
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import coil.load
+import eu.opencloud.android.MainApp.Companion.appContext
+import eu.opencloud.android.presentation.thumbnails.ThumbnailsRequester
 import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
 
 class AvatarUtils : KoinComponent {
-
-    private val avatarManager: AvatarManager by inject()
 
     /**
      * Show the avatar corresponding to the received account in an {@ImageView}.
      * <p>
-     * The avatar is shown if available locally in {@link ThumbnailsCacheManager}. The avatar is not
+     * The avatar is shown if available locally. The avatar is not
      * fetched from the server if not available.
      * <p>
      * If there is no avatar stored, a colored icon is generated with the first letter of the account username.
@@ -53,45 +49,34 @@ class AvatarUtils : KoinComponent {
     fun loadAvatarForAccount(
         imageView: ImageView,
         account: Account,
-        @Suppress("UnusedParameter") fetchIfNotCached: Boolean = false,
-        @Suppress("UnusedParameter") displayRadius: Float
+        @Suppress("UnusedParameter") displayRadius: Float,
+        imageLoader: coil.ImageLoader? = null
     ) {
-        // Tech debt: Move this to a viewModel and use its viewModelScope instead
-        CoroutineScope(Dispatchers.IO).launch {
-            val drawable = avatarManager.getAvatarForAccount(
-                account = account,
-                fetchIfNotCached = fetchIfNotCached,
-                displayRadius = displayRadius
-            )
-            withContext(Dispatchers.Main) {
-                if (drawable != null) {
-                    imageView.setImageDrawable(drawable)
-                } else {
-                    imageView.setImageResource(R.drawable.ic_account_circle)
-                }
-            }
+        val uri = ThumbnailsRequester.getAvatarUri(account)
+        val loader = imageLoader ?: ThumbnailsRequester.getCoilImageLoader(account)
+        imageView.load(uri, loader) {
+            placeholder(R.drawable.ic_account_circle)
+            error(R.drawable.ic_account_circle)
+            transformations(coil.transform.CircleCropTransformation())
         }
     }
 
     fun loadAvatarForAccount(
         menuItem: MenuItem,
         account: Account,
-        @Suppress("UnusedParameter") fetchIfNotCached: Boolean = false,
         @Suppress("UnusedParameter") displayRadius: Float
     ) {
-        CoroutineScope(Dispatchers.IO).launch {
-            val drawable = avatarManager.getAvatarForAccount(
-                account = account,
-                fetchIfNotCached = fetchIfNotCached,
-                displayRadius = displayRadius
+        val uri = ThumbnailsRequester.getAvatarUri(account)
+        val imageLoader = ThumbnailsRequester.getCoilImageLoader(account)
+        val request = coil.request.ImageRequest.Builder(appContext)
+            .data(uri)
+            .target(
+                onStart = { menuItem.setIcon(R.drawable.ic_account_circle) },
+                onSuccess = { result -> menuItem.icon = result },
+                onError = { menuItem.setIcon(R.drawable.ic_account_circle) }
             )
-            withContext(Dispatchers.Main) {
-                if (drawable != null) {
-                    menuItem.icon = drawable
-                } else {
-                    menuItem.setIcon(R.drawable.ic_account_circle)
-                }
-            }
-        }
+            .transformations(coil.transform.CircleCropTransformation())
+            .build()
+        imageLoader.enqueue(request)
     }
 }

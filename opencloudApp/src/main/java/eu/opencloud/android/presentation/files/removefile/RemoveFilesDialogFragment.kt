@@ -30,7 +30,9 @@ import android.widget.ImageView
 import androidx.fragment.app.DialogFragment
 import eu.opencloud.android.R
 import eu.opencloud.android.databinding.RemoveFilesDialogBinding
-import eu.opencloud.android.datamodel.ThumbnailsCacheManager
+import coil.load
+import eu.opencloud.android.presentation.thumbnails.ThumbnailsRequester
+import eu.opencloud.android.presentation.authentication.AccountUtils
 import eu.opencloud.android.domain.files.model.OCFile
 import eu.opencloud.android.presentation.files.operations.FileOperation
 import eu.opencloud.android.presentation.files.operations.FileOperationsViewModel
@@ -121,13 +123,11 @@ class RemoveFilesDialogFragment : DialogFragment() {
         if (files.size == 1) {
             val file = files[0]
             // Show the thumbnail when the file has one
-            val thumbnail = ThumbnailsCacheManager.getBitmapFromDiskCache(file.remoteId)
-            if (thumbnail != null) {
-                thumbnailImageView.setImageBitmap(thumbnail)
-            } else {
-                thumbnailImageView.setImageResource(
-                    MimetypeIconUtil.getFileTypeIconId(file.mimeType, file.fileName)
-                )
+            val account = AccountUtils.getCurrentOpenCloudAccount(requireContext())
+            thumbnailImageView.load(ThumbnailsRequester.getPreviewUriForFile(file, account), ThumbnailsRequester.getCoilImageLoader(account)) {
+                placeholder(MimetypeIconUtil.getFileTypeIconId(file.mimeType, file.fileName))
+                error(MimetypeIconUtil.getFileTypeIconId(file.mimeType, file.fileName))
+                crossfade(true)
             }
         } else {
             thumbnailImageView.visibility = View.GONE

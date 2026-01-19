@@ -37,7 +37,8 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import eu.opencloud.android.R
 import eu.opencloud.android.databinding.ShareFileLayoutBinding
-import eu.opencloud.android.datamodel.ThumbnailsCacheManager
+import coil.load
+import eu.opencloud.android.presentation.thumbnails.ThumbnailsRequester
 import eu.opencloud.android.domain.capabilities.model.CapabilityBooleanType
 import eu.opencloud.android.domain.capabilities.model.OCCapability
 import eu.opencloud.android.domain.files.model.OCFile
@@ -239,13 +240,15 @@ class ShareFileFragment : Fragment(), ShareUserListAdapter.ShareUserAdapterListe
             )
         )
         if (file!!.isImage) {
-            val remoteId = file?.remoteId.toString()
-            val thumbnail = ThumbnailsCacheManager.getBitmapFromDiskCache(remoteId)
-            if (thumbnail != null) {
-                binding.shareFileIcon.setImageBitmap(thumbnail)
+            binding.shareFileIcon.load(
+                ThumbnailsRequester.getPreviewUriForFile(file!!, account!!),
+                ThumbnailsRequester.getCoilImageLoader(account!!)
+            ) {
+                placeholder(MimetypeIconUtil.getFileTypeIconId(file!!.mimeType, file!!.fileName))
+                error(MimetypeIconUtil.getFileTypeIconId(file!!.mimeType, file!!.fileName))
+                crossfade(true)
             }
         }
-        // Name
         binding.shareFileName.text = file?.fileName
 
         // Size

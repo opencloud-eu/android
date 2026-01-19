@@ -21,7 +21,7 @@
 package eu.opencloud.android.dependecyinjection
 
 import androidx.work.WorkManager
-import eu.opencloud.android.presentation.avatar.AvatarManager
+
 import eu.opencloud.android.providers.AccountProvider
 import eu.opencloud.android.providers.ContextProvider
 import eu.opencloud.android.providers.CoroutinesDispatcherProvider
@@ -35,7 +35,7 @@ import org.koin.dsl.module
 
 val commonModule = module {
 
-    single { AvatarManager() }
+
     single { CoroutinesDispatcherProvider() }
     factory<ContextProvider> { OCContextProvider(androidContext()) }
     single { LogsProvider(get(), get()) }

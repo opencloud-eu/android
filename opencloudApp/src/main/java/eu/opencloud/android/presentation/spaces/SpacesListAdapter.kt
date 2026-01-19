@@ -73,9 +73,10 @@ class SpacesListAdapter(
                 val spaceSpecialImage = space.getSpaceSpecialImage()
 
                 if (spaceSpecialImage != null) {
+                    val account = eu.opencloud.android.presentation.authentication.AccountUtils.getCurrentOpenCloudAccount(holder.itemView.context)
                     spacesListItemImage.load(
                         ThumbnailsRequester.getPreviewUriForSpaceSpecial(spaceSpecialImage),
-                        ThumbnailsRequester.getCoilImageLoader()
+                        if (account != null) ThumbnailsRequester.getCoilImageLoader(account) else ThumbnailsRequester.getCoilImageLoader()
                     ) {
                         placeholder(R.drawable.ic_spaces_placeholder)
                         error(R.drawable.ic_spaces_placeholder)
