@@ -41,7 +41,7 @@ import java.net.URL
  * @author David A. Velasco
  * @author David González Verdugo
  */
-class GetRemoteUserAvatarOperation(private val avatarDimension: Int) : RemoteOperation<RemoteAvatarData>() {
+class GetRemoteUserAvatarOperation : RemoteOperation<RemoteAvatarData>() {
     override fun run(client: OpenCloudClient): RemoteOperationResult<RemoteAvatarData> {
         var inputStream: InputStream? = null
         var result: RemoteOperationResult<RemoteAvatarData>
