@@ -104,6 +104,11 @@ public class RateMeDialog extends DialogFragment {
             } catch (ActivityNotFoundException e) {
                 ActivityExtKt.goToUrl(requireActivity(), PLAY_STORE_URI + packageName, null);
             }
+            SharedPreferences preferences = getActivity().getSharedPreferences
+                    (AppRater.APP_RATER_PREF_TITLE, 0);
+            SharedPreferences.Editor editor = preferences.edit();
+            editor.putBoolean(AppRater.APP_RATER_PREF_DONT_SHOW, true);
+            editor.apply();
             dialog.dismiss();
         });
 
