@@ -34,6 +34,7 @@ import eu.opencloud.android.testutil.oauth.OC_CLIENT_REGISTRATION
 import eu.opencloud.android.testutil.oauth.OC_CLIENT_REGISTRATION_REQUEST
 import eu.opencloud.android.testutil.oauth.OC_OIDC_SERVER_CONFIGURATION
 import eu.opencloud.android.testutil.oauth.OC_TOKEN_REQUEST_ACCESS
+import eu.opencloud.android.testutil.oauth.OC_TOKEN_REQUEST_ACCESS_PUBLIC_CLIENT
 import eu.opencloud.android.testutil.oauth.OC_TOKEN_RESPONSE
 import eu.opencloud.android.utils.createRemoteOperationResultMock
 import io.mockk.every
@@ -41,6 +42,7 @@ import io.mockk.mockk
 import io.mockk.verify
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
@@ -92,6 +94,37 @@ class OCRemoteOAuthDataSourceTest {
         } returns tokenResponseResult
 
         val tokenResponse = remoteOAuthDataSource.performTokenRequest(OC_TOKEN_REQUEST_ACCESS)
+
+        assertNotNull(tokenResponse)
+        assertEquals(OC_TOKEN_RESPONSE, tokenResponse)
+
+        verify(exactly = 1) {
+            clientManager.getClientForAnonymousCredentials(OC_SECURE_BASE_URL, any())
+            oidcService.performTokenRequest(ocClientMocked, any())
+        }
+    }
+
+    /**
+     * Test for public PKCE clients (RFC 7636).
+     * Public clients MUST NOT send Authorization header during token exchange.
+     * This test verifies that token requests work correctly with empty clientAuth.
+     */
+    @Test
+    fun `performTokenRequest with public PKCE client returns a TokenResponse`() {
+        val tokenResponseResult: RemoteOperationResult<TokenResponse> =
+            createRemoteOperationResultMock(data = OC_REMOTE_TOKEN_RESPONSE, isSuccess = true)
+
+        every {
+            oidcService.performTokenRequest(ocClientMocked, any())
+        } returns tokenResponseResult
+
+        // Verify the fixture has empty clientAuth for public clients
+        assertTrue(
+            "clientAuth should be empty for public clients",
+            OC_TOKEN_REQUEST_ACCESS_PUBLIC_CLIENT.clientAuth.isEmpty()
+        )
+
+        val tokenResponse = remoteOAuthDataSource.performTokenRequest(OC_TOKEN_REQUEST_ACCESS_PUBLIC_CLIENT)
 
         assertNotNull(tokenResponse)
         assertEquals(OC_TOKEN_RESPONSE, tokenResponse)

@@ -30,7 +30,7 @@ import okhttp3.RequestBody
 
 sealed class TokenRequestParams(
     val tokenEndpoint: String,
-    val clientAuth: String?,
+    val clientAuth: String,
     val grantType: String,
     val scope: String,
     val clientId: String?,
@@ -40,7 +40,7 @@ sealed class TokenRequestParams(
 
     class Authorization(
         tokenEndpoint: String,
-        clientAuth: String?,
+        clientAuth: String,
         grantType: String,
         scope: String,
         clientId: String?,
@@ -65,7 +65,7 @@ sealed class TokenRequestParams(
 
     class RefreshToken(
         tokenEndpoint: String,
-        clientAuth: String?,
+        clientAuth: String,
         grantType: String,
         scope: String,
         clientId: String?,

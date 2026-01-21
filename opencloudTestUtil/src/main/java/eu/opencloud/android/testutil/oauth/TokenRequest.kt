@@ -43,3 +43,25 @@ val OC_TOKEN_REQUEST_ACCESS = TokenRequest.AccessToken(
     redirectUri = OC_REDIRECT_URI,
     codeVerifier = "A high-entropy cryptographic random STRING using the unreserved characters"
 )
+
+/**
+ * Test fixtures for public PKCE clients (RFC 7636).
+ * Public clients MUST NOT send Authorization header during token exchange.
+ */
+val OC_TOKEN_REQUEST_REFRESH_PUBLIC_CLIENT = TokenRequest.RefreshToken(
+    baseUrl = OC_SECURE_BASE_URL,
+    tokenEndpoint = OC_TOKEN_ENDPOINT,
+    clientAuth = "", // Empty for public clients per RFC 7636
+    scope = OC_SCOPE,
+    refreshToken = OC_REFRESH_TOKEN
+)
+
+val OC_TOKEN_REQUEST_ACCESS_PUBLIC_CLIENT = TokenRequest.AccessToken(
+    baseUrl = OC_SECURE_BASE_URL,
+    tokenEndpoint = OC_TOKEN_ENDPOINT,
+    clientAuth = "", // Empty for public clients per RFC 7636
+    scope = OC_SCOPE,
+    authorizationCode = "4uth0r1z4t10nC0d3",
+    redirectUri = OC_REDIRECT_URI,
+    codeVerifier = "A high-entropy cryptographic random STRING using the unreserved characters"
+)
