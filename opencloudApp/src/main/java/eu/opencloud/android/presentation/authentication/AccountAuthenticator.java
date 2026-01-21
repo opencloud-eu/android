@@ -345,7 +345,7 @@ public class AccountAuthenticator extends AbstractAccountAuthenticator {
 
         String clientIdForRequest = null;
         String clientSecretForRequest = null;
-        String clientAuth = null;
+        String clientAuth;
 
         if (clientId == null) {
             Timber.d("Client Id not stored. Let's use the hardcoded one");
@@ -366,12 +366,12 @@ public class AccountAuthenticator extends AbstractAccountAuthenticator {
             // RFC 7636: Public clients (token_endpoint_auth_method: none) must not send Authorization header
             if (oidcServerConfigurationUseCaseResult.getDataOrNull() != null &&
                     oidcServerConfigurationUseCaseResult.getDataOrNull().isTokenEndpointAuthMethodNone()) {
-                clientAuth = null;
+                clientAuth = "";
                 clientIdForRequest = clientId;
             } else if (oidcServerConfigurationUseCaseResult.getDataOrNull() != null &&
                     oidcServerConfigurationUseCaseResult.getDataOrNull().isTokenEndpointAuthMethodSupportedClientSecretPost()) {
                 // For client_secret_post, credentials go in body, not Authorization header
-                clientAuth = null;
+                clientAuth = "";
                 clientIdForRequest = clientId;
                 clientSecretForRequest = clientSecret;
             } else {

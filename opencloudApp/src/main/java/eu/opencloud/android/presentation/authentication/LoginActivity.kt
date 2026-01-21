@@ -669,9 +669,16 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
         // Use oidc discovery one, or build an oauth endpoint using serverBaseUrl + Setup string.
         val tokenEndPoint: String
 
-        var clientId: String? = null
-        var clientSecret: String? = null
-        var clientAuth: String? = null
+        // Determine clientId and clientSecret
+        val (clientId, clientSecret) = if (clientRegistrationInfo?.clientId != null && clientRegistrationInfo.clientSecret != null) {
+            Pair(clientRegistrationInfo.clientId, clientRegistrationInfo.clientSecret as String)
+        } else {
+            Pair(getString(R.string.oauth2_client_id), getString(R.string.oauth2_client_secret))
+        }
+
+        var clientIdForRequest: String? = null
+        var clientSecretForRequest: String? = null
+        var clientAuth: String
 
         val serverInfo = authenticationViewModel.serverInfo.value?.peekContent()?.getStoredData()
         if (serverInfo is ServerInfo.OIDCServer) {
@@ -679,28 +686,20 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
 
             // RFC 7636: Public clients (token_endpoint_auth_method: none) must not send Authorization header
             if (serverInfo.oidcServerConfiguration.isTokenEndpointAuthMethodNone()) {
-                clientAuth = null
-                clientId = clientRegistrationInfo?.clientId ?: contextProvider.getString(R.string.oauth2_client_id)
+                clientAuth = ""
+                clientIdForRequest = clientId
             } else if (serverInfo.oidcServerConfiguration.isTokenEndpointAuthMethodSupportedClientSecretPost()) {
                 // For client_secret_post, credentials go in body, not Authorization header
-                clientAuth = null
-                clientId = clientRegistrationInfo?.clientId ?: contextProvider.getString(R.string.oauth2_client_id)
-                clientSecret = clientRegistrationInfo?.clientSecret ?: contextProvider.getString(R.string.oauth2_client_secret)
+                clientAuth = ""
+                clientIdForRequest = clientId
+                clientSecretForRequest = clientSecret
             } else {
                 // For other methods (e.g., client_secret_basic), use Basic auth header
-                clientAuth = if (clientRegistrationInfo?.clientId != null && clientRegistrationInfo.clientSecret != null) {
-                    OAuthUtils.getClientAuth(clientRegistrationInfo.clientSecret as String, clientRegistrationInfo.clientId)
-                } else {
-                    OAuthUtils.getClientAuth(getString(R.string.oauth2_client_secret), getString(R.string.oauth2_client_id))
-                }
+                clientAuth = OAuthUtils.getClientAuth(clientSecret, clientId)
             }
         } else {
             tokenEndPoint = "$serverBaseUrl${File.separator}${contextProvider.getString(R.string.oauth2_url_endpoint_access)}"
-            clientAuth = if (clientRegistrationInfo?.clientId != null && clientRegistrationInfo.clientSecret != null) {
-                OAuthUtils.getClientAuth(clientRegistrationInfo.clientSecret as String, clientRegistrationInfo.clientId)
-            } else {
-                OAuthUtils.getClientAuth(getString(R.string.oauth2_client_secret), getString(R.string.oauth2_client_id))
-            }
+            clientAuth = OAuthUtils.getClientAuth(clientSecret, clientId)
         }
 
         val scope = resources.getString(R.string.oauth2_openid_scope)
@@ -710,8 +709,8 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
             tokenEndpoint = tokenEndPoint,
             clientAuth = clientAuth,
             scope = scope,
-            clientId = clientId,
-            clientSecret = clientSecret,
+            clientId = clientIdForRequest,
+            clientSecret = clientSecretForRequest,
             authorizationCode = authorizationCode,
             redirectUri = OAuthUtils.buildRedirectUri(applicationContext).toString(),
             codeVerifier = authenticationViewModel.codeVerifier
