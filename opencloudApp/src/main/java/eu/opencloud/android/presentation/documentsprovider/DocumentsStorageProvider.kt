@@ -63,7 +63,6 @@ import eu.opencloud.android.presentation.documentsprovider.cursors.SpaceCursor
 import eu.opencloud.android.presentation.settings.security.SettingsSecurityFragment.Companion.PREFERENCE_LOCK_ACCESS_FROM_DOCUMENT_PROVIDER
 import eu.opencloud.android.usecases.synchronization.SynchronizeFileUseCase
 import eu.opencloud.android.usecases.synchronization.SynchronizeFolderUseCase
-import eu.opencloud.android.usecases.transfers.downloads.DownloadFileUseCase
 import eu.opencloud.android.usecases.transfers.uploads.UploadFilesFromSystemUseCase
 import eu.opencloud.android.utils.FileStorageUtils
 import eu.opencloud.android.utils.NotificationUtils
@@ -107,11 +106,8 @@ class DocumentsStorageProvider : DocumentsProvider() {
         if (!uploadOnly) {
             ocFile = getFileByIdOrException(documentId.toInt())
 
-            if (!ocFile.isAvailableLocally) {
-                val downloadFileUseCase: DownloadFileUseCase by inject()
-
-                downloadFileUseCase(DownloadFileUseCase.Params(accountName = ocFile.owner, file = ocFile))
-
+            if (!ocFile.isAvailableLocally || !isWrite) {
+                syncFileWithServer(ocFile)
                 do {
                     if (!waitOrGetCancelled(signal)) {
                         return null
@@ -150,23 +146,7 @@ class DocumentsStorageProvider : DocumentsProvider() {
                             uploadFilesUseCase(uploadFilesUseCaseParams)
                         }
                     } else {
-                        Thread {
-                            val synchronizeFileUseCase: SynchronizeFileUseCase by inject()
-                            val result = synchronizeFileUseCase(
-                                SynchronizeFileUseCase.Params(
-                                    fileToSynchronize = ocFile,
-                                )
-                            )
-                            Timber.d("Synced ${ocFile.remotePath} from ${ocFile.owner} with result: $result")
-                            if (result.getDataOrNull() is SynchronizeFileUseCase.SyncType.ConflictDetected) {
-                                context?.let {
-                                    NotificationUtils.notifyConflict(
-                                        fileInConflict = ocFile,
-                                        context = it
-                                    )
-                                }
-                            }
-                        }.start()
+                        syncFileWithServer(ocFile)
                     }
                 }
             } catch (e: IOException) {
@@ -486,6 +466,28 @@ class DocumentsStorageProvider : DocumentsProvider() {
         }
 
         return NONEXISTENT_DOCUMENT_ID
+    }
+
+    private fun syncFileWithServer(fileToSync: OCFile) {
+        Timber.d("Trying to sync a file ${fileToSync.id} with server")
+
+        val synchronizeFileUseCase : SynchronizeFileUseCase by inject()
+        val synchronizeFileUseCaseParam = SynchronizeFileUseCase.Params(
+            fileToSynchronize = fileToSync
+        )
+        CoroutineScope(Dispatchers.IO).launch {
+            val useCaseResult = synchronizeFileUseCase(synchronizeFileUseCaseParam)
+            Timber.d("${fileToSync.remotePath} from ${fileToSync.owner} was synced with server with result: $useCaseResult")
+
+            if (useCaseResult.getDataOrNull() is SynchronizeFileUseCase.SyncType.ConflictDetected) {
+                context?.let {
+                    NotificationUtils.notifyConflict(
+                        fileInConflict = fileToSync,
+                        context = it
+                    )
+                }
+            }
+        }
     }
 
     private fun syncDirectoryWithServer(parentDocumentId: String) {
