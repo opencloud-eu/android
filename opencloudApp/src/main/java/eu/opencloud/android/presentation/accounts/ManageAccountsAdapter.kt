@@ -44,6 +44,11 @@ import eu.opencloud.android.presentation.avatar.AvatarUtils
 import eu.opencloud.android.utils.DisplayUtils
 import eu.opencloud.android.utils.PreferenceUtils
 import timber.log.Timber
+import androidx.lifecycle.findViewTreeLifecycleOwner
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class ManageAccountsAdapter(
     private val accountListener: AccountAdapterListener,
@@ -102,12 +107,17 @@ class ManageAccountsAdapter(
 
                 try {
                     val avatarUtils = AvatarUtils()
-                    avatarUtils.loadAvatarForAccount(
-                        holder.binding.icon,
-                        account,
-                        true,
-                        accountAvatarRadiusDimension
-                    )
+                    holder.itemView.findViewTreeLifecycleOwner()?.lifecycleScope?.launch(Dispatchers.IO) {
+                        val loader = eu.opencloud.android.presentation.thumbnails.ThumbnailsRequester.getCoilImageLoader(account)
+                        withContext(Dispatchers.Main) {
+                            avatarUtils.loadAvatarForAccount(
+                                holder.binding.icon,
+                                account,
+                                accountAvatarRadiusDimension,
+                                loader
+                            )
+                        }
+                    }
                 } catch (e: java.lang.Exception) {
                     Timber.e(e, "Error calculating RGB value for account list item.")
                     // use user icon as a fallback

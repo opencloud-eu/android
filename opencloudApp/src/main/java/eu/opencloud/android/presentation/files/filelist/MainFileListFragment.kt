@@ -66,7 +66,7 @@ import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import eu.opencloud.android.R
 import eu.opencloud.android.databinding.MainFileListFragmentBinding
-import eu.opencloud.android.datamodel.ThumbnailsCacheManager
+
 import eu.opencloud.android.domain.appregistry.model.AppRegistryMimeType
 import eu.opencloud.android.domain.exceptions.InstanceNotConfiguredException
 import eu.opencloud.android.domain.exceptions.TooEarlyException
@@ -606,51 +606,7 @@ class MainFileListFragment : Fragment(),
                     dialog.dismiss()
                 }
 
-                val thumbnailBottomSheet = fileOptionsBottomSheetSingleFile.findViewById<ImageView>(R.id.thumbnail_bottom_sheet)
-                if (file.isFolder) {
-                    // Folder
-                    thumbnailBottomSheet.setImageResource(R.drawable.ic_menu_archive)
-                } else {
-                    // Set file icon depending on its mimetype. Ask for thumbnail later.
-                    thumbnailBottomSheet.setImageResource(
-                        MimetypeIconUtil.getFileTypeIconId(file.mimeType, file.fileName)
-                    )
-                    if (file.remoteId != null) {
-                        val thumbnail = ThumbnailsCacheManager.getBitmapFromDiskCache(file.remoteId)
-                        if (thumbnail != null) {
-                            thumbnailBottomSheet.setImageBitmap(thumbnail)
-                        }
-                        if (file.needsToUpdateThumbnail &&
-                            ThumbnailsCacheManager.cancelPotentialThumbnailWork(file, thumbnailBottomSheet)
-                        ) {
-                            // generate new Thumbnail
-                            val task = ThumbnailsCacheManager.ThumbnailGenerationTask(
-                                thumbnailBottomSheet,
-                                AccountUtils.getCurrentOpenCloudAccount(requireContext())
-                            )
-                            val asyncDrawable = ThumbnailsCacheManager.AsyncThumbnailDrawable(
-                                resources,
-                                thumbnail,
-                                task
-                            )
 
-                            // If drawable is not visible, do not update it.
-                            if (asyncDrawable.minimumHeight > 0 && asyncDrawable.minimumWidth > 0) {
-                                thumbnailBottomSheet.setImageDrawable(asyncDrawable)
-                            }
-                            task.execute(file)
-                        }
-
-                        if (file.mimeType == "image/png") {
-                            thumbnailBottomSheet.setBackgroundColor(
-                                ContextCompat.getColor(requireContext(), R.color.background_color)
-                            )
-                        }
-                    }
-                }
-
-                val fileNameBottomSheet = fileOptionsBottomSheetSingleFile.findViewById<TextView>(R.id.file_name_bottom_sheet)
-                fileNameBottomSheet.text = file.fileName
 
                 val fileSizeBottomSheet = fileOptionsBottomSheetSingleFile.findViewById<TextView>(R.id.file_size_bottom_sheet)
                 fileSizeBottomSheet.text = DisplayUtils.bytesToHumanReadable(file.length, requireContext(), true)
@@ -836,9 +792,10 @@ class MainFileListFragment : Fragment(),
 
             val spaceSpecialImage = fileListUiState.space?.getSpaceSpecialImage()
             if (spaceSpecialImage != null) {
+                val account = AccountUtils.getCurrentOpenCloudAccount(requireContext())
                 binding.spaceHeader.spaceHeaderImage.load(
                     ThumbnailsRequester.getPreviewUriForSpaceSpecial(spaceSpecialImage),
-                    ThumbnailsRequester.getCoilImageLoader()
+                    if (account != null) ThumbnailsRequester.getCoilImageLoader(account) else ThumbnailsRequester.getCoilImageLoader()
                 ) {
                     placeholder(R.drawable.ic_spaces)
                     error(R.drawable.ic_spaces)

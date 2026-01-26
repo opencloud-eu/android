@@ -31,7 +31,6 @@ import eu.opencloud.android.lib.common.network.WebdavUtils
 import eu.opencloud.android.lib.common.operations.RemoteOperation
 import eu.opencloud.android.lib.common.operations.RemoteOperationResult
 import timber.log.Timber
-import java.io.File
 import java.io.IOException
 import java.io.InputStream
 import java.net.URL
@@ -42,14 +41,13 @@ import java.net.URL
  * @author David A. Velasco
  * @author David González Verdugo
  */
-class GetRemoteUserAvatarOperation(private val avatarDimension: Int) : RemoteOperation<RemoteAvatarData>() {
+class GetRemoteUserAvatarOperation : RemoteOperation<RemoteAvatarData>() {
     override fun run(client: OpenCloudClient): RemoteOperationResult<RemoteAvatarData> {
         var inputStream: InputStream? = null
         var result: RemoteOperationResult<RemoteAvatarData>
 
         try {
-            val endPoint =
-                client.baseUri.toString() + NON_OFFICIAL_AVATAR_PATH + client.credentials.username + File.separator + avatarDimension
+            val endPoint = client.baseUri.toString() + GRAPH_AVATAR_PATH
             Timber.d("avatar URI: %s", endPoint)
 
             val getMethod = GetMethod(URL(endPoint))
@@ -109,6 +107,6 @@ class GetRemoteUserAvatarOperation(private val avatarDimension: Int) : RemoteOpe
     private fun isSuccess(status: Int) = status == HttpConstants.HTTP_OK
 
     companion object {
-        private const val NON_OFFICIAL_AVATAR_PATH = "/index.php/avatar/"
+        private const val GRAPH_AVATAR_PATH = "/graph/v1.0/me/photo/\$value"
     }
 }
