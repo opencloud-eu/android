@@ -32,10 +32,12 @@ import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import eu.opencloud.android.R
 import eu.opencloud.android.data.executeRemoteOperation
+import eu.opencloud.android.data.providers.SharedPreferencesProvider
 import eu.opencloud.android.domain.automaticuploads.model.UploadBehavior
 import eu.opencloud.android.domain.capabilities.usecases.GetStoredCapabilitiesUseCase
 import eu.opencloud.android.domain.exceptions.LocalFileNotFoundException
 import eu.opencloud.android.domain.exceptions.UnauthorizedException
+import eu.opencloud.android.domain.files.FileRepository
 import eu.opencloud.android.domain.files.usecases.CleanConflictUseCase
 import eu.opencloud.android.domain.files.usecases.GetFileByRemotePathUseCase
 import eu.opencloud.android.domain.files.usecases.GetWebDavUrlForSpaceUseCase
@@ -54,6 +56,7 @@ import eu.opencloud.android.lib.resources.files.CheckPathExistenceRemoteOperatio
 import eu.opencloud.android.lib.resources.files.CreateRemoteFolderOperation
 import eu.opencloud.android.lib.resources.files.UploadFileFromFileSystemOperation
 import eu.opencloud.android.presentation.authentication.AccountUtils
+import eu.opencloud.android.presentation.settings.security.SettingsSecurityFragment
 import eu.opencloud.android.utils.NotificationUtils
 import eu.opencloud.android.utils.RemoteFileUtils.getAvailableRemotePath
 import eu.opencloud.android.utils.UPLOAD_NOTIFICATION_CHANNEL_ID
@@ -66,6 +69,9 @@ import org.koin.core.component.inject
 import timber.log.Timber
 import java.io.File
 import java.io.IOException
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import kotlin.coroutines.cancellation.CancellationException
 
 class UploadFileFromFileSystemWorker(
@@ -92,6 +98,8 @@ class UploadFileFromFileSystemWorker(
     private val saveFileOrFolderUseCase: SaveFileOrFolderUseCase by inject()
     private val cleanConflictUseCase: CleanConflictUseCase by inject()
     private val getWebdavUrlForSpaceUseCase: GetWebDavUrlForSpaceUseCase by inject()
+    private val preferencesProvider: SharedPreferencesProvider by inject()
+    private val fileRepository: FileRepository by inject()
 
     // Etag in conflict required to overwrite files in server. Otherwise, the upload will be rejected.
     private var eTagInConflict: String = ""
@@ -230,7 +238,39 @@ class UploadFileFromFileSystemWorker(
                 )
             )
 
-            eTagInConflict = useCaseResult.getDataOrNull()?.etagInConflict.orEmpty()
+            val remoteFile = useCaseResult.getDataOrNull()
+            eTagInConflict = remoteFile?.etagInConflict.orEmpty()
+
+            // Check if remote file has changed since we last synced
+            // If so, we have a conflict - check user preference for handling
+            if (remoteFile != null && remoteFile.etag != remoteFile.etagInConflict) {
+                val preferLocal = preferencesProvider.getBoolean(
+                    SettingsSecurityFragment.PREFERENCE_PREFER_LOCAL_ON_CONFLICT, false
+                )
+                if (!preferLocal) {
+                    // User wants conflicted copy behavior - create a local copy before uploading
+                    Timber.i("Conflict detected and user prefers conflicted copy. Creating copy of local file.")
+                    val conflictedCopyPath = createConflictedCopyPath(fileSystemPath)
+                    val copied = copyLocalFile(fileSystemPath, conflictedCopyPath)
+                    if (copied) {
+                        Timber.i("Local file copied to conflicted copy: $conflictedCopyPath")
+                        // Refresh parent folder so the conflicted copy appears
+                        try {
+                            fileRepository.refreshFolder(
+                                remotePath = remoteFile.getParentRemotePath(),
+                                accountName = account.name,
+                                spaceId = remoteFile.spaceId
+                            )
+                        } catch (e: Exception) {
+                            Timber.w(e, "Failed to refresh parent folder after creating conflicted copy")
+                        }
+                    } else {
+                        Timber.w("Failed to copy local file to conflicted copy")
+                    }
+                } else {
+                    Timber.i("Conflict detected but user prefers local version. Uploading will overwrite remote.")
+                }
+            }
 
             Timber.d("Upload will overwrite current server file with the following etag in conflict: $eTagInConflict")
         } else {
@@ -247,6 +287,27 @@ class UploadFileFromFileSystemWorker(
                 Timber.d("Name collision detected, let's rename it to $remotePath")
             }
         }
+    }
+
+    private fun createConflictedCopyPath(originalPath: String): String {
+        val file = File(originalPath)
+        val nameWithoutExt = file.nameWithoutExtension
+        val extension = file.extension
+        val timestamp = SimpleDateFormat("yyyy-MM-dd_HHmmss", Locale.US).format(Date())
+        val conflictedName = if (extension.isNotEmpty()) {
+            "${nameWithoutExt}_conflicted_copy_$timestamp.$extension"
+        } else {
+            "${nameWithoutExt}_conflicted_copy_$timestamp"
+        }
+        return File(file.parent, conflictedName).absolutePath
+    }
+
+    private fun copyLocalFile(sourcePath: String, destPath: String): Boolean = try {
+        File(sourcePath).copyTo(File(destPath), overwrite = false)
+        true
+    } catch (e: Exception) {
+        Timber.e(e, "Failed to copy local file from $sourcePath to $destPath")
+        false
     }
 
     private fun uploadDocument(client: OpenCloudClient) {

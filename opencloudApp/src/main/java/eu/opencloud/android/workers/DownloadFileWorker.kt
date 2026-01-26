@@ -42,6 +42,7 @@ import eu.opencloud.android.domain.files.usecases.GetFileByIdUseCase
 import eu.opencloud.android.domain.files.usecases.GetWebDavUrlForSpaceUseCase
 import eu.opencloud.android.domain.files.usecases.SaveDownloadWorkerUUIDUseCase
 import eu.opencloud.android.domain.files.usecases.SaveFileOrFolderUseCase
+import eu.opencloud.android.domain.spaces.usecases.GetSpaceByIdForAccountUseCase
 import eu.opencloud.android.lib.common.OpenCloudAccount
 import eu.opencloud.android.lib.common.OpenCloudClient
 import eu.opencloud.android.lib.common.SingleSessionManager
@@ -82,9 +83,11 @@ class DownloadFileWorker(
     private val saveDownloadWorkerUuidUseCase: SaveDownloadWorkerUUIDUseCase by inject()
     private val cleanWorkersUuidUseCase: CleanWorkersUUIDUseCase by inject()
     private val localStorageProvider: LocalStorageProvider by inject()
+    private val getSpaceByIdForAccountUseCase: GetSpaceByIdForAccountUseCase by inject()
 
     lateinit var account: Account
     lateinit var ocFile: OCFile
+    private var spaceName: String? = null
 
     private lateinit var downloadRemoteFileOperation: DownloadRemoteFileOperation
     private var lastPercent = 0
@@ -109,7 +112,12 @@ class DownloadFileWorker(
      */
     private val finalLocationForFile: String
         get() = ocFile.storagePath.takeUnless { it.isNullOrBlank() }
-            ?: localStorageProvider.getDefaultSavePathFor(accountName = account.name, remotePath = ocFile.remotePath, spaceId = ocFile.spaceId)
+            ?: localStorageProvider.getDefaultSavePathFor(
+                accountName = account.name,
+                remotePath = ocFile.remotePath,
+                spaceId = ocFile.spaceId,
+                spaceName = spaceName
+            )
 
     override suspend fun doWork(): Result {
         if (!areParametersValid()) return Result.failure()
@@ -139,6 +147,13 @@ class DownloadFileWorker(
 
         account = AccountUtils.getOpenCloudAccountByName(appContext, accountName) ?: return false
         ocFile = getFileByIdUseCase(GetFileByIdUseCase.Params(fileId)).getDataOrNull() ?: return false
+
+        if (ocFile.spaceId != null) {
+            val space = getSpaceByIdForAccountUseCase(GetSpaceByIdForAccountUseCase.Params(account.name, ocFile.spaceId))
+            if (space != null) {
+                spaceName = space.name
+            }
+        }
 
         return !ocFile.isFolder
     }
@@ -306,7 +321,10 @@ class DownloadFileWorker(
     }
 
     private fun getClientForThisDownload(): OpenCloudClient = SingleSessionManager.getDefaultSingleton()
-        .getClientFor(OpenCloudAccount(AccountUtils.getOpenCloudAccountByName(appContext, account.name), appContext), appContext)
+        .getClientFor(
+            OpenCloudAccount(AccountUtils.getOpenCloudAccountByName(appContext, account.name), appContext),
+            appContext
+        )
 
     override fun onTransferProgress(
         progressRate: Long,
@@ -320,7 +338,8 @@ class DownloadFileWorker(
             downloadRemoteFileOperation.removeDatatransferProgressListener(this)
         }
 
-        val percent: Int = if (totalToTransfer == -1L) -1 else (100.0 * totalTransferredSoFar.toDouble() / totalToTransfer.toDouble()).toInt()
+        val percent: Int = if (totalToTransfer == -1L) -1 else (100.0 * totalTransferredSoFar.toDouble() /
+                totalToTransfer.toDouble()).toInt()
         if (percent == lastPercent) return
 
         // Set current progress. Observers will listen.

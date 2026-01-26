@@ -66,7 +66,7 @@ import eu.opencloud.android.usecases.synchronization.SynchronizeFolderUseCase
 import eu.opencloud.android.usecases.transfers.downloads.DownloadFileUseCase
 import eu.opencloud.android.usecases.transfers.uploads.UploadFilesFromSystemUseCase
 import eu.opencloud.android.utils.FileStorageUtils
-import eu.opencloud.android.utils.NotificationUtils
+
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -158,13 +158,9 @@ class DocumentsStorageProvider : DocumentsProvider() {
                                 )
                             )
                             Timber.d("Synced ${ocFile.remotePath} from ${ocFile.owner} with result: $result")
-                            if (result.getDataOrNull() is SynchronizeFileUseCase.SyncType.ConflictDetected) {
-                                context?.let {
-                                    NotificationUtils.notifyConflict(
-                                        fileInConflict = ocFile,
-                                        context = it
-                                    )
-                                }
+                            if (result.getDataOrNull() is SynchronizeFileUseCase.SyncType.ConflictResolvedWithCopy) {
+                                val conflictResult = result.getDataOrNull() as SynchronizeFileUseCase.SyncType.ConflictResolvedWithCopy
+                                Timber.i("File sync conflict auto-resolved. Conflicted copy at: ${conflictResult.conflictedCopyPath}")
                             }
                         }.start()
                     }

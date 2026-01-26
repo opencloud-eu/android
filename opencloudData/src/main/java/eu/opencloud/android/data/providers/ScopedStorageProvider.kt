@@ -20,12 +20,19 @@
 package eu.opencloud.android.data.providers
 
 import android.content.Context
+import android.os.Environment
 import java.io.File
 
+@Suppress("UnusedPrivateProperty")
 class ScopedStorageProvider(
     rootFolderName: String,
     private val context: Context
 ) : LocalStorageProvider(rootFolderName) {
 
-    override fun getPrimaryStorageDirectory(): File = context.filesDir
+    override fun getPrimaryStorageDirectory(): File = Environment.getExternalStorageDirectory()
+
+    override fun getAccountDirectoryPath(accountName: String): String {
+        val sanitizedName = accountName.replace("/", "_").replace("\\", "_").replace(":", "_")
+        return getRootFolderPath() + File.separator + sanitizedName
+    }
 }

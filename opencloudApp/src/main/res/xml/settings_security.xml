@@ -49,4 +49,25 @@
         app:summary="@string/prefs_touches_with_other_visible_windows_summary"
         app:title="@string/prefs_touches_with_other_visible_windows" />
 
+    <!-- Download Everything Feature -->
+    <CheckBoxPreference
+        app:iconSpaceReserved="false"
+        app:key="download_everything"
+        app:summary="@string/prefs_download_everything_summary"
+        app:title="@string/prefs_download_everything" />
+
+    <!-- Auto-Sync Feature -->
+    <CheckBoxPreference
+        app:iconSpaceReserved="false"
+        app:key="auto_sync_local_changes"
+        app:summary="@string/prefs_auto_sync_summary"
+        app:title="@string/prefs_auto_sync" />
+
+    <!-- Conflict Resolution Strategy -->
+    <CheckBoxPreference
+        app:iconSpaceReserved="false"
+        app:key="prefer_local_on_conflict"
+        app:summary="@string/prefs_prefer_local_on_conflict_summary"
+        app:title="@string/prefs_prefer_local_on_conflict" />
+
 </PreferenceScreen>

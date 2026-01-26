@@ -61,7 +61,7 @@ import eu.opencloud.android.presentation.authentication.EXTRA_ACCOUNT
 import eu.opencloud.android.presentation.authentication.EXTRA_ACTION
 import eu.opencloud.android.presentation.authentication.LoginActivity
 import eu.opencloud.android.presentation.common.UIResult
-import eu.opencloud.android.presentation.conflicts.ConflictsResolveActivity
+
 import eu.opencloud.android.presentation.files.details.FileDetailsViewModel.ActionsInDetailsView.NONE
 import eu.opencloud.android.presentation.files.details.FileDetailsViewModel.ActionsInDetailsView.SYNC
 import eu.opencloud.android.presentation.files.details.FileDetailsViewModel.ActionsInDetailsView.SYNC_AND_OPEN
@@ -190,10 +190,8 @@ class FileDetailsFragment : FileFragment() {
                         SynchronizeFileUseCase.SyncType.AlreadySynchronized -> {
                             showMessageInSnackbar(getString(R.string.sync_file_nothing_to_do_msg))
                         }
-                        is SynchronizeFileUseCase.SyncType.ConflictDetected -> {
-                            val showConflictActivityIntent = Intent(requireActivity(), ConflictsResolveActivity::class.java)
-                            showConflictActivityIntent.putExtra(ConflictsResolveActivity.EXTRA_FILE, file)
-                            startActivity(showConflictActivityIntent)
+                        is SynchronizeFileUseCase.SyncType.ConflictResolvedWithCopy -> {
+                            showMessageInSnackbar(getString(R.string.sync_conflict_resolved_with_copy))
                         }
 
                         is SynchronizeFileUseCase.SyncType.DownloadEnqueued -> {

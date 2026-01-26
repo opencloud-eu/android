@@ -36,6 +36,8 @@ import eu.opencloud.android.workers.AccountDiscoveryWorker
 import eu.opencloud.android.workers.AvailableOfflinePeriodicWorker
 import eu.opencloud.android.workers.AvailableOfflinePeriodicWorker.Companion.AVAILABLE_OFFLINE_PERIODIC_WORKER
 import eu.opencloud.android.workers.AutomaticUploadsWorker
+import eu.opencloud.android.workers.DownloadEverythingWorker
+import eu.opencloud.android.workers.LocalFileSyncWorker
 import eu.opencloud.android.workers.OldLogsCollectorWorker
 import eu.opencloud.android.workers.RemoveLocallyFilesWithLastUsageOlderThanGivenTimeWorker
 import eu.opencloud.android.workers.UploadFileFromContentUriWorker
@@ -128,5 +130,61 @@ class WorkManagerProvider(
         )
 
     fun cancelAllWorkByTag(tag: String) = WorkManager.getInstance(context).cancelAllWorkByTag(tag)
+
+    // Download Everything Feature
+    fun enqueueDownloadEverythingWorker() {
+        val constraintsRequired = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .setRequiresBatteryNotLow(true)
+            .setRequiresStorageNotLow(true)
+            .build()
+
+        val downloadEverythingWorker = PeriodicWorkRequestBuilder<DownloadEverythingWorker>(
+            repeatInterval = DownloadEverythingWorker.repeatInterval,
+            repeatIntervalTimeUnit = DownloadEverythingWorker.repeatIntervalTimeUnit
+        )
+            .addTag(DownloadEverythingWorker.DOWNLOAD_EVERYTHING_WORKER)
+            .setConstraints(constraintsRequired)
+            .build()
+
+        WorkManager.getInstance(context)
+            .enqueueUniquePeriodicWork(
+                DownloadEverythingWorker.DOWNLOAD_EVERYTHING_WORKER,
+                ExistingPeriodicWorkPolicy.KEEP,
+                downloadEverythingWorker
+            )
+    }
+
+    fun cancelDownloadEverythingWorker() {
+        WorkManager.getInstance(context)
+            .cancelUniqueWork(DownloadEverythingWorker.DOWNLOAD_EVERYTHING_WORKER)
+    }
+
+    // Local File Sync (Auto-Sync) Feature
+    fun enqueueLocalFileSyncWorker() {
+        val constraintsRequired = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build()
+
+        val localFileSyncWorker = PeriodicWorkRequestBuilder<LocalFileSyncWorker>(
+            repeatInterval = LocalFileSyncWorker.repeatInterval,
+            repeatIntervalTimeUnit = LocalFileSyncWorker.repeatIntervalTimeUnit
+        )
+            .addTag(LocalFileSyncWorker.LOCAL_FILE_SYNC_WORKER)
+            .setConstraints(constraintsRequired)
+            .build()
+
+        WorkManager.getInstance(context)
+            .enqueueUniquePeriodicWork(
+                LocalFileSyncWorker.LOCAL_FILE_SYNC_WORKER,
+                ExistingPeriodicWorkPolicy.KEEP,
+                localFileSyncWorker
+            )
+    }
+
+    fun cancelLocalFileSyncWorker() {
+        WorkManager.getInstance(context)
+            .cancelUniqueWork(LocalFileSyncWorker.LOCAL_FILE_SYNC_WORKER)
+    }
 
 }

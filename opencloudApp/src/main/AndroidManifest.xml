@@ -23,6 +23,7 @@
         API >= 23; the app needs to handle this
     -->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" tools:ignore="ScopedStorage" />
     <!--
         Notifications are off by default since API 33;
         See note in https://developer.android.com/develop/ui/views/notifications/notification-permission

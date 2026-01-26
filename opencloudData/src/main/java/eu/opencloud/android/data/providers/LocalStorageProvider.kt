@@ -49,7 +49,10 @@ sealed class LocalStorageProvider(private val rootFolderName: String) {
     /**
      * Get local storage path for accountName.
      */
-    private fun getAccountDirectoryPath(
+    /**
+     * Get local storage path for accountName.
+     */
+    protected open fun getAccountDirectoryPath(
         accountName: String
     ): String = getRootFolderPath() + File.separator + getEncodedAccountName(accountName)
 
@@ -62,9 +65,15 @@ sealed class LocalStorageProvider(private val rootFolderName: String) {
         accountName: String,
         remotePath: String,
         spaceId: String?,
+        spaceName: String? = null,
     ): String =
         if (spaceId != null) {
-            getAccountDirectoryPath(accountName) + File.separator + spaceId + File.separator + remotePath
+            val spaceFolder = if (!spaceName.isNullOrBlank()) {
+                spaceName.replace("/", "_").replace("\\", "_").replace(":", "_")
+            } else {
+                spaceId
+            }
+            getAccountDirectoryPath(accountName) + File.separator + spaceFolder + File.separator + remotePath
         } else {
             getAccountDirectoryPath(accountName) + remotePath
         }

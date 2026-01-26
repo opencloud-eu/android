@@ -403,6 +403,7 @@
     <string name="new_remote_version_found_msg">A new version was found in server. Downloading…</string>
     <string name="download_enqueued_msg">Download enqueued</string>
     <string name="upload_enqueued_msg">Upload enqueued</string>
+    <string name="sync_conflict_resolved_with_copy">Conflict resolved. Your local changes were saved as a separate copy.</string>
     <string name="create_dir_fail_msg">Folder could not be created</string>
     <string name="create_file_fail_msg">File could not be created</string>
     <string name="filename_forbidden_characters">Forbidden characters: / \\</string>
@@ -852,5 +853,21 @@
     <string name="text_preview_label">Text preview</string>
     <string name="release_notes_title_enhanced_bottom_nav_bar">Added text labels on bottom bar</string>
     <string name="release_notes_subtitle_bottom_nav_bar">Text labels were added and default active indicator is used to show which section is selected on the bottom bar</string>
+
+    <!-- Download Everything Feature -->
+    <string name="prefs_download_everything">Download all files</string>
+    <string name="prefs_download_everything_summary">Download all files from your cloud for offline access (requires significant storage)</string>
+    <string name="download_everything_warning_title">Download Everything</string>
+    <string name="download_everything_warning_message">This will download ALL files from your cloud. This may use significant storage space and bandwidth. Continue?</string>
+
+    <!-- Auto-Sync Feature -->
+    <string name="prefs_auto_sync">Auto-sync local changes</string>
+    <string name="prefs_auto_sync_summary">Automatically upload changes to locally modified files</string>
+    <string name="auto_sync_warning_title">Auto-Sync</string>
+    <string name="auto_sync_warning_message">Local file changes will be automatically synced to the cloud. This requires a stable network connection. Continue?</string>
+
+    <!-- Conflict Resolution -->
+    <string name="prefs_prefer_local_on_conflict">Prefer local version on conflict</string>
+    <string name="prefs_prefer_local_on_conflict_summary">When a file is modified both locally and on server, upload local version instead of creating a conflicted copy</string>
 
 </resources>

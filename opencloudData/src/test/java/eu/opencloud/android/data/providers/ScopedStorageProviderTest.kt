@@ -2,13 +2,17 @@ package eu.opencloud.android.data.providers
 
 import android.content.Context
 import android.net.Uri
+import android.os.Environment
 import eu.opencloud.android.domain.transfers.model.OCTransfer
 import eu.opencloud.android.testutil.OC_FILE
 import eu.opencloud.android.testutil.OC_SPACE_PROJECT_WITH_IMAGE
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
+import io.mockk.unmockkAll
+import io.mockk.spyk
 import io.mockk.verify
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -43,8 +47,16 @@ class ScopedStorageProviderTest {
             File(this, "child.bin").writeBytes(ByteArray(expectedSizeOfDirectoryValue.toInt()))
         }
 
-        scopedStorageProvider = ScopedStorageProvider(rootFolderName, context)
+        mockkStatic(Environment::class)
+        every { Environment.getExternalStorageDirectory() } returns filesDir
+
+        scopedStorageProvider = spyk(ScopedStorageProvider(rootFolderName, context))
         every { context.filesDir } returns filesDir
+    }
+
+    @After
+    fun tearDown() {
+        unmockkAll()
     }
 
     @Test
@@ -53,7 +65,7 @@ class ScopedStorageProviderTest {
         assertEquals(filesDir, result)
 
         verify(exactly = 1) {
-            context.filesDir
+            Environment.getExternalStorageDirectory()
         }
     }
 
@@ -71,10 +83,8 @@ class ScopedStorageProviderTest {
 
     @Test
     fun `getDefaultSavePathFor returns the path with spaces when there is a space`() {
-        mockkStatic(Uri::class)
-        every { Uri.encode(accountName, "@") } returns uriEncoded
-
-        val accountDirectoryPath = filesDir.absolutePath + File.separator + rootFolderName + File.separator + uriEncoded
+        // ScopedStorageProvider overrides getAccountDirectoryPath and does NOT use Uri.encode
+        val accountDirectoryPath = filesDir.absolutePath + File.separator + rootFolderName + File.separator + accountName
         val expectedPath = accountDirectoryPath + File.separator + spaceId + File.separator + remotePath
         val actualPath = scopedStorageProvider.getDefaultSavePathFor(accountName, remotePath, spaceId)
 
@@ -89,10 +99,8 @@ class ScopedStorageProviderTest {
     fun `getDefaultSavePathFor returns the path without spaces when there is not space`() {
         val spaceId = null
 
-        mockkStatic(Uri::class)
-        every { Uri.encode(accountName, "@") } returns uriEncoded
-
-        val accountDirectoryPath = filesDir.absolutePath + File.separator + rootFolderName + File.separator + uriEncoded
+        // ScopedStorageProvider overrides getAccountDirectoryPath and does NOT use Uri.encode
+        val accountDirectoryPath = filesDir.absolutePath + File.separator + rootFolderName + File.separator + accountName
         val expectedPath = accountDirectoryPath + remotePath
         val actualPath = scopedStorageProvider.getDefaultSavePathFor(accountName, remotePath, spaceId)
 
