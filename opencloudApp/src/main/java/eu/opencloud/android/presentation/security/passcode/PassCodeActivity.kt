@@ -40,6 +40,7 @@ import android.view.WindowManager
 import android.widget.EditText
 import android.widget.LinearLayout
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.updatePadding
 import eu.opencloud.android.BuildConfig
 import eu.opencloud.android.R
 import eu.opencloud.android.databinding.PasscodelockBinding
@@ -51,6 +52,8 @@ import eu.opencloud.android.presentation.security.biometric.BiometricStatus
 import eu.opencloud.android.presentation.security.biometric.BiometricViewModel
 import eu.opencloud.android.presentation.security.biometric.EnableBiometrics
 import eu.opencloud.android.presentation.settings.security.SettingsSecurityFragment.Companion.EXTRAS_LOCK_ENFORCED
+import eu.opencloud.android.ui.activity.enableEdgeToEdgePostSetContentView
+import eu.opencloud.android.ui.activity.enableEdgeToEdgePreSetContentView
 import eu.opencloud.android.utils.PreferenceUtils
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.koin.core.parameter.parametersOf
@@ -94,7 +97,18 @@ class PassCodeActivity : AppCompatActivity(), NumberKeyboardListener, EnableBiom
             window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
         } // else, let it go, or taking screenshots & testing will not be possible
 
+        setSupportActionBar(binding.toolbar)
+
+        // edge-to-edge
+        enableEdgeToEdgePreSetContentView(false)
+
         setContentView(binding.root)
+
+        // edge-to-edge
+        enableEdgeToEdgePostSetContentView { insets ->
+            binding.toolbar?.updatePadding(top = insets.top)
+            binding.root.updatePadding(bottom = insets.bottom)
+        }
 
         if (intent.getBooleanExtra(BIOMETRIC_HAS_FAILED, false)) {
             showMessageInSnackbar(message = getString(R.string.biometric_not_available))

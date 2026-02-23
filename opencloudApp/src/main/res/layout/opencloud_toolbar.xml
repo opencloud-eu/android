@@ -16,14 +16,14 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/opencloud_app_bar"
     android:layout_width="match_parent"
-    android:layout_height="?android:actionBarSize"
+    android:layout_height="wrap_content"
     android:theme="@style/openCloud.Appbar"
     android:focusableInTouchMode="true">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/root_toolbar"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="?android:actionBarSize">
 
         <androidx.appcompat.widget.AppCompatImageView
             android:id="@+id/root_toolbar_left_icon"

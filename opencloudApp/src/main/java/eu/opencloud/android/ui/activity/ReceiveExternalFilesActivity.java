@@ -211,8 +211,18 @@ public class ReceiveExternalFilesActivity extends FileActivity
             setAccount(savedInstanceState.getParcelable(FileActivity.EXTRA_ACCOUNT));
         }
 
+        // edge-to-edge
+        ActivityEdgeToEdgeUtilsKt.enableEdgeToEdgePreSetContentView(this, false);
+
         //init ui
         setContentView(R.layout.uploader_layout);
+
+        // edge-to-edge
+        ActivityEdgeToEdgeUtilsKt.enableEdgeToEdgePostSetContentView(this, insets -> {
+            ActivityEdgeToEdgeUtilsKt.updatePaddingTop(findViewById(R.id.opencloud_app_bar), insets.top);
+            ActivityEdgeToEdgeUtilsKt.updatePaddingBottom(findViewById(android.R.id.content), insets.bottom);
+            return Unit.INSTANCE;
+        });
 
         mSortOptionsView = findViewById(R.id.options_layout);
         if (mSortOptionsView != null) {

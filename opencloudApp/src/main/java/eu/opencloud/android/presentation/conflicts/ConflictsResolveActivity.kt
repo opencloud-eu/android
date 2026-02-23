@@ -25,9 +25,13 @@ package eu.opencloud.android.presentation.conflicts
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.updatePadding
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import eu.opencloud.android.databinding.ActivityConflictsResolveBinding
+import eu.opencloud.android.ui.activity.enableEdgeToEdgePostSetContentView
+import eu.opencloud.android.ui.activity.enableEdgeToEdgePreSetContentView
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -35,6 +39,9 @@ import org.koin.core.parameter.parametersOf
 import timber.log.Timber
 
 class ConflictsResolveActivity : AppCompatActivity(), ConflictsResolveDialogFragment.OnConflictDecisionMadeListener {
+
+    private var _binding: ActivityConflictsResolveBinding? = null
+    val binding get() = _binding!!
 
     private val conflictsResolveViewModel by viewModel<ConflictsResolveViewModel> {
         parametersOf(
@@ -46,6 +53,19 @@ class ConflictsResolveActivity : AppCompatActivity(), ConflictsResolveDialogFrag
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // edge-to-edge
+        enableEdgeToEdgePreSetContentView(true)
+
+        _binding = ActivityConflictsResolveBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        setSupportActionBar(binding.toolbar)
+
+        // edge-to-edge
+        enableEdgeToEdgePostSetContentView { insets ->
+            binding.toolbar.updatePadding(top = insets.top)
+            binding.root.updatePadding(bottom = insets.bottom)
+        }
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {

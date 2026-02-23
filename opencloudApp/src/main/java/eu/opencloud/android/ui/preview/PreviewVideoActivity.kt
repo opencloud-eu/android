@@ -43,6 +43,7 @@ import androidx.core.view.MenuProvider
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.core.view.updatePadding
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -77,6 +78,7 @@ import eu.opencloud.android.presentation.spaces.SpacesListViewModel
 import eu.opencloud.android.presentation.transfers.TransfersViewModel
 import eu.opencloud.android.ui.activity.FileActivity
 import eu.opencloud.android.ui.activity.FileDisplayActivity
+import eu.opencloud.android.ui.activity.enableEdgeToEdgePostSetContentView
 import eu.opencloud.android.ui.fragment.FileFragment
 import eu.opencloud.android.ui.preview.PrepareVideoPlayerAsyncTask.OnPrepareVideoPlayerTaskListener
 import kotlinx.coroutines.flow.Flow
@@ -108,6 +110,13 @@ class PreviewVideoActivity : FileActivity(), Player.Listener, OnPrepareVideoPlay
         setContentView(binding.root)
         addMenuProvider(this)
 
+        // edge-to-edge
+        enableEdgeToEdgePostSetContentView { insets ->
+            binding.root.updatePadding(
+                top = binding.root.paddingTop,
+                bottom = insets.bottom
+            )
+        }
 
         if (savedInstanceState == null) {
             val launchingIntent = intent

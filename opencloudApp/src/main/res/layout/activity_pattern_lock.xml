@@ -16,69 +16,90 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/activityPatternLockLayout"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:padding="@dimen/standard_padding">
+    android:layout_height="match_parent">
 
-    <TextView
-        android:id="@+id/header_pattern"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/standard_margin"
-        android:text="@string/pass_code_enter_pass_code"
-        android:textColor="@android:color/black"
-        android:textSize="16sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <TextView
-        android:id="@+id/explanation_pattern"
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="@dimen/standard_margin"
-        android:gravity="center"
-        android:text="@string/pattern_configure_your_pattern_explanation"
-        android:textAppearance="@android:style/TextAppearance.Small"
-        android:textSize="14sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/header_pattern" />
+        android:minHeight="?attr/actionBarSize"
+        android:background="?attr/colorPrimary"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
 
-    <TextView
-        android:id="@+id/error_pattern"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/standard_margin"
-        android:textColor="@color/warning"
-        android:textSize="16sp"
-        app:layout_constraintBottom_toTopOf="@id/patternContainer"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
-
-    <eu.opencloud.android.presentation.security.passcode.SquareFrameLayout
-        android:id="@+id/patternContainer"
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginHorizontal="@dimen/standard_margin"
-        android:layout_marginVertical="@dimen/standard_margin"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:background="@color/background_color"
+        android:paddingHorizontal="@dimen/standard_padding"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_chainStyle="packed"
-        app:layout_constraintStart_toStartOf="parent">
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/toolbar"
+        app:layout_constraintBottom_toBottomOf="parent">
 
-        <com.andrognito.patternlockview.PatternLockView
-            android:id="@+id/pattern_lock_view"
+        <TextView
+            android:id="@+id/header_pattern"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/standard_margin"
+            android:text="@string/pass_code_enter_pass_code"
+            android:textColor="@android:color/black"
+            android:textSize="16sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/explanation_pattern"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:focusable="true"
-            app:correctStateColor="@color/primary"
-            app:dotCount="3"
-            app:normalStateColor="@color/primary"
-            app:wrongStateColor="@color/primary">
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/standard_margin"
+            android:gravity="center"
+            android:text="@string/pattern_configure_your_pattern_explanation"
+            android:textAppearance="@android:style/TextAppearance.Small"
+            android:textSize="14sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/header_pattern" />
 
-            <requestFocus />
+        <TextView
+            android:id="@+id/error_pattern"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/standard_margin"
+            android:textColor="@color/warning"
+            android:textSize="16sp"
+            app:layout_constraintBottom_toTopOf="@id/patternContainer"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
 
-        </com.andrognito.patternlockview.PatternLockView>
-    </eu.opencloud.android.presentation.security.passcode.SquareFrameLayout>
+        <eu.opencloud.android.presentation.security.passcode.SquareFrameLayout
+            android:id="@+id/patternContainer"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginHorizontal="@dimen/standard_margin"
+            android:layout_marginVertical="@dimen/standard_margin"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_chainStyle="packed"
+            app:layout_constraintStart_toStartOf="parent">
+
+            <com.andrognito.patternlockview.PatternLockView
+                android:id="@+id/pattern_lock_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:focusable="true"
+                app:correctStateColor="@color/primary"
+                app:dotCount="3"
+                app:normalStateColor="@color/primary"
+                app:wrongStateColor="@color/primary">
+
+                <requestFocus />
+
+            </com.andrognito.patternlockview.PatternLockView>
+        </eu.opencloud.android.presentation.security.passcode.SquareFrameLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

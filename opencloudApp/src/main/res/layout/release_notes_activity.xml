@@ -24,6 +24,15 @@
     android:layout_height="match_parent"
     tools:context=".presentation.releasenotes.ReleaseNotesActivity">
 
+    <FrameLayout
+        android:id="@+id/top_spacer"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:background="@color/primary"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <TextView
         android:id="@+id/txtHeader"
         android:layout_width="wrap_content"
@@ -34,7 +43,7 @@
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/top_spacer" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/releaseNotes"

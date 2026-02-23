@@ -44,6 +44,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.net.toUri
 import androidx.core.view.isVisible
+import androidx.core.view.updatePadding
 import androidx.core.widget.doAfterTextChanged
 import eu.opencloud.android.BuildConfig
 import eu.opencloud.android.MainApp.Companion.accountType
@@ -80,6 +81,8 @@ import eu.opencloud.android.presentation.settings.SettingsActivity
 import eu.opencloud.android.providers.ContextProvider
 import eu.opencloud.android.providers.MdmProvider
 import eu.opencloud.android.ui.activity.FileDisplayActivity
+import eu.opencloud.android.ui.activity.enableEdgeToEdgePostSetContentView
+import eu.opencloud.android.ui.activity.enableEdgeToEdgePreSetContentView
 import eu.opencloud.android.ui.dialog.SslUntrustedCertDialog
 import eu.opencloud.android.utils.CONFIGURATION_OAUTH2_OPEN_ID_PROMPT
 import eu.opencloud.android.utils.CONFIGURATION_OAUTH2_OPEN_ID_SCOPE
@@ -164,10 +167,18 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
             savedInstanceState.getString(KEY_OIDC_STATE)?.let { authenticationViewModel.oidcState = it }
         }
 
+        // edge-to-edge
+        enableEdgeToEdgePreSetContentView(true)
+
         // UI initialization
         binding = AccountSetupBinding.inflate(layoutInflater)
         val view = binding.root
         setContentView(view)
+
+        // edge-to-edge
+        enableEdgeToEdgePostSetContentView { inset ->
+            binding.root.updatePadding(top = inset.top, bottom = inset.bottom)
+        }
 
         if (loginAction != ACTION_CREATE) {
             binding.accountUsername.isEnabled = false

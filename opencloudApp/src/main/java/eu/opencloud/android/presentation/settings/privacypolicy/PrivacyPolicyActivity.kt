@@ -22,6 +22,7 @@ package eu.opencloud.android.presentation.settings.privacypolicy
 
 import android.os.Bundle
 import android.view.MenuItem
+import android.view.View
 import android.webkit.WebChromeClient
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -31,8 +32,11 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.isVisible
+import androidx.core.view.updatePadding
 import eu.opencloud.android.R
 import eu.opencloud.android.extensions.showMessageInSnackbar
+import eu.opencloud.android.ui.activity.enableEdgeToEdgePostSetContentView
+import eu.opencloud.android.ui.activity.enableEdgeToEdgePreSetContentView
 import eu.opencloud.android.utils.PreferenceUtils
 
 /**
@@ -41,7 +45,16 @@ import eu.opencloud.android.utils.PreferenceUtils
 class PrivacyPolicyActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // edge-to-edge
+        enableEdgeToEdgePreSetContentView(false)
+
         setContentView(R.layout.activity_privacy_policy)
+
+        // edge-to-edge
+        enableEdgeToEdgePostSetContentView { insets ->
+            findViewById<View>(R.id.opencloud_app_bar).updatePadding(top = insets.top)
+        }
 
         val toolbar = findViewById<Toolbar>(R.id.standard_toolbar).apply {
             setTitle(R.string.actionbar_privacy_policy)

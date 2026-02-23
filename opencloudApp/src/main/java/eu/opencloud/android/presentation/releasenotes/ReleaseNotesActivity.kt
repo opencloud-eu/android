@@ -23,6 +23,8 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.updateLayoutParams
+import androidx.core.view.updatePadding
 import androidx.recyclerview.widget.LinearLayoutManager
 import eu.opencloud.android.BuildConfig
 import eu.opencloud.android.MainApp
@@ -31,6 +33,8 @@ import eu.opencloud.android.R
 import eu.opencloud.android.databinding.ReleaseNotesActivityBinding
 import eu.opencloud.android.presentation.authentication.LoginActivity
 import eu.opencloud.android.ui.activity.FileDisplayActivity
+import eu.opencloud.android.ui.activity.enableEdgeToEdgePostSetContentView
+import eu.opencloud.android.ui.activity.enableEdgeToEdgePreSetContentView
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class ReleaseNotesActivity : AppCompatActivity() {
@@ -45,10 +49,23 @@ class ReleaseNotesActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // edge-to-edge
+        enableEdgeToEdgePreSetContentView(false)
+
         _binding = ReleaseNotesActivityBinding.inflate(layoutInflater)
         setContentView(binding.root)
         setData()
         initView()
+
+        // edge-to-edge
+        enableEdgeToEdgePostSetContentView { insets ->
+            binding.topSpacer.updateLayoutParams {
+                height = insets.top
+            }
+            binding.root.updatePadding(bottom = insets.bottom)
+        }
+        supportActionBar?.elevation = 0f;
     }
 
     private fun initView() {

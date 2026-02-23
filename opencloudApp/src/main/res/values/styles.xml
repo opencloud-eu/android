@@ -60,6 +60,11 @@
         <item name="android:windowDrawsSystemBarBackgrounds">true</item>
     </style>
 
+    <!-- Extends Theme.openCloud.Toolbar for primary color background -->
+    <style name="Theme.openCloud.Toolbar.Fill">
+        <item name="android:windowBackground">@color/primary</item>
+    </style>
+
     <!-- Extends Theme.openCloud.Toolbar for Drawer activities including Drawer -->
     <style name="Theme.openCloud.Toolbar.Drawer">
         <item name="android:statusBarColor">@android:color/transparent</item>

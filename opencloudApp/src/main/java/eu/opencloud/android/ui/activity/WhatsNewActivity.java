@@ -36,6 +36,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
+import androidx.core.view.ViewKt;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
@@ -50,6 +51,7 @@ import eu.opencloud.android.presentation.authentication.LoginActivity;
 import eu.opencloud.android.wizard.FeatureList;
 import eu.opencloud.android.wizard.FeatureList.FeatureItem;
 import eu.opencloud.android.wizard.ProgressIndicator;
+import kotlin.Unit;
 
 /**
  * @author Bartosz Przybylski
@@ -81,9 +83,28 @@ public class WhatsNewActivity extends FragmentActivity implements ViewPager.OnPa
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        bindingActivity = WhatsNewActivityBinding.inflate(getLayoutInflater());
+        // edge-to-edge
+        ActivityEdgeToEdgeUtilsKt.enableEdgeToEdgePreSetContentView(this, true);
 
+        bindingActivity = WhatsNewActivityBinding.inflate(getLayoutInflater());
         setContentView(bindingActivity.getRoot());
+
+        // edge-to-edge
+        ActivityEdgeToEdgeUtilsKt.enableEdgeToEdgePostSetContentView(this, insets -> {
+            assert bindingActivity.topSpacer != null;
+            ViewKt.updateLayoutParams(bindingActivity.topSpacer, params -> {
+               params.height = insets.top;
+               return Unit.INSTANCE;
+            });
+            assert bindingActivity.bottomButtons != null;
+            ViewKt.updateLayoutParams(bindingActivity.bottomButtons, params -> {
+                if (params instanceof ViewGroup.MarginLayoutParams) {
+                    ((ViewGroup.MarginLayoutParams) params).bottomMargin = insets.bottom;
+                }
+                return Unit.INSTANCE;
+            });
+            return Unit.INSTANCE;
+        });
 
         mProgress = bindingActivity.progressIndicator;
         mPager = bindingActivity.contentPanel;

@@ -34,6 +34,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.isVisible
+import androidx.core.view.updatePadding
 import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -45,6 +46,8 @@ import eu.opencloud.android.extensions.showMessageInSnackbar
 import eu.opencloud.android.presentation.settings.logging.SettingsLogsViewModel
 import eu.opencloud.android.providers.LogsProvider
 import eu.opencloud.android.providers.MdmProvider
+import eu.opencloud.android.ui.activity.enableEdgeToEdgePostSetContentView
+import eu.opencloud.android.ui.activity.enableEdgeToEdgePreSetContentView
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import timber.log.Timber
 import java.io.File
@@ -86,10 +89,20 @@ class LogsListActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // edge-to-edge
+        enableEdgeToEdgePreSetContentView(false)
+
         _binding = LogsListActivityBinding.inflate(layoutInflater)
         setContentView(binding.root)
         initToolbar()
         initList()
+
+        // edge-to-edge
+        enableEdgeToEdgePostSetContentView { insets ->
+            binding.toolbarActivityLogsList.root.updatePadding(top = insets.top)
+            binding.recyclerViewActivityLogsList.updatePadding(bottom = insets.bottom)
+        }
     }
 
     private fun initToolbar() {

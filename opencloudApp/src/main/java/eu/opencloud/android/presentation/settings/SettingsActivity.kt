@@ -25,10 +25,12 @@ package eu.opencloud.android.presentation.settings
 import android.content.Intent
 import android.os.Bundle
 import android.view.MenuItem
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.isVisible
+import androidx.core.view.updatePadding
 import eu.opencloud.android.R
 import eu.opencloud.android.presentation.settings.advanced.SettingsAdvancedFragment
 import eu.opencloud.android.presentation.settings.automaticuploads.SettingsPictureUploadsFragment
@@ -37,11 +39,17 @@ import eu.opencloud.android.presentation.settings.logging.SettingsLogsFragment
 import eu.opencloud.android.presentation.settings.more.SettingsMoreFragment
 import eu.opencloud.android.presentation.settings.security.SettingsSecurityFragment
 import eu.opencloud.android.ui.activity.FileDisplayActivity
+import eu.opencloud.android.ui.activity.enableEdgeToEdgePostSetContentView
+import eu.opencloud.android.ui.activity.enableEdgeToEdgePreSetContentView
 
 class SettingsActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // edge-to-edge
+        enableEdgeToEdgePreSetContentView(false)
+
         setContentView(R.layout.activity_settings)
 
         val toolbar = findViewById<Toolbar>(R.id.standard_toolbar).apply {
@@ -55,6 +63,12 @@ class SettingsActivity : AppCompatActivity() {
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         supportFragmentManager.addOnBackStackChangedListener { updateToolbarTitle() }
+
+        // edge-to-edge
+        enableEdgeToEdgePostSetContentView { insets ->
+            findViewById<View>(R.id.toolbar).updatePadding(top = insets.top)
+            findViewById<View>(android.R.id.content).updatePadding(bottom = insets.bottom)
+        }
 
         if (savedInstanceState != null) return
 

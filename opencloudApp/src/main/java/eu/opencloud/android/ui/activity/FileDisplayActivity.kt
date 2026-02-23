@@ -45,6 +45,7 @@ import android.view.KeyEvent
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.ScrollView
@@ -53,6 +54,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
+import androidx.core.view.updateLayoutParams
+import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.work.WorkManager
@@ -242,6 +245,9 @@ class FileDisplayActivity : FileActivity(),
 
         /// USER INTERFACE
 
+        // edge-to-edge
+        enableEdgeToEdgePreSetContentView(true)
+
         // Inflate and set the layout view
         binding = ActivityMainBinding.inflate(layoutInflater)
         val view = binding.root
@@ -284,6 +290,22 @@ class FileDisplayActivity : FileActivity(),
 
 
         checkNotificationPermission()
+
+        // edge-to-edge
+        enableEdgeToEdgePostSetContentView { insets ->
+            binding.navCoordinatorLayout.appBarLayout.updatePadding(
+                top = insets.top,
+                left = insets.left,
+                right = insets.right,
+            )
+            binding.navCoordinatorLayout.bottomNavViewSpacer.updateLayoutParams {
+                height = insets.bottom
+            }
+            findViewById<View>(R.id.nav_view_container).updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                bottomMargin = insets.bottom
+            }
+        }
+
         Timber.v("onCreate() end")
     }
 
@@ -303,7 +325,7 @@ class FileDisplayActivity : FileActivity(),
                 registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
                     Timber.d("Permission to send notifications granted: $isGranted")
                     if (!isGranted) {
-                        showSnackMessage(getString(R.string.notifications_permission_denied))
+                        showMessageInSnackbar(R.id.list_layout, getString(R.string.notifications_permission_denied))
                     }
                     sharedPreferences.putBoolean(PREFERENCE_NOTIFICATION_PERMISSION_REQUESTED, true)
                 }
@@ -467,11 +489,11 @@ class FileDisplayActivity : FileActivity(),
         return if (secondFragment != null) {
             secondFragment
 
-        // Return null if we receive a folder. This way, second fragment will be cleared. We should move this logic out of here.
+            // Return null if we receive a folder. This way, second fragment will be cleared. We should move this logic out of here.
         } else if (file.isFolder) {
             null
 
-        // Otherwise, decide which fragment should be shown.
+            // Otherwise, decide which fragment should be shown.
         } else {
             when {
                 PreviewAudioFragment.canBePreviewed(file) -> {
@@ -1007,7 +1029,7 @@ class FileDisplayActivity : FileActivity(),
                 val singleRemoval = listOfFilesRemoved.size == 1
 
                 if (singleRemoval) {
-                    showMessageInSnackbar(message = getString(R.string.remove_success_msg))
+                    showMessageInSnackbar(R.id.list_layout, message = getString(R.string.remove_success_msg))
                 }
 
                 // Clean second fragment and refresh first one
@@ -1077,7 +1099,7 @@ class FileDisplayActivity : FileActivity(),
                 dismissLoadingDialog()
 
                 uiResult.error?.let {
-                    showMessageInSnackbar(
+                    showMessageInSnackbar(R.id.list_layout,
                         message = it.parseError(getString(R.string.move_file_error), resources, true)
                     )
                 }
@@ -1125,7 +1147,7 @@ class FileDisplayActivity : FileActivity(),
                 dismissLoadingDialog()
 
                 uiResult.error?.let {
-                    showMessageInSnackbar(
+                    showMessageInSnackbar(R.id.list_layout,
                         message = it.parseError(
                             genericErrorMessage = getString(R.string.copy_file_error),
                             resources = resources,
@@ -1350,7 +1372,7 @@ class FileDisplayActivity : FileActivity(),
                             startPreview(fileWaitingToPreview)
                             fileWaitingToPreview = null
                         } else {
-                            showSnackMessage(getString(R.string.sync_file_nothing_to_do_msg))
+                            showMessageInSnackbar(R.id.list_layout, getString(R.string.sync_file_nothing_to_do_msg))
                         }
                     }
 
@@ -1362,10 +1384,10 @@ class FileDisplayActivity : FileActivity(),
 
                     is SynchronizeFileUseCase.SyncType.DownloadEnqueued -> {
                         fileWaitingToPreview?.let {
-                            showSnackMessage(getString(R.string.new_remote_version_found_msg))
+                            showMessageInSnackbar(R.id.list_layout, getString(R.string.new_remote_version_found_msg))
                             startSyncThenOpen(it)
                             fileWaitingToPreview = null
-                        } ?: showSnackMessage(getString(R.string.download_enqueued_msg))
+                        } ?: showMessageInSnackbar(R.id.list_layout, getString(R.string.download_enqueued_msg))
                     }
 
                     SynchronizeFileUseCase.SyncType.FileNotFound -> {
@@ -1373,7 +1395,7 @@ class FileDisplayActivity : FileActivity(),
                     }
 
                     is SynchronizeFileUseCase.SyncType.UploadEnqueued -> {
-                        showSnackMessage(getString(R.string.upload_enqueued_msg))
+                        showMessageInSnackbar(R.id.list_layout, getString(R.string.upload_enqueued_msg))
                     }
                     null -> { /* Nothing to do */ }
                 }
@@ -1408,7 +1430,7 @@ class FileDisplayActivity : FileActivity(),
                     }
 
                     else -> {
-                        showSnackMessage(getString(R.string.sync_fail_ticker))
+                        showMessageInSnackbar(R.id.list_layout, getString(R.string.sync_fail_ticker))
                     }
                 }
             }
@@ -1516,7 +1538,7 @@ class FileDisplayActivity : FileActivity(),
                     }
 
                     else -> {
-                        showSnackMessage(getString(R.string.sync_fail_ticker))
+                        showMessageInSnackbar(R.id.list_layout, getString(R.string.sync_fail_ticker))
                     }
                 }
             }
@@ -1549,7 +1571,7 @@ class FileDisplayActivity : FileActivity(),
         WorkManager.getInstance(applicationContext).getWorkInfoByIdLiveData(uuid).observeWorkerTillItFinishes(
             owner = this,
             onWorkEnqueued = {
-                showMessageInSnackbar(
+                showMessageInSnackbar(R.id.list_layout,
                     message = String.format(getString(R.string.downloader_download_enqueued_ticker), file.fileName)
                 )
             },
@@ -1571,7 +1593,7 @@ class FileDisplayActivity : FileActivity(),
                 }
             },
             onWorkFailed = {
-                showMessageInSnackbar(
+                showMessageInSnackbar(R.id.list_layout,
                     message = String.format(getString(R.string.downloader_download_failed_ticker), file.fileName)
                 )
                 if (file.id == waitingToSend?.id) {
@@ -1956,10 +1978,11 @@ class FileDisplayActivity : FileActivity(),
                     is UIResult.Error -> {
                         dismissLoadingDialog()
                         if (uiResult.error is FileNotFoundException) {
-                            showMessageInSnackbar(message = getString(R.string.deep_link_user_no_access))
+                            showMessageInSnackbar(R.id.list_layout, message = getString(R.string.deep_link_user_no_access))
                             changeUser()
                         } else {
                             showMessageInSnackbar(
+                                R.id.list_layout,
                                 message = getString(
                                     if (uiResult.error is DeepLinkException) {
                                         R.string.invalid_deep_link_format

@@ -22,12 +22,16 @@ package eu.opencloud.android.presentation.migration
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import eu.opencloud.android.MainApp
 import eu.opencloud.android.R
-import eu.opencloud.android.data.providers.implementation.OCSharedPreferencesProvider
 import eu.opencloud.android.data.providers.LegacyStorageProvider
+import eu.opencloud.android.data.providers.implementation.OCSharedPreferencesProvider
+import eu.opencloud.android.ui.activity.enableEdgeToEdgePostSetContentView
+import eu.opencloud.android.ui.activity.enableEdgeToEdgePreSetContentView
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import timber.log.Timber
 import java.io.File
@@ -43,7 +47,20 @@ class StorageMigrationActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // edge-to-edge
+        enableEdgeToEdgePreSetContentView(true)
+
         setContentView(R.layout.activity_storage_migration)
+
+        // edge-to-edge
+        enableEdgeToEdgePostSetContentView { insets ->
+            findViewById<View>(android.R.id.content).updatePadding(
+                top = insets.top,
+                bottom = insets.bottom
+            )
+        }
+        supportActionBar?.elevation = 0f
 
         migrationViewModel.migrationState.observe(this) {
             navigateToNextMigrationScreen(it.peekContent())

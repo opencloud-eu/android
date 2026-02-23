@@ -34,7 +34,9 @@ import android.os.Bundle;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.View;
+import android.view.ViewGroup;
 
+import androidx.core.view.ViewKt;
 import androidx.fragment.app.FragmentTransaction;
 import eu.opencloud.android.R;
 import eu.opencloud.android.lib.common.operations.RemoteOperation;
@@ -45,6 +47,7 @@ import eu.opencloud.android.presentation.transfers.TransferListFragment;
 import eu.opencloud.android.presentation.transfers.TransfersViewModel;
 import eu.opencloud.android.utils.MimetypeIconUtil;
 import kotlin.Lazy;
+import kotlin.Unit;
 import org.jetbrains.annotations.NotNull;
 import timber.log.Timber;
 
@@ -65,6 +68,9 @@ public class UploadListActivity extends FileActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // edge-to-edge
+        ActivityEdgeToEdgeUtilsKt.enableEdgeToEdgePreSetContentView(this, true);
 
         setContentView(R.layout.activity_main);
 
@@ -89,6 +95,20 @@ public class UploadListActivity extends FileActivity {
         if (savedInstanceState == null) {
             createUploadListFragment();
         } // else, the Fragment Manager makes the job on configuration changes
+
+        // edge-to-edge
+        ActivityEdgeToEdgeUtilsKt.enableEdgeToEdgePostSetContentView(this, (insets) -> {
+            ActivityEdgeToEdgeUtilsKt.updatePaddingTop(findViewById(R.id.opencloud_app_bar), insets.top);
+            ViewKt.updateLayoutParams(findViewById(R.id.bottom_nav_view_spacer), params -> {
+                params.height = insets.bottom;
+                return Unit.INSTANCE;
+            });
+            ViewKt.updateLayoutParams(findViewById(R.id.nav_view_container), params -> {
+                ((ViewGroup.MarginLayoutParams) params).bottomMargin = insets.bottom;
+                return Unit.INSTANCE;
+            });
+            return Unit.INSTANCE;
+        });
     }
 
     private void createUploadListFragment() {

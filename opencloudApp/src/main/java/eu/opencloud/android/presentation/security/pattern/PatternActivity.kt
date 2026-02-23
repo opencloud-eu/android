@@ -34,6 +34,7 @@ import android.view.View
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
+import androidx.core.view.updatePadding
 import com.andrognito.patternlockview.PatternLockView.Dot
 import com.andrognito.patternlockview.listener.PatternLockViewListener
 import com.andrognito.patternlockview.utils.PatternLockUtils
@@ -49,6 +50,8 @@ import eu.opencloud.android.presentation.security.biometric.BiometricStatus
 import eu.opencloud.android.presentation.security.biometric.BiometricViewModel
 import eu.opencloud.android.presentation.security.biometric.EnableBiometrics
 import eu.opencloud.android.presentation.settings.security.SettingsSecurityFragment.Companion.EXTRAS_LOCK_ENFORCED
+import eu.opencloud.android.ui.activity.enableEdgeToEdgePostSetContentView
+import eu.opencloud.android.ui.activity.enableEdgeToEdgePreSetContentView
 import eu.opencloud.android.utils.PreferenceUtils
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import timber.log.Timber
@@ -77,7 +80,18 @@ class PatternActivity : AppCompatActivity(), EnableBiometrics {
 
         _binding = ActivityPatternLockBinding.inflate(layoutInflater)
 
+        setSupportActionBar(binding.toolbar)
+
+        // edge-to-edge
+        enableEdgeToEdgePreSetContentView(false)
+
         setContentView(binding.root)
+
+        // edge-to-edge
+        enableEdgeToEdgePostSetContentView { insets ->
+            binding.toolbar?.updatePadding(top = insets.top)
+            binding.root.updatePadding(bottom = insets.bottom)
+        }
 
         if (intent.getBooleanExtra(BIOMETRIC_HAS_FAILED, false)) {
             showMessageInSnackbar(message = getString(R.string.biometric_not_available))

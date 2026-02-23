@@ -76,7 +76,8 @@
             android:name=".presentation.settings.privacypolicy.PrivacyPolicyActivity"
             android:label="@string/actionbar_privacy_policy" />
         <activity android:name=".presentation.settings.SettingsActivity" />
-        <activity android:name=".presentation.migration.StorageMigrationActivity" />
+        <activity android:name=".presentation.migration.StorageMigrationActivity"
+            android:theme="@style/Theme.openCloud.Toolbar.Fill" />
         <activity
             android:name=".ui.activity.SplashActivity"
             android:exported="true"
@@ -193,11 +194,9 @@
         <activity
             android:name=".presentation.security.passcode.PassCodeActivity"
             android:label="@string/passcode_label"
-            android:screenOrientation="portrait"
-            android:theme="@style/Theme.openCloud" />
+            android:screenOrientation="portrait" />
         <activity
-            android:name=".presentation.conflicts.ConflictsResolveActivity"
-            android:theme="@style/Theme.openCloud" />
+            android:name=".presentation.conflicts.ConflictsResolveActivity" />
         <activity
             android:name=".presentation.logging.LogsListActivity"
             android:label="@string/prefs_log_open_logs_list_view"
@@ -235,8 +234,7 @@
         <activity
             android:name=".presentation.security.pattern.PatternActivity"
             android:screenOrientation="portrait"
-            android:label="@string/pattern_label"
-            android:theme="@style/Theme.openCloud" />
+            android:label="@string/pattern_label" />
         <activity android:name=".presentation.security.biometric.BiometricActivity" />
         <activity
             android:name=".presentation.authentication.LoginActivity"

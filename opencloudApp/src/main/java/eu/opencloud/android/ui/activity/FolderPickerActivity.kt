@@ -28,8 +28,10 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import androidx.annotation.StringRes
 import androidx.core.view.isVisible
+import androidx.core.view.updatePadding
 import eu.opencloud.android.R
 import eu.opencloud.android.databinding.FilesFolderPickerBinding
 import eu.opencloud.android.datamodel.FileDataStorageManager
@@ -61,8 +63,17 @@ open class FolderPickerActivity : FileActivity(),
 
         super.onCreate(savedInstanceState)
 
+        // edge-to-edge
+        enableEdgeToEdgePreSetContentView(false)
+
         binding = FilesFolderPickerBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        // edge-to-edge
+        enableEdgeToEdgePostSetContentView { insets ->
+            findViewById<View>(R.id.opencloud_app_bar).updatePadding(top = insets.top)
+            binding.root.updatePadding(bottom = insets.bottom)
+        }
 
         // Allow or disallow touches with other visible windows
         binding.filesFolderPickerLayout.filterTouchesWhenObscured = PreferenceUtils.shouldDisallowTouchesWithOtherVisibleWindows(this)

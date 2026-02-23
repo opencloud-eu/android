@@ -33,12 +33,14 @@ import android.view.KeyEvent
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import androidx.core.view.updatePadding
 import androidx.fragment.app.transaction
 import eu.opencloud.android.R
 import eu.opencloud.android.domain.files.model.OCFile
 import eu.opencloud.android.domain.sharing.shares.model.OCShare
 import eu.opencloud.android.domain.sharing.shares.model.ShareType
 import eu.opencloud.android.domain.utils.Event.EventObserver
+import eu.opencloud.android.extensions.showDialogFragment
 import eu.opencloud.android.extensions.showErrorInSnackbar
 import eu.opencloud.android.lib.resources.shares.RemoteShare
 import eu.opencloud.android.presentation.common.UIResult
@@ -47,7 +49,8 @@ import eu.opencloud.android.presentation.sharing.sharees.SearchShareesFragment
 import eu.opencloud.android.presentation.sharing.sharees.UsersAndGroupsSearchProvider
 import eu.opencloud.android.presentation.sharing.shares.PublicShareDialogFragment
 import eu.opencloud.android.ui.activity.FileActivity
-import eu.opencloud.android.extensions.showDialogFragment
+import eu.opencloud.android.ui.activity.enableEdgeToEdgePostSetContentView
+import eu.opencloud.android.ui.activity.enableEdgeToEdgePreSetContentView
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.koin.core.parameter.parametersOf
 import timber.log.Timber
@@ -66,7 +69,15 @@ class ShareActivity : FileActivity(), ShareFragmentListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // edge-to-edge
+        enableEdgeToEdgePreSetContentView(false)
+
         setContentView(R.layout.share_activity)
+
+        // edge-to-edge
+        enableEdgeToEdgePostSetContentView { insets ->
+            findViewById<View>(android.R.id.content).updatePadding(bottom = insets.bottom)
+        }
 
         setupStandardToolbar(
             title = null,
