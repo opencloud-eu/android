@@ -40,13 +40,15 @@ class GetInstancesViaWebFingerOperation(
     private val lockupServerDomain: String,
     private val rel: String,
     private val resource: String,
-) : RemoteOperation<List<String>>() {
+    private val platform: String? = null,
+) : RemoteOperation<WebFingerResponse>() {
 
     private fun buildRequestUri() =
         Uri.parse(lockupServerDomain).buildUpon()
             .path(ENDPOINT_WEBFINGER_PATH)
             .appendQueryParameter("rel", rel)
             .appendQueryParameter("resource", resource)
+            .apply { platform?.let { appendQueryParameter("platform", it) } }
             .build()
 
     private fun isSuccess(status: Int): Boolean = status == HttpConstants.HTTP_OK
@@ -61,26 +63,27 @@ class GetInstancesViaWebFingerOperation(
         method: HttpMethod,
         response: String?,
         status: Int
-    ): RemoteOperationResult<List<String>> {
+    ): RemoteOperationResult<WebFingerResponse> {
         Timber.e("Failed requesting WebFinger info")
         if (response != null) {
             Timber.e("*** status code: $status; response message: $response")
         } else {
             Timber.e("*** status code: $status")
         }
-        return RemoteOperationResult<List<String>>(method)
+        return RemoteOperationResult<WebFingerResponse>(method)
     }
 
-    private fun onRequestSuccessful(rawResponse: String): RemoteOperationResult<List<String>> {
+    private fun onRequestSuccessful(rawResponse: String): RemoteOperationResult<WebFingerResponse> {
         val response = parseResponse(rawResponse)
         Timber.d("Successful WebFinger request: $response")
-        val operationResult = RemoteOperationResult<List<String>>(RemoteOperationResult.ResultCode.OK)
-        operationResult.data = response.links?.map { it.href } ?: listOf()
+        val operationResult = RemoteOperationResult<WebFingerResponse>(RemoteOperationResult.ResultCode.OK)
+        operationResult.data = response
         return operationResult
     }
 
-    override fun run(client: OpenCloudClient): RemoteOperationResult<List<String>> {
+    override fun run(client: OpenCloudClient): RemoteOperationResult<WebFingerResponse> {
         val requestUri = buildRequestUri()
+        Timber.d("Doing WebFinger request: $requestUri")
         val getMethod = GetMethod(URL(requestUri.toString()))
 
         // First iteration won't follow redirections.
@@ -88,7 +91,7 @@ class GetInstancesViaWebFingerOperation(
 
         return try {
             val status = client.executeHttpMethod(getMethod)
-            val response = getMethod.getResponseBodyAsString()!!
+            val response = getMethod.getResponseBodyAsString()
 
             if (isSuccess(status)) {
                 onRequestSuccessful(response)
@@ -97,7 +100,7 @@ class GetInstancesViaWebFingerOperation(
             }
         } catch (e: Exception) {
             Timber.e(e, "Requesting WebFinger info failed")
-            RemoteOperationResult<List<String>>(e)
+            RemoteOperationResult<WebFingerResponse>(e)
         }
     }
 

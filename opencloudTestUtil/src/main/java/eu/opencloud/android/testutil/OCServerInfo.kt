@@ -66,3 +66,14 @@ val OC_SECURE_SERVER_INFO_OIDC_AUTH_WEBFINGER_INSTANCE = ServerInfo.OIDCServer(
     openCloudVersion = "10.12",
     oidcServerConfiguration = OC_OIDC_SERVER_CONFIGURATION
 )
+
+const val OC_WEBFINGER_CLIENT_ID = "OpenCloudAndroid"
+val OC_WEBFINGER_SCOPES = listOf("openid", "profile", "email", "offline_access")
+
+val OC_SECURE_SERVER_INFO_OIDC_AUTH_WEBFINGER_INSTANCE_WITH_CLIENT = ServerInfo.OIDCServer(
+    baseUrl = OC_SECURE_BASE_URL,
+    openCloudVersion = "10.12",
+    oidcServerConfiguration = OC_OIDC_SERVER_CONFIGURATION,
+    webFingerClientId = OC_WEBFINGER_CLIENT_ID,
+    webFingerScopes = OC_WEBFINGER_SCOPES,
+)

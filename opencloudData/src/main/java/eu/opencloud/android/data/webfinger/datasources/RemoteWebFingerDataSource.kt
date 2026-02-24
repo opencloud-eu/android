@@ -17,9 +17,12 @@
  */
 package eu.opencloud.android.data.webfinger.datasources
 
+import eu.opencloud.android.domain.webfinger.model.WebFingerOidcInfo
 import eu.opencloud.android.domain.webfinger.model.WebFingerRel
 
 interface RemoteWebFingerDataSource {
+    // Used with OPENCLOUD_INSTANCE rel: routes a user to the correct openCloud server instance
+    // when the user knows their username but not which server they are on (MDM-configured lookup server).
     fun getInstancesFromWebFinger(
         lookupServer: String,
         rel: WebFingerRel,
@@ -33,4 +36,12 @@ interface RemoteWebFingerDataSource {
         username: String,
         accessToken: String,
     ): List<String>
+
+    // Used with OIDC_ISSUER_DISCOVERY rel: fetches the OIDC issuer URL and any server-advertised
+    // OIDC client config (client_id, scopes) so the app does not need hardcoded or MDM-configured values.
+    fun getOidcInfoFromWebFinger(
+        lookupServer: String,
+        rel: WebFingerRel,
+        resource: String,
+    ): WebFingerOidcInfo?
 }

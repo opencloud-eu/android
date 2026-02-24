@@ -20,6 +20,7 @@ package eu.opencloud.android.data.webfinger.datasources.implementation
 import eu.opencloud.android.data.ClientManager
 import eu.opencloud.android.data.executeRemoteOperation
 import eu.opencloud.android.data.webfinger.datasources.RemoteWebFingerDataSource
+import eu.opencloud.android.domain.webfinger.model.WebFingerOidcInfo
 import eu.opencloud.android.domain.webfinger.model.WebFingerRel
 import eu.opencloud.android.lib.common.OpenCloudClient
 import eu.opencloud.android.lib.common.authentication.OpenCloudCredentialsFactory
@@ -70,5 +71,28 @@ class OCRemoteWebFingerDataSource(
                 client = openCloudClient
             )
         }
+    }
+
+    override fun getOidcInfoFromWebFinger(
+        lookupServer: String,
+        rel: WebFingerRel,
+        resource: String,
+    ): WebFingerOidcInfo? {
+        val openCloudClient = clientManager.getClientForAnonymousCredentials(lookupServer, false)
+        val result = webFingerService.getOidcDiscoveryFromWebFinger(
+            lookupServer = lookupServer,
+            resource = resource,
+            rel = rel.uri,
+            platform = "android",
+            client = openCloudClient
+        )
+        if (!result.isSuccess) return null
+        val response = result.data ?: return null
+        val issuer = response.links?.firstOrNull { it.rel == rel.uri }?.href ?: return null
+        return WebFingerOidcInfo(
+            issuer = issuer,
+            clientId = response.properties?.clientId,
+            scopes = response.properties?.scopes,
+        )
     }
 }

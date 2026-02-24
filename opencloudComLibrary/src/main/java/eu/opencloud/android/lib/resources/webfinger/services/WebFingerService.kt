@@ -19,6 +19,7 @@ package eu.opencloud.android.lib.resources.webfinger.services
 
 import eu.opencloud.android.lib.common.OpenCloudClient
 import eu.opencloud.android.lib.common.operations.RemoteOperationResult
+import eu.opencloud.android.lib.resources.webfinger.responses.WebFingerResponse
 
 interface WebFingerService {
     fun getInstancesFromWebFinger(
@@ -27,4 +28,12 @@ interface WebFingerService {
         rel: String,
         client: OpenCloudClient,
     ): RemoteOperationResult<List<String>>
+
+    fun getOidcDiscoveryFromWebFinger(
+        lookupServer: String,
+        resource: String,
+        rel: String,
+        platform: String,
+        client: OpenCloudClient,
+    ): RemoteOperationResult<WebFingerResponse>
 }

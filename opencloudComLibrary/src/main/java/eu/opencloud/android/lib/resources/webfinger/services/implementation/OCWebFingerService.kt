@@ -20,6 +20,7 @@ package eu.opencloud.android.lib.resources.webfinger.services.implementation
 import eu.opencloud.android.lib.common.OpenCloudClient
 import eu.opencloud.android.lib.common.operations.RemoteOperationResult
 import eu.opencloud.android.lib.resources.webfinger.GetInstancesViaWebFingerOperation
+import eu.opencloud.android.lib.resources.webfinger.responses.WebFingerResponse
 import eu.opencloud.android.lib.resources.webfinger.services.WebFingerService
 
 class OCWebFingerService : WebFingerService {
@@ -29,6 +30,23 @@ class OCWebFingerService : WebFingerService {
         resource: String,
         rel: String,
         client: OpenCloudClient,
-    ): RemoteOperationResult<List<String>> =
-        GetInstancesViaWebFingerOperation(lookupServer, rel, resource).execute(client)
+    ): RemoteOperationResult<List<String>> {
+        val result = GetInstancesViaWebFingerOperation(lockupServerDomain = lookupServer, rel = rel, resource = resource).execute(client)
+        if (!result.isSuccess) {
+            @Suppress("UNCHECKED_CAST")
+            return result as RemoteOperationResult<List<String>>
+        }
+        val listResult = RemoteOperationResult<List<String>>(RemoteOperationResult.ResultCode.OK)
+        listResult.data = result.data.links?.map { it.href } ?: listOf()
+        return listResult
+    }
+
+    override fun getOidcDiscoveryFromWebFinger(
+        lookupServer: String,
+        resource: String,
+        rel: String,
+        platform: String,
+        client: OpenCloudClient,
+    ): RemoteOperationResult<WebFingerResponse> =
+        GetInstancesViaWebFingerOperation(lockupServerDomain = lookupServer, rel = rel, resource = resource, platform = platform).execute(client)
 }

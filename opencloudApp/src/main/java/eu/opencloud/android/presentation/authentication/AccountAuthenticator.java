@@ -54,6 +54,7 @@ import static eu.opencloud.android.data.authentication.AuthenticationConstantsKt
 import static eu.opencloud.android.data.authentication.AuthenticationConstantsKt.KEY_CLIENT_REGISTRATION_CLIENT_ID;
 import static eu.opencloud.android.data.authentication.AuthenticationConstantsKt.KEY_CLIENT_REGISTRATION_CLIENT_SECRET;
 import static eu.opencloud.android.data.authentication.AuthenticationConstantsKt.KEY_OAUTH2_REFRESH_TOKEN;
+import static eu.opencloud.android.data.authentication.AuthenticationConstantsKt.KEY_OAUTH2_SCOPE;
 import static eu.opencloud.android.presentation.authentication.AuthenticatorConstants.KEY_AUTH_TOKEN_TYPE;
 import static org.koin.java.KoinJavaComponent.inject;
 
@@ -386,7 +387,10 @@ public class AccountAuthenticator extends AbstractAccountAuthenticator {
             clientAuth = OAuthUtils.Companion.getClientAuth(clientSecret, clientId);
         }
 
-        String scope = mContext.getResources().getString(R.string.oauth2_openid_scope);
+        String scope = accountManager.getUserData(account, KEY_OAUTH2_SCOPE);
+        if (scope == null) {
+            scope = mContext.getResources().getString(R.string.oauth2_openid_scope);
+        }
 
         TokenRequest oauthTokenRequest = new TokenRequest.RefreshToken(
                 baseUrl,

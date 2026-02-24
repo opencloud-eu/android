@@ -26,6 +26,7 @@ import eu.opencloud.android.data.server.datasources.RemoteServerInfoDataSource
 import eu.opencloud.android.data.webfinger.datasources.RemoteWebFingerDataSource
 import eu.opencloud.android.domain.server.ServerInfoRepository
 import eu.opencloud.android.domain.server.model.ServerInfo
+import eu.opencloud.android.domain.webfinger.model.WebFingerOidcInfo
 import eu.opencloud.android.domain.webfinger.model.WebFingerRel
 import timber.log.Timber
 
@@ -36,25 +37,23 @@ class OCServerInfoRepository(
 ) : ServerInfoRepository {
 
     override fun getServerInfo(path: String, creatingAccount: Boolean, enforceOIDC: Boolean): ServerInfo {
-        val oidcIssuerFromWebFinger: String? = if (creatingAccount) retrieveOIDCIssuerFromWebFinger(serverUrl = path) else null
+        // Try webfinger first to get OIDC client config (client_id, scopes) and issuer.
+        // This is a lightweight call that returns null if webfinger is not available.
+        val oidcInfoFromWebFinger: WebFingerOidcInfo? = retrieveOidcInfoFromWebFinger(serverUrl = path)
 
-        if (oidcIssuerFromWebFinger != null) {
-            val openIDConnectServerConfiguration = oidcRemoteOAuthDataSource.performOIDCDiscovery(oidcIssuerFromWebFinger)
-            return ServerInfo.OIDCServer(
-                openCloudVersion = "10.12",
-                baseUrl = path,
-                oidcServerConfiguration = openIDConnectServerConfiguration
-            )
-        }
-
+        // Always check server status to get the proper baseUrl and version.
+        // We must not skip this, because the server may normalize/redirect the URL,
+        // and the account name is built from baseUrl + username.
         val serverInfo = remoteServerInfoDataSource.getServerInfo(path, enforceOIDC)
 
         return if (serverInfo is ServerInfo.BasicServer) {
             serverInfo
         } else {
-            // Could be OAuth or OpenID Connect
+            // OIDC discovery: prefer the webfinger issuer if available (it may differ from baseUrl),
+            // otherwise discover from the server's baseUrl.
+            val oidcDiscoveryUrl = oidcInfoFromWebFinger?.issuer ?: serverInfo.baseUrl
             val openIDConnectServerConfiguration = try {
-                oidcRemoteOAuthDataSource.performOIDCDiscovery(serverInfo.baseUrl)
+                oidcRemoteOAuthDataSource.performOIDCDiscovery(oidcDiscoveryUrl)
             } catch (exception: Exception) {
                 Timber.d(exception, "OIDC discovery not found")
                 null
@@ -64,7 +63,9 @@ class OCServerInfoRepository(
                 ServerInfo.OIDCServer(
                     openCloudVersion = serverInfo.openCloudVersion,
                     baseUrl = serverInfo.baseUrl,
-                    oidcServerConfiguration = openIDConnectServerConfiguration
+                    oidcServerConfiguration = openIDConnectServerConfiguration,
+                    webFingerClientId = oidcInfoFromWebFinger?.clientId,
+                    webFingerScopes = oidcInfoFromWebFinger?.scopes,
                 )
             } else {
                 ServerInfo.OAuth2Server(
@@ -75,20 +76,16 @@ class OCServerInfoRepository(
         }
     }
 
-    private fun retrieveOIDCIssuerFromWebFinger(
+    private fun retrieveOidcInfoFromWebFinger(
         serverUrl: String,
-    ): String? {
-        val oidcIssuer = try {
-            webFingerDatasource.getInstancesFromWebFinger(
-                lookupServer = serverUrl,
-                rel = WebFingerRel.OIDC_ISSUER_DISCOVERY,
-                resource = serverUrl,
-            ).firstOrNull()
-        } catch (exception: Exception) {
-            Timber.d(exception, "Cant retrieve the oidc issuer from webfinger.")
-            null
-        }
-
-        return oidcIssuer
+    ): WebFingerOidcInfo? = try {
+        webFingerDatasource.getOidcInfoFromWebFinger(
+            lookupServer = serverUrl,
+            rel = WebFingerRel.OIDC_ISSUER_DISCOVERY,
+            resource = serverUrl,
+        )
+    } catch (exception: Exception) {
+        Timber.d(exception, "Cant retrieve the oidc info from webfinger.")
+        null
     }
 }

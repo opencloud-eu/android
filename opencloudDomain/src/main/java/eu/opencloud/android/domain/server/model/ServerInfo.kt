@@ -43,6 +43,8 @@ sealed class ServerInfo(
         openCloudVersion: String,
         baseUrl: String,
         val oidcServerConfiguration: OIDCServerConfiguration,
+        val webFingerClientId: String? = null,
+        val webFingerScopes: List<String>? = null,
     ) : ServerInfo(openCloudVersion = openCloudVersion, baseUrl = baseUrl) {
         override fun equals(other: Any?): Boolean {
             if (other !is OIDCServer) return false

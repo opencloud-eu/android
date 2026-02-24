@@ -24,12 +24,20 @@
 
 package eu.opencloud.android.lib.resources.webfinger.responses
 
+import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
+
+@JsonClass(generateAdapter = true)
+data class WebFingerProperties(
+    @Json(name = "http://opencloud.eu/ns/oidc/client_id") val clientId: String?,
+    @Json(name = "http://opencloud.eu/ns/oidc/scopes") val scopes: List<String>?,
+)
 
 @JsonClass(generateAdapter = true)
 data class WebFingerResponse(
     val subject: String,
-    val links: List<LinkItem>?
+    val links: List<LinkItem>?,
+    val properties: WebFingerProperties? = null,
 )
 
 @JsonClass(generateAdapter = true)

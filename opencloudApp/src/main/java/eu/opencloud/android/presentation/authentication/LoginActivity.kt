@@ -50,6 +50,7 @@ import eu.opencloud.android.MainApp.Companion.accountType
 import eu.opencloud.android.R
 import eu.opencloud.android.data.authentication.KEY_USER_ID
 import eu.opencloud.android.databinding.AccountSetupBinding
+import eu.opencloud.android.domain.authentication.oauth.model.ClientRegistrationInfo
 import eu.opencloud.android.domain.authentication.oauth.model.ResponseType
 import eu.opencloud.android.domain.authentication.oauth.model.TokenRequest
 import eu.opencloud.android.domain.exceptions.NoNetworkConnectionException
@@ -447,14 +448,28 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
                 showOrHideBasicAuthFields(shouldBeVisible = false)
                 authTokenType = OAUTH_TOKEN_TYPE
                 oidcSupported = true
-                val registrationEndpoint = serverInfo.oidcServerConfiguration.registrationEndpoint
-                if (registrationEndpoint != null) {
-                    registerClient(
+                val webFingerClientId = serverInfo.webFingerClientId
+                val webFingerScopes = serverInfo.webFingerScopes
+                if (webFingerClientId != null) {
+                    performGetAuthorizationCodeRequest(
                         authorizationEndpoint = serverInfo.oidcServerConfiguration.authorizationEndpoint.toUri(),
-                        registrationEndpoint = registrationEndpoint
+                        clientId = webFingerClientId,
+                        webFingerScopes = webFingerScopes,
                     )
                 } else {
-                    performGetAuthorizationCodeRequest(serverInfo.oidcServerConfiguration.authorizationEndpoint.toUri())
+                    val registrationEndpoint = serverInfo.oidcServerConfiguration.registrationEndpoint
+                    if (registrationEndpoint != null) {
+                        registerClient(
+                            authorizationEndpoint = serverInfo.oidcServerConfiguration.authorizationEndpoint.toUri(),
+                            registrationEndpoint = registrationEndpoint,
+                            webFingerScopes = webFingerScopes,
+                        )
+                    } else {
+                        performGetAuthorizationCodeRequest(
+                            authorizationEndpoint = serverInfo.oidcServerConfiguration.authorizationEndpoint.toUri(),
+                            webFingerScopes = webFingerScopes,
+                        )
+                    }
                 }
             }
 
@@ -559,7 +574,8 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
      */
     private fun registerClient(
         authorizationEndpoint: Uri,
-        registrationEndpoint: String
+        registrationEndpoint: String,
+        webFingerScopes: List<String>? = null,
     ) {
         authenticationViewModel.registerClient(registrationEndpoint)
         authenticationViewModel.registerClient.observe(this) {
@@ -570,14 +586,15 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
                     uiResult.data?.let { clientRegistrationInfo ->
                         performGetAuthorizationCodeRequest(
                             authorizationEndpoint = authorizationEndpoint,
-                            clientId = clientRegistrationInfo.clientId
+                            clientId = clientRegistrationInfo.clientId,
+                            webFingerScopes = webFingerScopes,
                         )
                     }
                 }
 
                 is UIResult.Error -> {
                     Timber.e(uiResult.error, "Client registration failed.")
-                    performGetAuthorizationCodeRequest(authorizationEndpoint)
+                    performGetAuthorizationCodeRequest(authorizationEndpoint, webFingerScopes = webFingerScopes)
                 }
             }
         }
@@ -585,7 +602,8 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
 
     private fun performGetAuthorizationCodeRequest(
         authorizationEndpoint: Uri,
-        clientId: String = getString(R.string.oauth2_client_id)
+        clientId: String = getString(R.string.oauth2_client_id),
+        webFingerScopes: List<String>? = null,
     ) {
         Timber.d("A browser should be opened now to authenticate this user.")
 
@@ -597,12 +615,20 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
         // which helps Firefox properly handle the OAuth redirect back to the app
         customTabsIntent.intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 
+        val scope = if (!oidcSupported) {
+            ""
+        } else if (webFingerScopes != null) {
+            webFingerScopes.joinToString(" ")
+        } else {
+            mdmProvider.getBrandingString(CONFIGURATION_OAUTH2_OPEN_ID_SCOPE, R.string.oauth2_openid_scope)
+        }
+
         val authorizationEndpointUri = OAuthUtils.buildAuthorizationRequest(
             authorizationEndpoint = authorizationEndpoint,
             redirectUri = OAuthUtils.buildRedirectUri(applicationContext).toString(),
             clientId = clientId,
             responseType = ResponseType.CODE.string,
-            scope = if (oidcSupported) mdmProvider.getBrandingString(CONFIGURATION_OAUTH2_OPEN_ID_SCOPE, R.string.oauth2_openid_scope) else "",
+            scope = scope,
             prompt = if (oidcSupported) mdmProvider.getBrandingString(CONFIGURATION_OAUTH2_OPEN_ID_PROMPT, R.string.oauth2_openid_prompt) else "",
             codeChallenge = authenticationViewModel.codeChallenge,
             state = authenticationViewModel.oidcState,
@@ -610,6 +636,8 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
             sendLoginHintAndUser = mdmProvider.getBrandingBoolean(mdmKey = CONFIGURATION_SEND_LOGIN_HINT_AND_USER,
                 booleanKey = R.bool.send_login_hint_and_user),
         )
+                Timber.d("A browser should be opened now to authenticate this user is $authorizationEndpointUri ")
+
 
         try {
             saveAuthState()
@@ -673,6 +701,7 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
         val (clientId, clientSecret) = if (clientRegistrationInfo?.clientId != null && clientRegistrationInfo.clientSecret != null) {
             Pair(clientRegistrationInfo.clientId, clientRegistrationInfo.clientSecret as String)
         } else {
+            // May be overridden below by serverInfo.webFingerClientId if available
             Pair(getString(R.string.oauth2_client_id), getString(R.string.oauth2_client_secret))
         }
 
@@ -684,18 +713,21 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
         if (serverInfo is ServerInfo.OIDCServer) {
             tokenEndPoint = serverInfo.oidcServerConfiguration.tokenEndpoint
 
+            // Use webfinger-provided clientId if available, otherwise keep registration/default
+            val effectiveClientId = serverInfo.webFingerClientId ?: clientId
+
             // RFC 7636: Public clients (token_endpoint_auth_method: none) must not send Authorization header
             if (serverInfo.oidcServerConfiguration.isTokenEndpointAuthMethodNone()) {
                 clientAuth = ""
-                clientIdForRequest = clientId
+                clientIdForRequest = effectiveClientId
             } else if (serverInfo.oidcServerConfiguration.isTokenEndpointAuthMethodSupportedClientSecretPost()) {
                 // For client_secret_post, credentials go in body, not Authorization header
                 clientAuth = ""
-                clientIdForRequest = clientId
+                clientIdForRequest = effectiveClientId
                 clientSecretForRequest = clientSecret
             } else {
                 // For other methods (e.g., client_secret_basic), use Basic auth header
-                clientAuth = OAuthUtils.getClientAuth(clientSecret, clientId)
+                clientAuth = OAuthUtils.getClientAuth(clientSecret, effectiveClientId)
             }
         } else {
             tokenEndPoint = "$serverBaseUrl${File.separator}${contextProvider.getString(R.string.oauth2_url_endpoint_access)}"
@@ -725,18 +757,41 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
                     Timber.d("Tokens received ${uiResult.data}, trying to login, creating account and adding it to account manager")
                     val tokenResponse = uiResult.data ?: return@observe
 
+                    // When webfinger provides a client_id without dynamic registration,
+                    // store it so AccountAuthenticator can use it for token refresh
+                    val effectiveClientRegistrationInfo = clientRegistrationInfo
+                        ?: (serverInfo as? ServerInfo.OIDCServer)?.webFingerClientId?.let { wfClientId ->
+                            ClientRegistrationInfo(
+                                clientId = wfClientId,
+                                clientSecret = null,
+                                clientIdIssuedAt = null,
+                                clientSecretExpiration = 0,
+                            )
+                        }
+
+                    // Scope priority: webfinger scopes > MDM/string-resource > token response
+                    val webFingerScopes = if (serverInfo is ServerInfo.OIDCServer) {
+                        serverInfo.webFingerScopes
+                    } else {
+                        null
+                    }
+                    val effectiveScope = if (!oidcSupported) {
+                        tokenResponse.scope
+                    } else if (webFingerScopes != null) {
+                        webFingerScopes.joinToString(" ")
+                    } else {
+                        mdmProvider.getBrandingString(CONFIGURATION_OAUTH2_OPEN_ID_SCOPE, R.string.oauth2_openid_scope)
+                    }
+
                     authenticationViewModel.loginOAuth(
                         serverBaseUrl = serverBaseUrl,
                         username = tokenResponse.additionalParameters?.get(KEY_USER_ID).orEmpty(),
                         authTokenType = OAUTH_TOKEN_TYPE,
                         accessToken = tokenResponse.accessToken,
                         refreshToken = tokenResponse.refreshToken.orEmpty(),
-                        scope = if (oidcSupported) mdmProvider.getBrandingString(
-                            CONFIGURATION_OAUTH2_OPEN_ID_SCOPE,
-                            R.string.oauth2_openid_scope,
-                        ) else tokenResponse.scope,
+                        scope = effectiveScope,
                         updateAccountWithUsername = if (loginAction != ACTION_CREATE) userAccount?.name else null,
-                        clientRegistrationInfo = clientRegistrationInfo
+                        clientRegistrationInfo = effectiveClientRegistrationInfo
                     )
                 }
 

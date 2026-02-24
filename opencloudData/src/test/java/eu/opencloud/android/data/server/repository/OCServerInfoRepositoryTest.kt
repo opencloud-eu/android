@@ -25,12 +25,17 @@ package eu.opencloud.android.data.server.repository
 import eu.opencloud.android.data.oauth.datasources.RemoteOAuthDataSource
 import eu.opencloud.android.data.server.datasources.RemoteServerInfoDataSource
 import eu.opencloud.android.data.webfinger.datasources.RemoteWebFingerDataSource
+import eu.opencloud.android.domain.server.model.ServerInfo
+import eu.opencloud.android.domain.webfinger.model.WebFingerOidcInfo
 import eu.opencloud.android.domain.webfinger.model.WebFingerRel
 import eu.opencloud.android.testutil.OC_SECURE_SERVER_INFO_BASIC_AUTH
 import eu.opencloud.android.testutil.OC_SECURE_SERVER_INFO_BEARER_AUTH
 import eu.opencloud.android.testutil.OC_SECURE_SERVER_INFO_OIDC_AUTH
 import eu.opencloud.android.testutil.OC_SECURE_SERVER_INFO_OIDC_AUTH_WEBFINGER_INSTANCE
+import eu.opencloud.android.testutil.OC_SECURE_SERVER_INFO_OIDC_AUTH_WEBFINGER_INSTANCE_WITH_CLIENT
+import eu.opencloud.android.testutil.OC_WEBFINGER_CLIENT_ID
 import eu.opencloud.android.testutil.OC_WEBFINGER_INSTANCE_URL
+import eu.opencloud.android.testutil.OC_WEBFINGER_SCOPES
 import eu.opencloud.android.testutil.oauth.OC_OIDC_SERVER_CONFIGURATION
 import io.mockk.every
 import io.mockk.mockk
@@ -66,7 +71,7 @@ class OCServerInfoRepositoryTest {
     @Test
     fun `getServerInfo returns a BasicServer when creatingAccount parameter is true and webfinger datasource throws an exception`() {
         every {
-            remoteWebFingerDataSource.getInstancesFromWebFinger(
+            remoteWebFingerDataSource.getOidcInfoFromWebFinger(
                 lookupServer = OC_SECURE_SERVER_INFO_BASIC_AUTH.baseUrl,
                 rel = WebFingerRel.OIDC_ISSUER_DISCOVERY,
                 resource = OC_SECURE_SERVER_INFO_BASIC_AUTH.baseUrl
@@ -85,7 +90,7 @@ class OCServerInfoRepositoryTest {
         assertEquals(OC_SECURE_SERVER_INFO_BASIC_AUTH, basicServer)
 
         verify(exactly = 1) {
-            remoteWebFingerDataSource.getInstancesFromWebFinger(
+            remoteWebFingerDataSource.getOidcInfoFromWebFinger(
                 lookupServer = OC_SECURE_SERVER_INFO_BASIC_AUTH.baseUrl,
                 rel = WebFingerRel.OIDC_ISSUER_DISCOVERY,
                 resource = OC_SECURE_SERVER_INFO_BASIC_AUTH.baseUrl
@@ -120,7 +125,7 @@ class OCServerInfoRepositoryTest {
     @Test
     fun `getServerInfo returns an OAuth2Server when creatingAccount parameter is true and webfinger datasource throws an exception`() {
         every {
-            remoteWebFingerDataSource.getInstancesFromWebFinger(
+            remoteWebFingerDataSource.getOidcInfoFromWebFinger(
                 lookupServer = OC_SECURE_SERVER_INFO_BEARER_AUTH.baseUrl,
                 rel = WebFingerRel.OIDC_ISSUER_DISCOVERY,
                 resource = OC_SECURE_SERVER_INFO_BEARER_AUTH.baseUrl
@@ -143,7 +148,7 @@ class OCServerInfoRepositoryTest {
         assertEquals(OC_SECURE_SERVER_INFO_BEARER_AUTH, oAuthServer)
 
         verify(exactly = 1) {
-            remoteWebFingerDataSource.getInstancesFromWebFinger(
+            remoteWebFingerDataSource.getOidcInfoFromWebFinger(
                 lookupServer = OC_SECURE_SERVER_INFO_BEARER_AUTH.baseUrl,
                 rel = WebFingerRel.OIDC_ISSUER_DISCOVERY,
                 resource = OC_SECURE_SERVER_INFO_BEARER_AUTH.baseUrl
@@ -179,7 +184,7 @@ class OCServerInfoRepositoryTest {
     @Test
     fun `getServerInfo returns an OIDCServer when creatingAccount parameter is true and webfinger datasource throws an exception`() {
         every {
-            remoteWebFingerDataSource.getInstancesFromWebFinger(
+            remoteWebFingerDataSource.getOidcInfoFromWebFinger(
                 lookupServer = OC_SECURE_SERVER_INFO_OIDC_AUTH.baseUrl,
                 rel = WebFingerRel.OIDC_ISSUER_DISCOVERY,
                 resource = OC_SECURE_SERVER_INFO_OIDC_AUTH.baseUrl
@@ -202,7 +207,7 @@ class OCServerInfoRepositoryTest {
         assertEquals(OC_SECURE_SERVER_INFO_OIDC_AUTH, oIDCServer)
 
         verify(exactly = 1) {
-            remoteWebFingerDataSource.getInstancesFromWebFinger(
+            remoteWebFingerDataSource.getOidcInfoFromWebFinger(
                 lookupServer = OC_SECURE_SERVER_INFO_OIDC_AUTH.baseUrl,
                 rel = WebFingerRel.OIDC_ISSUER_DISCOVERY,
                 resource = OC_SECURE_SERVER_INFO_OIDC_AUTH.baseUrl
@@ -215,12 +220,16 @@ class OCServerInfoRepositoryTest {
     @Test
     fun `getServerInfo returns an OIDCServer when creatingAccount is true and webfinger datasource returns an OIDC issuer`() {
         every {
-            remoteWebFingerDataSource.getInstancesFromWebFinger(
+            remoteWebFingerDataSource.getOidcInfoFromWebFinger(
                 lookupServer = OC_SECURE_SERVER_INFO_OIDC_AUTH_WEBFINGER_INSTANCE.baseUrl,
                 rel = WebFingerRel.OIDC_ISSUER_DISCOVERY,
                 resource = OC_SECURE_SERVER_INFO_OIDC_AUTH_WEBFINGER_INSTANCE.baseUrl
             )
-        } returns listOf(OC_WEBFINGER_INSTANCE_URL)
+        } returns WebFingerOidcInfo(issuer = OC_WEBFINGER_INSTANCE_URL, clientId = null, scopes = null)
+
+        every {
+            remoteServerInfoDataSource.getServerInfo(OC_SECURE_SERVER_INFO_OIDC_AUTH_WEBFINGER_INSTANCE.baseUrl, false)
+        } returns ServerInfo.OAuth2Server(baseUrl = OC_SECURE_SERVER_INFO_OIDC_AUTH_WEBFINGER_INSTANCE.baseUrl, openCloudVersion = "10.12")
 
         every {
             remoteOAuthDataSource.performOIDCDiscovery(OC_WEBFINGER_INSTANCE_URL)
@@ -234,10 +243,48 @@ class OCServerInfoRepositoryTest {
         assertEquals(OC_SECURE_SERVER_INFO_OIDC_AUTH_WEBFINGER_INSTANCE, oIDCServerWebfinger)
 
         verify(exactly = 1) {
-            remoteWebFingerDataSource.getInstancesFromWebFinger(
+            remoteWebFingerDataSource.getOidcInfoFromWebFinger(
                 lookupServer = OC_SECURE_SERVER_INFO_OIDC_AUTH_WEBFINGER_INSTANCE.baseUrl,
                 rel = WebFingerRel.OIDC_ISSUER_DISCOVERY,
                 resource = OC_SECURE_SERVER_INFO_OIDC_AUTH_WEBFINGER_INSTANCE.baseUrl
+            )
+            remoteOAuthDataSource.performOIDCDiscovery(OC_WEBFINGER_INSTANCE_URL)
+        }
+    }
+
+    @Test
+    fun `getServerInfo returns an OIDCServer with webfinger client id and scopes when webfinger provides them`() {
+        every {
+            remoteWebFingerDataSource.getOidcInfoFromWebFinger(
+                lookupServer = OC_SECURE_SERVER_INFO_OIDC_AUTH_WEBFINGER_INSTANCE_WITH_CLIENT.baseUrl,
+                rel = WebFingerRel.OIDC_ISSUER_DISCOVERY,
+                resource = OC_SECURE_SERVER_INFO_OIDC_AUTH_WEBFINGER_INSTANCE_WITH_CLIENT.baseUrl
+            )
+        } returns WebFingerOidcInfo(issuer = OC_WEBFINGER_INSTANCE_URL, clientId = OC_WEBFINGER_CLIENT_ID, scopes = OC_WEBFINGER_SCOPES)
+
+        every {
+            remoteServerInfoDataSource.getServerInfo(OC_SECURE_SERVER_INFO_OIDC_AUTH_WEBFINGER_INSTANCE_WITH_CLIENT.baseUrl, false)
+        } returns ServerInfo.OAuth2Server(
+            baseUrl = OC_SECURE_SERVER_INFO_OIDC_AUTH_WEBFINGER_INSTANCE_WITH_CLIENT.baseUrl,
+            openCloudVersion = "10.12",
+        )
+
+        every {
+            remoteOAuthDataSource.performOIDCDiscovery(OC_WEBFINGER_INSTANCE_URL)
+        } returns OC_OIDC_SERVER_CONFIGURATION
+
+        val result = ocServerInfoRepository.getServerInfo(
+            path = OC_SECURE_SERVER_INFO_OIDC_AUTH_WEBFINGER_INSTANCE_WITH_CLIENT.baseUrl,
+            creatingAccount = true,
+            enforceOIDC = false
+        )
+        assertEquals(OC_SECURE_SERVER_INFO_OIDC_AUTH_WEBFINGER_INSTANCE_WITH_CLIENT, result)
+
+        verify(exactly = 1) {
+            remoteWebFingerDataSource.getOidcInfoFromWebFinger(
+                lookupServer = OC_SECURE_SERVER_INFO_OIDC_AUTH_WEBFINGER_INSTANCE_WITH_CLIENT.baseUrl,
+                rel = WebFingerRel.OIDC_ISSUER_DISCOVERY,
+                resource = OC_SECURE_SERVER_INFO_OIDC_AUTH_WEBFINGER_INSTANCE_WITH_CLIENT.baseUrl
             )
             remoteOAuthDataSource.performOIDCDiscovery(OC_WEBFINGER_INSTANCE_URL)
         }
