@@ -174,9 +174,5 @@ object ThumbnailsRequester : KoinComponent {
             return response
         }
 
-        private fun isProbablyAnImage(response: Response): Boolean {
-            val contentType = response.header("Content-Type")
-            return contentType.isNullOrEmpty() || contentType.startsWith("image")
-        }
     }
 }
