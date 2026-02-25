@@ -53,7 +53,7 @@ object ThumbnailsRequester : KoinComponent {
     private val clientManager: ClientManager by inject()
 
     private const val SPACE_SPECIAL_PREVIEW_URI = "%s?scalingup=0&a=1&x=%d&y=%d&c=%s&preview=1"
-    private const val FILE_PREVIEW_URI = "%s/remote.php/webdav%s?x=%d&y=%d&c=%s&preview=1"
+    private const val FILE_PREVIEW_URI = "%s/webdav%s?x=%d&y=%d&c=%s&preview=1"
 
     private const val DISK_CACHE_SIZE: Long = 1024 * 1024 * 100 // 100MB
 
@@ -77,8 +77,7 @@ object ThumbnailsRequester : KoinComponent {
             accountManager.getUserData(account, eu.opencloud.android.lib.common.accounts.AccountUtils.Constants.KEY_OC_BASE_URL)
                 ?.trimEnd('/')
                 .orEmpty()
-        val username = AccountUtils.getUsernameOfAccount(account.name)
-        return "$baseUrl/index.php/avatar/${android.net.Uri.encode(username)}/384"
+        return "$baseUrl/graph/v1.0/me/photo/\$value"
     }
 
     fun getPreviewUriForFile(file: OCFile, account: Account, etag: String? = null, width: Int = 1024, height: Int = 1024): String =
@@ -149,20 +148,6 @@ object ThumbnailsRequester : KoinComponent {
             val requestWithHeaders = requestBuilder.build()
 
             var response = chain.proceed(requestWithHeaders)
-
-            val originalUrl = requestWithHeaders.url.toString()
-            if (
-                originalUrl.contains("/index.php/avatar/") &&
-                (!response.isSuccessful || !isProbablyAnImage(response))
-            ) {
-                response.close()
-
-                val baseUrl = originalUrl.substringBefore("/index.php/avatar/").trimEnd('/')
-                val graphUrl = "$baseUrl/graph/v1.0/me/photo/\$value"
-
-                val graphRequest = requestWithHeaders.newBuilder().url(graphUrl).build()
-                response = chain.proceed(graphRequest)
-            }
 
             var builder = response.newBuilder()
             var changed = false
