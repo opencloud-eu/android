@@ -55,6 +55,50 @@ class TusUploadHelper(
         cancelled = false
         Timber.d("TUS: starting upload for %s size=%d", remotePath, fileSize)
 
+        val (resolvedTusUrl, createdOffset) = prepareUpload(
+            client = client,
+            transfer = transfer,
+            uploadId = uploadId,
+            localPath = localPath,
+            remotePath = remotePath,
+            fileSize = fileSize,
+            mimeType = mimeType,
+            lastModified = lastModified,
+            spaceWebDavUrl = spaceWebDavUrl
+        )
+
+        val offset = fetchCurrentOffset(client, resolvedTusUrl, createdOffset)
+        Timber.d("TUS: resume offset %d / %d", offset, fileSize)
+        progressCallback?.invoke(offset, fileSize)
+
+        val (finalOffset, finalEtag) = performUploadLoop(
+            client = client,
+            resolvedTusUrl = resolvedTusUrl,
+            localPath = localPath,
+            fileSize = fileSize,
+            tusSupport = tusSupport,
+            progressListener = progressListener,
+            progressCallback = progressCallback,
+            initialOffset = offset,
+            uploadId = uploadId,
+        )
+
+        verifyUploadCompletion(finalOffset, fileSize, uploadId)
+
+        return finalizeEtag(client, remotePath, spaceWebDavUrl, finalEtag, fileSize)
+    }
+
+    private fun prepareUpload(
+        client: OpenCloudClient,
+        transfer: OCTransfer,
+        uploadId: Long,
+        localPath: String,
+        remotePath: String,
+        fileSize: Long,
+        mimeType: String,
+        lastModified: String?,
+        spaceWebDavUrl: String?
+    ): Pair<String, Long?> {
         var tusUrl = transfer.tusUploadUrl
         val checksumHex = transfer.tusUploadChecksum?.substringAfter("sha256:")
         var createdOffset: Long? = null
@@ -116,40 +160,30 @@ class TusUploadHelper(
         }
 
         val resolvedTusUrl = tusUrl ?: throw IllegalStateException("TUS: missing upload URL for $remotePath")
+        return Pair(resolvedTusUrl, createdOffset)
+    }
 
-        var offset = if (createdOffset != null) {
-            createdOffset
-        } else {
-            try {
-                executeRemoteOperation {
-                    GetTusUploadOffsetRemoteOperation(resolvedTusUrl).execute(client)
-                }
-            } catch (e: java.io.IOException) {
-                Timber.w(e, "TUS: failed to fetch current offset")
-                throw e
-            } catch (e: Throwable) {
-                Timber.w(e, "TUS: failed to fetch current offset")
-                0L
+    private fun fetchCurrentOffset(
+        client: OpenCloudClient,
+        resolvedTusUrl: String,
+        createdOffset: Long?
+    ): Long = if (createdOffset != null) {
+        createdOffset
+    } else {
+        try {
+            executeRemoteOperation {
+                GetTusUploadOffsetRemoteOperation(resolvedTusUrl).execute(client)
             }
-        }.coerceAtLeast(0L)
-        Timber.d("TUS: resume offset %d / %d", offset, fileSize)
-        progressCallback?.invoke(offset, fileSize)
+        } catch (e: java.io.IOException) {
+            Timber.w(e, "TUS: failed to fetch current offset")
+            throw e
+        } catch (e: Throwable) {
+            Timber.w(e, "TUS: failed to fetch current offset")
+            0L
+        }
+    }.coerceAtLeast(0L)
 
-        val loopResult = performUploadLoop(
-            client = client,
-            resolvedTusUrl = resolvedTusUrl,
-            localPath = localPath,
-            fileSize = fileSize,
-            tusSupport = tusSupport,
-            progressListener = progressListener,
-            progressCallback = progressCallback,
-            initialOffset = offset,
-            uploadId = uploadId,
-        )
-        offset = loopResult.first
-        val finalEtag = loopResult.second
-
-        // Verify upload is actually complete
+    private fun verifyUploadCompletion(offset: Long, fileSize: Long, uploadId: Long) {
         if (offset != fileSize) {
             Timber.e("TUS: upload loop exited but offset=%d != fileSize=%d", offset, fileSize)
             throw java.io.IOException("TUS: upload incomplete - offset $offset does not match file size $fileSize")
@@ -164,8 +198,15 @@ class TusUploadHelper(
             tusUploadExpires = null,
             tusUploadConcat = null,
         )
-        // If TUS PATCH didn't return an ETag (which is normal for openCloud's TUS implementation),
-        // fetch it via a PROPFIND request on the newly uploaded file.
+    }
+
+    private fun finalizeEtag(
+        client: OpenCloudClient,
+        remotePath: String,
+        spaceWebDavUrl: String?,
+        finalEtag: String?,
+        fileSize: Long
+    ): String? {
         var resultEtag = finalEtag
         if (resultEtag.isNullOrBlank()) {
             Timber.d("TUS: no etag from PATCH, attempting PROPFIND for %s (spaceWebDavUrl=%s)", remotePath, spaceWebDavUrl)
