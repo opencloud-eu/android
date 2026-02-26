@@ -77,7 +77,7 @@ public class UploadListActivity extends FileActivity {
         setFile(null);
 
         // setup toolbar
-        setupRootToolbar(getString(R.string.uploads_view_title), false, false);
+        setupRootToolbar(getString(R.string.uploads_view_title), false, true);
 
         // setup drawer
         setupDrawer();
