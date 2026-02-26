@@ -101,6 +101,8 @@ class UploadFileFromFileSystemWorker(
     private val transferRepository: TransferRepository by inject()
     private val tusUploadHelper by lazy { TusUploadHelper(transferRepository) }
 
+    private var finalEtag: String = ""
+
     private val foregroundJob = SupervisorJob()
     private val foregroundScope = CoroutineScope(Dispatchers.Default + foregroundJob)
     @Volatile
@@ -262,9 +264,7 @@ class UploadFileFromFileSystemWorker(
         val hasPendingTusSession = !ocTransfer.tusUploadUrl.isNullOrBlank()
         val shouldTryTus = hasPendingTusSession || (supportsTus && fileSize >= TusUploadHelper.DEFAULT_CHUNK_SIZE)
 
-        var attemptedTus = false
         if (shouldTryTus) {
-            attemptedTus = true
             Timber.d(
                 "Attempting TUS upload (size=%d, threshold=%d, resume=%s)",
                 fileSize,
@@ -272,7 +272,7 @@ class UploadFileFromFileSystemWorker(
                 hasPendingTusSession
             )
             val tusSucceeded = try {
-                tusUploadHelper.upload(
+                val returnedEtag = tusUploadHelper.upload(
                     client = client,
                     transfer = ocTransfer,
                     uploadId = uploadIdInStorageManager,
@@ -286,6 +286,9 @@ class UploadFileFromFileSystemWorker(
                     progressCallback = ::updateProgressFromTus,
                     spaceWebDavUrl = spaceWebDavUrl,
                 )
+                if (!returnedEtag.isNullOrBlank()) {
+                    finalEtag = returnedEtag
+                }
                 true
             } catch (throwable: Throwable) {
                 Timber.w(throwable, "TUS upload failed, falling back to single PUT")
@@ -299,7 +302,6 @@ class UploadFileFromFileSystemWorker(
                 if (removeLocal) {
                     removeLocalFile()
                 }
-                Timber.d("TUS upload completed for %s", uploadPath)
                 return
             }
         } else {
@@ -330,6 +332,7 @@ class UploadFileFromFileSystemWorker(
         val result = executeRemoteOperation { uploadFileOperation.execute(client) }
 
         if (result == Unit) {
+            finalEtag = uploadFileOperation.etag
             clearTusState()
             if (removeLocal) {
                 removeLocalFile() // Removed file from tmp folder
@@ -412,15 +415,20 @@ class UploadFileFromFileSystemWorker(
                 if (ocTransfer.forceOverwrite) {
                     ocFile.copy(
                         needsToUpdateThumbnail = true,
-                        etag = uploadFileOperation.etag,
+                        etag = finalEtag,
                         length = fileSize,
                         lastSyncDateForData = currentTime,
                         modifiedAtLastSyncForData = currentTime,
                     )
                 } else {
-                    // Uploading a file should remove any conflicts on the file.
+                    // Uploading a file should remove any conflicts and update etag.
                     ocFile.copy(
                         storagePath = null,
+                        needsToUpdateThumbnail = true,
+                        etag = finalEtag.ifBlank { ocFile.etag },
+                        length = fileSize,
+                        lastSyncDateForData = currentTime,
+                        modifiedAtLastSyncForData = currentTime,
                     )
                 }
             saveFileOrFolderUseCase(SaveFileOrFolderUseCase.Params(fileWithNewDetails))

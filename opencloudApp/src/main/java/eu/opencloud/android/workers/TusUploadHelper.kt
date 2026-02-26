@@ -50,7 +50,7 @@ class TusUploadHelper(
         progressListener: OnDatatransferProgressListener?,
         progressCallback: ((Long, Long) -> Unit)? = null,
         spaceWebDavUrl: String? = null,
-    ) {
+    ) : String? {
         // Reset cancelled state for new upload
         cancelled = false
         Timber.d("TUS: starting upload for %s size=%d", remotePath, fileSize)
@@ -135,7 +135,7 @@ class TusUploadHelper(
         Timber.d("TUS: resume offset %d / %d", offset, fileSize)
         progressCallback?.invoke(offset, fileSize)
 
-        offset = performUploadLoop(
+        val loopResult = performUploadLoop(
             client = client,
             resolvedTusUrl = resolvedTusUrl,
             localPath = localPath,
@@ -146,6 +146,8 @@ class TusUploadHelper(
             initialOffset = offset,
             uploadId = uploadId,
         )
+        offset = loopResult.first
+        val finalEtag = loopResult.second
 
         // Verify upload is actually complete
         if (offset != fileSize) {
@@ -162,7 +164,30 @@ class TusUploadHelper(
             tusUploadExpires = null,
             tusUploadConcat = null,
         )
-        Timber.i("TUS: upload completed for %s (size=%d)", remotePath, fileSize)
+        // If TUS PATCH didn't return an ETag (which is normal for openCloud's TUS implementation),
+        // fetch it via a PROPFIND request on the newly uploaded file.
+        var resultEtag = finalEtag
+        if (resultEtag.isNullOrBlank()) {
+            Timber.d("TUS: no etag from PATCH, attempting PROPFIND for %s (spaceWebDavUrl=%s)", remotePath, spaceWebDavUrl)
+            try {
+                val readOp = eu.opencloud.android.lib.resources.files.ReadRemoteFileOperation(
+                    remotePath = remotePath,
+                    spaceWebDavUrl = spaceWebDavUrl,
+                )
+                val readResult = readOp.execute(client)
+                if (readResult.isSuccess && readResult.data != null) {
+                    resultEtag = readResult.data!!.etag
+                    Timber.d("TUS: fetched ETag via PROPFIND: %s", resultEtag)
+                } else {
+                    Timber.w("TUS PROPFIND failed. code=%s, httpCode=%d", readResult.code, readResult.httpCode)
+                }
+            } catch (e: Throwable) {
+                Timber.e(e, "TUS: exception during PROPFIND for ETag")
+            }
+        }
+
+        Timber.i("TUS: upload completed for %s (size=%d) resulting etag=%s", remotePath, fileSize, resultEtag)
+        return resultEtag
     }
 
     private fun performUploadLoop(
@@ -175,8 +200,9 @@ class TusUploadHelper(
         progressCallback: ((Long, Long) -> Unit)?,
         initialOffset: Long,
         uploadId: Long,
-    ): Long {
+    ): Pair<Long, String?> {
         var offset = initialOffset
+        var lastEtag: String? = null
         val serverMaxChunk = tusSupport?.maxChunkSize?.takeIf { it > 0 }?.toLong()
         val httpOverride = tusSupport?.httpMethodOverride
         var consecutiveFailures = 0
@@ -203,6 +229,7 @@ class TusUploadHelper(
             activePatchOperation = patchOperation
 
             val patchResult = patchOperation.execute(client)
+            lastEtag = patchOperation.etag.takeIf { it.isNotBlank() }
             activePatchOperation = null
             if (!patchResult.isSuccess || patchResult.data == null || patchResult.data!! < offset) {
                 consecutiveFailures++
@@ -281,7 +308,7 @@ class TusUploadHelper(
             progressCallback?.invoke(offset, fileSize)
             consecutiveFailures = 0
         }
-        return offset
+        return Pair(offset, lastEtag)
     }
 
     private fun resolveTusCollectionUrl(

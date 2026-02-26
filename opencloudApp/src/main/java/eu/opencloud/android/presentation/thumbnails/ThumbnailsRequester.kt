@@ -97,7 +97,7 @@ object ThumbnailsRequester : KoinComponent {
         val path = if (remotePath?.startsWith("/") == true) remotePath else "/$remotePath"
         val encodedPath = Uri.encode(path, "/")
 
-        return String.format(Locale.US, FILE_PREVIEW_URI, baseUrl, encodedPath, width, height, etag)
+        return String.format(Locale.US, FILE_PREVIEW_URI, baseUrl, encodedPath, width, height, etag.orEmpty())
     }
 
     fun getCoilImageLoader(): ImageLoader {

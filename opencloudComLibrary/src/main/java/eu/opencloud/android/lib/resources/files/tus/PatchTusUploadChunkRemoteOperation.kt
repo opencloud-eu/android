@@ -38,6 +38,8 @@ class PatchTusUploadChunkRemoteOperation(
     private val dataTransferListeners: MutableSet<OnDatatransferProgressListener> = HashSet()
     private var activeMethod: HttpBaseMethod? = null
 
+    var etag: String = ""
+
     @Suppress("ExpressionBodySyntax")
     override fun run(client: OpenCloudClient): RemoteOperationResult<Long> {
         // Fast-path: if caller requested cancellation before execution, honour it without hitting the network.
@@ -85,6 +87,10 @@ class PatchTusUploadChunkRemoteOperation(
                 )
 
                 if (isSuccess(status)) {
+                    val rawEtag = eu.opencloud.android.lib.common.network.WebdavUtils.getEtagFromResponse(method)
+                    if (rawEtag != null) {
+                        this@PatchTusUploadChunkRemoteOperation.etag = rawEtag.replace("\"", "")
+                    }
                     val newOffset = method.getResponseHeader(HttpConstants.UPLOAD_OFFSET)?.toLongOrNull()
                     if (newOffset != null) {
                         RemoteOperationResult<Long>(ResultCode.OK).apply { data = newOffset }
