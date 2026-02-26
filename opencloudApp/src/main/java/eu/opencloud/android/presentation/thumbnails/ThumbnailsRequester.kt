@@ -41,6 +41,7 @@ import eu.opencloud.android.lib.common.http.HttpConstants.OC_X_REQUEST_ID
 import eu.opencloud.android.lib.common.http.HttpConstants.USER_AGENT_HEADER
 import eu.opencloud.android.lib.common.utils.RandomUtils
 import eu.opencloud.android.presentation.authentication.AccountUtils
+import okhttp3.Cache
 import okhttp3.Headers.Companion.toHeaders
 import okhttp3.Interceptor
 import okhttp3.Response
@@ -52,16 +53,20 @@ import java.util.Locale
 object ThumbnailsRequester : KoinComponent {
     private val clientManager: ClientManager by inject()
 
+    // https://docs.opencloud.eu/docs/next/dev/server/services/thumbnails/information/#thumbnail-query-string-parameters
     private const val SPACE_SPECIAL_PREVIEW_URI = "%s?scalingup=0&a=1&x=%d&y=%d&c=%s&preview=1"
     private const val FILE_PREVIEW_URI = "%s/webdav%s?x=%d&y=%d&c=%s&preview=1"
 
-    private const val DISK_CACHE_SIZE: Long = 1024 * 1024 * 100 // 100MB
+    private const val THUMBNAIL_DISK_CACHE_SIZE: Long = 1024 * 1024 * 100 // 100MB
+    private const val AVATAR_HTTP_CACHE_SIZE: Long = 10L * 1024 * 1024 // 10MB
 
-    private val imageLoaders = ConcurrentHashMap<String, ImageLoader>()
+    private val thumbnailImageLoaders = ConcurrentHashMap<String, ImageLoader>()
+    private val avatarImageLoaders = ConcurrentHashMap<String, ImageLoader>()
+
     private val sharedDiskCache: DiskCache by lazy {
         DiskCache.Builder()
             .directory(appContext.cacheDir.resolve("thumbnails_coil_cache"))
-            .maxSizeBytes(DISK_CACHE_SIZE)
+            .maxSizeBytes(THUMBNAIL_DISK_CACHE_SIZE)
             .build()
     }
 
@@ -71,13 +76,22 @@ object ThumbnailsRequester : KoinComponent {
             .build()
     }
 
+    // OkHttp's built-in HTTP cache for avatar responses. Unlike Coil's disk cache,
+    // OkHttp's cache natively serves stale responses when the network is unavailable
+    // (when must-revalidate is not set), giving us offline fallback for avatars.
+    private val avatarHttpCache: Cache by lazy {
+        Cache(appContext.cacheDir.resolve("avatar_http_cache"), AVATAR_HTTP_CACHE_SIZE)
+    }
+
     fun getAvatarUri(account: Account): String {
         val accountManager = AccountManager.get(appContext)
         val baseUrl =
             accountManager.getUserData(account, eu.opencloud.android.lib.common.accounts.AccountUtils.Constants.KEY_OC_BASE_URL)
                 ?.trimEnd('/')
                 .orEmpty()
-        return "$baseUrl/graph/v1.0/me/photo/\$value"
+        // ?u= disambiguates the Coil cache key per account; without it two accounts
+        // on the same server share the same URL and collide in the shared disk/memory cache.
+        return "$baseUrl/graph/v1.0/me/photo/\$value?u=${account.name.hashCode().toString(16)}"
     }
 
     fun getPreviewUriForFile(file: OCFile, account: Account, etag: String? = null, width: Int = 1024, height: Int = 1024): String =
@@ -100,33 +114,69 @@ object ThumbnailsRequester : KoinComponent {
         return String.format(Locale.US, FILE_PREVIEW_URI, baseUrl, encodedPath, width, height, etag.orEmpty())
     }
 
-    fun getCoilImageLoader(): ImageLoader {
+    fun getContentAddressedImageLoader(): ImageLoader {
         val account = AccountUtils.getCurrentOpenCloudAccount(appContext)
-        return getCoilImageLoader(account)
+        return getContentAddressedImageLoader(account)
     }
 
-    fun getCoilImageLoader(account: Account): ImageLoader {
-        val accountName = account.name
-        return imageLoaders.getOrPut(accountName) {
-            val openCloudClient = clientManager.getClientForCoilThumbnails(accountName)
-
-            val coilRequestHeaderInterceptor = CoilRequestHeaderInterceptor(
-                clientManager = clientManager,
-                accountName = accountName
-            )
-
-            ImageLoader(appContext).newBuilder().okHttpClient(
-                okHttpClient = openCloudClient.okHttpClient.newBuilder()
-                    .addInterceptor(coilRequestHeaderInterceptor).build()
-            ).logger(DebugLogger())
-                .memoryCache {
-                    sharedMemoryCache
-                }
-                .diskCache {
-                    sharedDiskCache
-                }
-                .build()
+    /**
+     * Thumbnail URLs are content-addressed: the file etag is baked into the URL, so the
+     * URL changes when the file changes. The disk cache entry is therefore always valid
+     * and can be served offline without server revalidation.
+     *
+     * Uses Coil's disk cache with respectCacheHeaders(false).
+     */
+    fun getContentAddressedImageLoader(account: Account): ImageLoader =
+        thumbnailImageLoaders.getOrPut(account.name) {
+            buildThumbnailImageLoader(account)
         }
+
+    /**
+     * Avatar URLs are NOT content-addressed: the URL (/graph/v1.0/me/photo/$value) is
+     * fixed regardless of whether the user changes their profile picture. We need server
+     * revalidation so the app picks up avatar changes, but we also need offline fallback.
+     *
+     * Coil's disk cache cannot serve stale entries on network error, so we use OkHttp's
+     * built-in HTTP cache instead (which does). Coil still handles decoding, memory cache,
+     * and transformations (CircleCrop etc.).
+     */
+    fun getRevalidatingImageLoader(account: Account): ImageLoader =
+        avatarImageLoaders.getOrPut(account.name) {
+            buildAvatarImageLoader(account)
+        }
+
+    private fun buildThumbnailImageLoader(account: Account): ImageLoader {
+        val openCloudClient = clientManager.getClientForCoilThumbnails(account.name)
+        val interceptor = CoilRequestHeaderInterceptor(clientManager, account.name)
+        return ImageLoader(appContext).newBuilder()
+            .okHttpClient(
+                openCloudClient.okHttpClient.newBuilder()
+                    .addInterceptor(interceptor).build()
+            )
+            .logger(DebugLogger())
+            .memoryCache { sharedMemoryCache }
+            .diskCache { sharedDiskCache }
+            .respectCacheHeaders(false)
+            .build()
+    }
+
+    private fun buildAvatarImageLoader(account: Account): ImageLoader {
+        val openCloudClient = clientManager.getClientForCoilThumbnails(account.name)
+        val interceptor = CoilRequestHeaderInterceptor(clientManager, account.name)
+        return ImageLoader(appContext).newBuilder()
+            .okHttpClient(
+                openCloudClient.okHttpClient.newBuilder()
+                    .addInterceptor(interceptor)
+                    .cache(avatarHttpCache)
+                    .build()
+            )
+            .logger(DebugLogger())
+            .memoryCache { sharedMemoryCache }
+            // No Coil disk cache — OkHttp's HTTP cache handles persistence
+            // and offline fallback instead.
+            .diskCache(null)
+            .respectCacheHeaders(true)
+            .build()
     }
 
     private class CoilRequestHeaderInterceptor(
@@ -152,10 +202,15 @@ object ThumbnailsRequester : KoinComponent {
             var builder = response.newBuilder()
             var changed = false
 
+            // The server sends no-cache (or no Cache-Control) for avatar responses.
+            // Rewrite to max-age=300 so OkHttp's HTTP cache caches them.
+            // Deliberately omitting must-revalidate: without it OkHttp serves stale
+            // responses when the network is unavailable, giving us offline fallback.
+            // For thumbnails this rewrite is ignored (respectCacheHeaders=false).
             val cacheControl = response.header("Cache-Control")
             if (cacheControl.isNullOrEmpty() || cacheControl.contains("no-cache")) {
                 builder.removeHeader("Cache-Control")
-                builder.addHeader("Cache-Control", "max-age=5000, must-revalidate")
+                builder.addHeader("Cache-Control", "max-age=300")
                 changed = true
             }
 

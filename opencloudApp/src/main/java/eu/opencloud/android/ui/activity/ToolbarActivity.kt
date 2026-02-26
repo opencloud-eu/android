@@ -119,7 +119,7 @@ abstract class ToolbarActivity : BaseActivity() {
         if (isAvatarRequested) {
             lifecycleScope.launch(Dispatchers.IO) {
                 val account = AccountUtils.getCurrentOpenCloudAccount(baseContext)
-                val imageLoader = ThumbnailsRequester.getCoilImageLoader(account)
+                val imageLoader = ThumbnailsRequester.getRevalidatingImageLoader(account)
                 withContext(Dispatchers.Main) {
                     AvatarUtils().loadAvatarForAccount(
                         avatarView,

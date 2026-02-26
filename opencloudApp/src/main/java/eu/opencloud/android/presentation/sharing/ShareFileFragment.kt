@@ -242,7 +242,7 @@ class ShareFileFragment : Fragment(), ShareUserListAdapter.ShareUserAdapterListe
         if (file!!.isImage) {
             binding.shareFileIcon.load(
                 ThumbnailsRequester.getPreviewUriForFile(file!!, account!!),
-                ThumbnailsRequester.getCoilImageLoader(account!!)
+                ThumbnailsRequester.getContentAddressedImageLoader(account!!)
             ) {
                 placeholder(MimetypeIconUtil.getFileTypeIconId(file!!.mimeType, file!!.fileName))
                 error(MimetypeIconUtil.getFileTypeIconId(file!!.mimeType, file!!.fileName))

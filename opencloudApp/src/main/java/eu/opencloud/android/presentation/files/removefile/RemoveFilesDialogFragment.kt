@@ -124,7 +124,8 @@ class RemoveFilesDialogFragment : DialogFragment() {
             val file = files[0]
             // Show the thumbnail when the file has one
             val account = AccountUtils.getCurrentOpenCloudAccount(requireContext())
-            thumbnailImageView.load(ThumbnailsRequester.getPreviewUriForFile(file, account), ThumbnailsRequester.getCoilImageLoader(account)) {
+            thumbnailImageView.load(ThumbnailsRequester.getPreviewUriForFile(file, account),
+                ThumbnailsRequester.getContentAddressedImageLoader(account)) {
                 placeholder(MimetypeIconUtil.getFileTypeIconId(file.mimeType, file.fileName))
                 error(MimetypeIconUtil.getFileTypeIconId(file.mimeType, file.fileName))
                 crossfade(true)

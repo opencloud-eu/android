@@ -53,7 +53,7 @@ class AvatarUtils : KoinComponent {
         imageLoader: coil.ImageLoader? = null
     ) {
         val uri = ThumbnailsRequester.getAvatarUri(account)
-        val loader = imageLoader ?: ThumbnailsRequester.getCoilImageLoader(account)
+        val loader = imageLoader ?: ThumbnailsRequester.getRevalidatingImageLoader(account)
         imageView.load(uri, loader) {
             placeholder(R.drawable.ic_account_circle)
             error(R.drawable.ic_account_circle)
@@ -67,7 +67,7 @@ class AvatarUtils : KoinComponent {
         @Suppress("UnusedParameter") displayRadius: Float
     ) {
         val uri = ThumbnailsRequester.getAvatarUri(account)
-        val imageLoader = ThumbnailsRequester.getCoilImageLoader(account)
+        val imageLoader = ThumbnailsRequester.getRevalidatingImageLoader(account)
         val request = coil.request.ImageRequest.Builder(appContext)
             .data(uri)
             .target(

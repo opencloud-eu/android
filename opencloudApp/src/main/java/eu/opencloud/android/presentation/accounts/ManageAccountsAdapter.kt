@@ -108,7 +108,7 @@ class ManageAccountsAdapter(
                 try {
                     val avatarUtils = AvatarUtils()
                     holder.itemView.findViewTreeLifecycleOwner()?.lifecycleScope?.launch(Dispatchers.IO) {
-                        val loader = eu.opencloud.android.presentation.thumbnails.ThumbnailsRequester.getCoilImageLoader(account)
+                        val loader = eu.opencloud.android.presentation.thumbnails.ThumbnailsRequester.getRevalidatingImageLoader(account)
                         withContext(Dispatchers.Main) {
                             avatarUtils.loadAvatarForAccount(
                                 holder.binding.icon,

@@ -458,7 +458,7 @@ abstract class DrawerActivity : ToolbarActivity() {
 
             getDrawerCurrentAccount()?.let {
                 lifecycleScope.launch(Dispatchers.IO) {
-                    val imageLoader = ThumbnailsRequester.getCoilImageLoader(account)
+                    val imageLoader = ThumbnailsRequester.getRevalidatingImageLoader(account)
                     withContext(Dispatchers.Main) {
                         AvatarUtils().loadAvatarForAccount(
                             imageView = it,

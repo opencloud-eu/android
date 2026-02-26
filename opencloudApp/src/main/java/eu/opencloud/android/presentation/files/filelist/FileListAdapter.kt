@@ -280,7 +280,8 @@ class FileListAdapter(
 
                 if (file.isImage) {
                     account?.let { acc ->
-                        fileIcon.load(ThumbnailsRequester.getPreviewUriForFile(fileWithSyncInfo, acc), ThumbnailsRequester.getCoilImageLoader(acc)) {
+                        fileIcon.load(ThumbnailsRequester.getPreviewUriForFile(fileWithSyncInfo, acc),
+                            ThumbnailsRequester.getContentAddressedImageLoader(acc)) {
                             placeholder(MimetypeIconUtil.getFileTypeIconId(file.mimeType, file.fileName))
                             error(MimetypeIconUtil.getFileTypeIconId(file.mimeType, file.fileName))
                             crossfade(true)

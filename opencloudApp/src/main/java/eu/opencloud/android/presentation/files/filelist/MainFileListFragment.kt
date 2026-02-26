@@ -795,7 +795,8 @@ class MainFileListFragment : Fragment(),
                 val account = AccountUtils.getCurrentOpenCloudAccount(requireContext())
                 binding.spaceHeader.spaceHeaderImage.load(
                     ThumbnailsRequester.getPreviewUriForSpaceSpecial(spaceSpecialImage),
-                    if (account != null) ThumbnailsRequester.getCoilImageLoader(account) else ThumbnailsRequester.getCoilImageLoader()
+                    if (account != null) ThumbnailsRequester.getContentAddressedImageLoader(account)
+                    else ThumbnailsRequester.getContentAddressedImageLoader()
                 ) {
                     placeholder(R.drawable.ic_spaces)
                     error(R.drawable.ic_spaces)

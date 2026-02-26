@@ -147,7 +147,7 @@ public class ReceiveExternalFilesAdapter extends BaseAdapter implements ListAdap
         // get Thumbnail if file is image
         if (file.isImage() && file.getRemoteId() != null) {
             String uri = ThumbnailsRequester.INSTANCE.getPreviewUriForFile(file, mAccount, null, 384, 384);
-            ImageLoader imageLoader = ThumbnailsRequester.INSTANCE.getCoilImageLoader(mAccount);
+            ImageLoader imageLoader = ThumbnailsRequester.INSTANCE.getContentAddressedImageLoader(mAccount);
             coil.request.ImageRequest request = new coil.request.ImageRequest.Builder(mContext)
                     .data(uri)
                     .target(fileIcon)
@@ -157,7 +157,7 @@ public class ReceiveExternalFilesAdapter extends BaseAdapter implements ListAdap
                     .build();
             imageLoader.enqueue(request);
         } else {
-            ImageLoader imageLoader = ThumbnailsRequester.INSTANCE.getCoilImageLoader(mAccount);
+            ImageLoader imageLoader = ThumbnailsRequester.INSTANCE.getContentAddressedImageLoader(mAccount);
             coil.request.ImageRequest request = new coil.request.ImageRequest.Builder(mContext)
                     .data(null)
                     .target(fileIcon)

@@ -437,7 +437,7 @@ class FileDetailsFragment : FileFragment() {
                         1024,
                         1024
                     ),
-                    ThumbnailsRequester.getCoilImageLoader(fileDetailsViewModel.getAccount())
+                    ThumbnailsRequester.getContentAddressedImageLoader(fileDetailsViewModel.getAccount())
                 ) {
                     placeholder(MimetypeIconUtil.getFileTypeIconId(ocFile.mimeType, ocFile.fileName))
                     error(MimetypeIconUtil.getFileTypeIconId(ocFile.mimeType, ocFile.fileName))
