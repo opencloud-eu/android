@@ -149,6 +149,26 @@ object ThumbnailsRequester : KoinComponent {
 
             var response = chain.proceed(requestWithHeaders)
 
+            // On 401, wait for ConnectionValidator (running on another thread) to refresh
+            // credentials, then retry exactly once with the updated auth token.
+            if (response.code == 401) {
+                Timber.d("Got 401 for %s, waiting 10s for credential refresh before retrying once", requestWithHeaders.url)
+                response.close()
+                try {
+                    Thread.sleep(10_000)
+                } catch (_: InterruptedException) {
+                    return response
+                }
+                val freshClient = clientManager.getClientForCoilThumbnails(accountName)
+                val retryRequest = chain.request().newBuilder()
+                    .header(AUTHORIZATION_HEADER, freshClient.credentials.headerAuth)
+                    .header(ACCEPT_ENCODING_HEADER, ACCEPT_ENCODING_IDENTITY)
+                    .header(USER_AGENT_HEADER, SingleSessionManager.getUserAgent())
+                    .header(OC_X_REQUEST_ID, RandomUtils.generateRandomUUID())
+                    .build()
+                response = chain.proceed(retryRequest)
+            }
+
             var builder = response.newBuilder()
             var changed = false
 
