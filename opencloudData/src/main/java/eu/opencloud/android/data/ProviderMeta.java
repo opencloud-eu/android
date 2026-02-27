@@ -31,7 +31,7 @@ public class ProviderMeta {
 
     public static final String DB_NAME = "filelist";
     public static final String NEW_DB_NAME = "opencloud_database";
-        public static final int DB_VERSION = 48;
+        public static final int DB_VERSION = 49;
 
     private ProviderMeta() {
     }
@@ -112,6 +112,7 @@ public class ProviderMeta {
         public static final String FILE_CREATION = "created";
         public static final String FILE_ETAG = "etag";
         public static final String FILE_ETAG_IN_CONFLICT = "etag_in_conflict";
+        public static final String FILE_REMOTE_ETAG = "remoteEtag";
         public static final String FILE_IS_DOWNLOADING = "is_downloading";
         public static final String FILE_KEEP_IN_SYNC = "keep_in_sync";
         public static final String FILE_LAST_SYNC_DATE_FOR_DATA = "last_sync_date_for_data";

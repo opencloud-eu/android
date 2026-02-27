@@ -95,7 +95,7 @@ object ThumbnailsRequester : KoinComponent {
     }
 
     fun getPreviewUriForFile(file: OCFile, account: Account, etag: String? = null, width: Int = 1024, height: Int = 1024): String =
-        getPreviewUri(file.remotePath, etag ?: file.etag, account, width, height)
+        getPreviewUri(file.remotePath, etag ?: file.remoteEtag, account, width, height)
 
     fun getPreviewUriForFile(fileWithSyncInfo: OCFileWithSyncInfo, account: Account, width: Int = 1024, height: Int = 1024): String =
         getPreviewUriForFile(fileWithSyncInfo.file, account, null, width, height)

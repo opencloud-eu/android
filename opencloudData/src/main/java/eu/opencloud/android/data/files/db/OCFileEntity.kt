@@ -30,6 +30,7 @@ import eu.opencloud.android.data.ProviderMeta.ProviderTableMeta.FILE_CONTENT_TYP
 import eu.opencloud.android.data.ProviderMeta.ProviderTableMeta.FILE_CREATION
 import eu.opencloud.android.data.ProviderMeta.ProviderTableMeta.FILE_ETAG
 import eu.opencloud.android.data.ProviderMeta.ProviderTableMeta.FILE_ETAG_IN_CONFLICT
+import eu.opencloud.android.data.ProviderMeta.ProviderTableMeta.FILE_REMOTE_ETAG
 import eu.opencloud.android.data.ProviderMeta.ProviderTableMeta.FILE_IS_DOWNLOADING
 import eu.opencloud.android.data.ProviderMeta.ProviderTableMeta.FILE_KEEP_IN_SYNC
 import eu.opencloud.android.data.ProviderMeta.ProviderTableMeta.FILE_LAST_SYNC_DATE_FOR_DATA
@@ -75,6 +76,7 @@ data class OCFileEntity(
     val modificationTimestamp: Long,
     val mimeType: String,
     val etag: String?,
+    val remoteEtag: String? = null,
     val permissions: String?,
     val privateLink: String? = null,
     val storagePath: String? = null,
@@ -116,6 +118,7 @@ data class OCFileEntity(
                 creationTimestamp = cursor.getLong(cursor.getColumnIndexOrThrow(FILE_CREATION)),
                 modificationTimestamp = cursor.getLong(cursor.getColumnIndexOrThrow(FILE_MODIFIED)),
                 etag = cursor.getString(cursor.getColumnIndexOrThrow(FILE_ETAG)),
+                remoteEtag = cursor.getString(cursor.getColumnIndexOrThrow(FILE_REMOTE_ETAG)),
                 mimeType = cursor.getStringFromColumnOrEmpty(FILE_CONTENT_TYPE),
                 length = cursor.getLong(cursor.getColumnIndexOrThrow(FILE_CONTENT_LENGTH)),
                 storagePath = cursor.getString(cursor.getColumnIndexOrThrow(FILE_STORAGE_PATH)),

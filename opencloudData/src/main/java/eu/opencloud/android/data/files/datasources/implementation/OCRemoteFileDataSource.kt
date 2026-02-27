@@ -228,6 +228,7 @@ class OCRemoteFileDataSource(
                 modificationTimestamp = modifiedTimestamp,
                 mimeType = mimeType,
                 etag = etag,
+                remoteEtag = etag,
                 permissions = permissions,
                 privateLink = privateLink,
                 sharedWithSharee = sharedWithSharee,

@@ -203,6 +203,7 @@ class OCLocalFileDataSourceTest {
             creationTimestamp = 0,
             modificationTimestamp = 0,
             etag = "",
+            remoteEtag = "",
             mimeType = MIME_DIR,
             length = 0,
             fileIsDownloading = false,

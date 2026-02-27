@@ -43,6 +43,7 @@ data class OCFile(
     val remotePath: String,
     var mimeType: String,
     var etag: String? = "",
+    var remoteEtag: String? = "",
     val permissions: String? = null,
     var remoteId: String? = null,
     val privateLink: String? = "",
