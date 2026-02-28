@@ -29,6 +29,7 @@ import coil.memory.MemoryCache
 import coil.util.DebugLogger
 import eu.opencloud.android.MainApp.Companion.appContext
 import eu.opencloud.android.data.ClientManager
+import eu.opencloud.android.data.providers.SharedPreferencesProvider
 import java.util.concurrent.ConcurrentHashMap
 import eu.opencloud.android.domain.files.model.OCFile
 import eu.opencloud.android.domain.files.model.OCFileWithSyncInfo
@@ -52,6 +53,7 @@ import java.util.Locale
 
 object ThumbnailsRequester : KoinComponent {
     private val clientManager: ClientManager by inject()
+    private val preferencesProvider: SharedPreferencesProvider by inject()
 
     // https://docs.opencloud.eu/docs/next/dev/server/services/thumbnails/information/#thumbnail-query-string-parameters
     private const val SPACE_SPECIAL_PREVIEW_URI = "%s?scalingup=0&a=1&x=%d&y=%d&c=%s&preview=1"
@@ -153,7 +155,7 @@ object ThumbnailsRequester : KoinComponent {
                 openCloudClient.okHttpClient.newBuilder()
                     .addInterceptor(interceptor).build()
             )
-            .logger(DebugLogger())
+            .apply { if (preferencesProvider.getBoolean("enable_logging", false)) logger(DebugLogger()) }
             .memoryCache { sharedMemoryCache }
             .diskCache { sharedDiskCache }
             .respectCacheHeaders(false)
@@ -170,7 +172,7 @@ object ThumbnailsRequester : KoinComponent {
                     .cache(avatarHttpCache)
                     .build()
             )
-            .logger(DebugLogger())
+            .apply { if (preferencesProvider.getBoolean("enable_logging", false)) logger(DebugLogger()) }
             .memoryCache { sharedMemoryCache }
             // No Coil disk cache — OkHttp's HTTP cache handles persistence
             // and offline fallback instead.
