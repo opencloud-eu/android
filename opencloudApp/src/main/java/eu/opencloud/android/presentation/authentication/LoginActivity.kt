@@ -99,6 +99,10 @@ private const val KEY_OIDC_SUPPORTED = "KEY_OIDC_SUPPORTED"
 private const val KEY_CODE_VERIFIER = "KEY_CODE_VERIFIER"
 private const val KEY_CODE_CHALLENGE = "KEY_CODE_CHALLENGE"
 private const val KEY_OIDC_STATE = "KEY_OIDC_STATE"
+private const val KEY_AUTH_SERVER_BASE_URL = "KEY_AUTH_SERVER_BASE_URL"
+private const val KEY_AUTH_OIDC_SUPPORTED = "KEY_AUTH_OIDC_SUPPORTED"
+private const val KEY_AUTH_LOGIN_ACTION = "KEY_AUTH_LOGIN_ACTION"
+private const val KEY_AUTH_USER_ACCOUNT = "KEY_AUTH_USER_ACCOUNT"
 
 class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrustedCertListener, SecurityEnforced {
 
@@ -237,14 +241,19 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
             if (savedInstanceState == null) {
                 restoreAuthState()
             }
-            handleGetAuthorizationCodeResponse(intent)
+            if (authenticationViewModel.serverInfo.value?.peekContent()?.getStoredData() == null
+                && ::serverBaseUrl.isInitialized && serverBaseUrl.isNotEmpty()) {
+                // Process death: serverInfo is gone. Re-fetch it before processing the OAuth response.
+                // Store the intent as pending — getServerInfoIsSuccess will process it via checkServerType bypass.
+                pendingAuthorizationIntent = intent
+                authenticationViewModel.getServerInfo(serverBaseUrl)
+            } else {
+                handleGetAuthorizationCodeResponse(intent)
+            }
         }
 
-        // Process any pending intent that arrived before binding was ready
-        pendingAuthorizationIntent?.let {
-            handleGetAuthorizationCodeResponse(it)
-            pendingAuthorizationIntent = null
-        }
+        // Note: pendingAuthorizationIntent is processed in checkServerType() after
+        // getServerInfo() completes (process death recovery flow).
 
 
     }
@@ -262,7 +271,10 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
 
     private fun launchFileDisplayActivity() {
         val newIntent = Intent(this, FileDisplayActivity::class.java)
-        newIntent.data = intent.data
+        if (authenticationViewModel.launchedFromDeepLink) {
+            newIntent.data = intent.data
+        }
+        newIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
         startActivity(newIntent)
         finish()
     }
@@ -296,11 +308,7 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
         authenticationViewModel.accountDiscovery.observe(this) {
             if (it.peekContent() is UIResult.Success) {
                 notifyDocumentsProviderRoots(applicationContext)
-                if (authenticationViewModel.launchedFromDeepLink) {
-                    launchFileDisplayActivity()
-                } else {
-                    finish()
-                }
+                launchFileDisplayActivity()
             } else {
                 binding.authStatusText.run {
                     text = context.getString(R.string.login_account_preparing)
@@ -425,6 +433,18 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
     }
 
     private fun checkServerType(serverInfo: ServerInfo) {
+        // If we have a pending OAuth response (process death recovery), process it now
+        // that serverInfo has been re-fetched, instead of starting a new auth flow.
+        pendingAuthorizationIntent?.let { pendingIntent ->
+            pendingAuthorizationIntent = null
+            authTokenType = OAUTH_TOKEN_TYPE
+            if (serverInfo is ServerInfo.OIDCServer) {
+                oidcSupported = true
+            }
+            handleGetAuthorizationCodeResponse(pendingIntent)
+            return
+        }
+
         when (serverInfo) {
             is ServerInfo.BasicServer -> {
                 authTokenType = BASIC_TOKEN_TYPE
@@ -1016,6 +1036,15 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
             putString(KEY_CODE_VERIFIER, authenticationViewModel.codeVerifier)
             putString(KEY_CODE_CHALLENGE, authenticationViewModel.codeChallenge)
             putString(KEY_OIDC_STATE, authenticationViewModel.oidcState)
+            if (::serverBaseUrl.isInitialized) {
+                putString(KEY_AUTH_SERVER_BASE_URL, serverBaseUrl)
+            }
+            putBoolean(KEY_AUTH_OIDC_SUPPORTED, oidcSupported)
+            // The browser is also opened for re-login (ACTION_UPDATE_TOKEN / ACTION_UPDATE_EXPIRED_TOKEN),
+            // not just for new account creation. Persist these so the redirect back knows
+            // whether to update an existing account or create a new one.
+            putInt(KEY_AUTH_LOGIN_ACTION, loginAction.toInt())
+            userAccount?.name?.let { putString(KEY_AUTH_USER_ACCOUNT, it) }
             apply()
         }
     }
@@ -1025,6 +1054,17 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
         prefs.getString(KEY_CODE_VERIFIER, null)?.let { authenticationViewModel.codeVerifier = it }
         prefs.getString(KEY_CODE_CHALLENGE, null)?.let { authenticationViewModel.codeChallenge = it }
         prefs.getString(KEY_OIDC_STATE, null)?.let { authenticationViewModel.oidcState = it }
+        prefs.getString(KEY_AUTH_SERVER_BASE_URL, null)?.let { serverBaseUrl = it }
+        oidcSupported = prefs.getBoolean(KEY_AUTH_OIDC_SUPPORTED, false)
+        val savedLoginAction = prefs.getInt(KEY_AUTH_LOGIN_ACTION, -1)
+        if (savedLoginAction != -1) {
+            loginAction = savedLoginAction.toByte()
+        }
+        if (userAccount == null) {
+            prefs.getString(KEY_AUTH_USER_ACCOUNT, null)?.let { accountName ->
+                userAccount = Account(accountName, getString(R.string.account_type))
+            }
+        }
     }
 
     private fun clearAuthState() {
