@@ -40,7 +40,6 @@ import timber.log.Timber
  *
  * First: Synchronize user info
  * Second: Synchronize user quota
- * Third: Synchronize user avatar
  *
  * If one step fails, next one is not performed since it may fail too.
  */
@@ -76,13 +75,6 @@ class SyncProfileOperation(
                                 Timber.d("User quota synchronized for oC10 account ${account.name}")
                             }
                         }
-                    }
-                    val shouldFetchAvatar = storedCapabilities?.isFetchingAvatarAllowed() ?: true
-                    if (shouldFetchAvatar) {
-                        // Avatar fetching is now handled by Coil on demand
-                        Timber.d("Avatar sync handled by Coil for account ${account.name}")
-                    } else {
-                        Timber.d("Avatar for this account: ${account.name} won't be synced due to capabilities ")
                     }
                 } ?: Timber.d("User profile was not synchronized")
             }

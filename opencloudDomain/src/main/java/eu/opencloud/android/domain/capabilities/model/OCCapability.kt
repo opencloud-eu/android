@@ -61,9 +61,6 @@ data class OCCapability(
         return (filesBigFileChunking.isTrue && doubleChunkingVersion != null && doubleChunkingVersion >= 1.0)
     }
 
-    fun isFetchingAvatarAllowed(): Boolean =
-        filesSharingUserProfilePicture.isTrue || filesSharingUserProfilePicture.isUnknown
-
     fun isOpenInWebAllowed(): Boolean = filesAppProviders?.openWebUrl?.isNotBlank() ?: false
 
     fun isSpacesAllowed(): Boolean = spaces?.enabled == true
