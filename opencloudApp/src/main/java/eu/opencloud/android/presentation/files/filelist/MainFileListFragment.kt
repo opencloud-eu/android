@@ -606,7 +606,18 @@ class MainFileListFragment : Fragment(),
                     dialog.dismiss()
                 }
 
+                val fileNameBottomSheet = fileOptionsBottomSheetSingleFile.findViewById<TextView>(R.id.file_name_bottom_sheet)
+                fileNameBottomSheet.text = file.fileName
 
+                val thumbnailBottomSheet = fileOptionsBottomSheetSingleFile.findViewById<ImageView>(R.id.thumbnail_bottom_sheet)
+                val account = AccountUtils.getCurrentOpenCloudAccount(requireContext())
+                thumbnailBottomSheet.load(
+                    ThumbnailsRequester.getPreviewUriForFile(file, account),
+                    ThumbnailsRequester.getContentAddressedImageLoader(account)
+                ) {
+                    placeholder(MimetypeIconUtil.getFileTypeIconId(file.mimeType, file.fileName))
+                    error(MimetypeIconUtil.getFileTypeIconId(file.mimeType, file.fileName))
+                }
 
                 val fileSizeBottomSheet = fileOptionsBottomSheetSingleFile.findViewById<TextView>(R.id.file_size_bottom_sheet)
                 fileSizeBottomSheet.text = DisplayUtils.bytesToHumanReadable(file.length, requireContext(), true)
