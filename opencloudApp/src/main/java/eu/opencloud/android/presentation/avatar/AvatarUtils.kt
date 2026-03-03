@@ -23,10 +23,13 @@ import android.accounts.Account
 import android.view.MenuItem
 import android.widget.ImageView
 import eu.opencloud.android.R
-import coil.load
+import coil.request.ErrorResult
+import coil.request.ImageRequest
 import eu.opencloud.android.MainApp.Companion.appContext
 import eu.opencloud.android.presentation.thumbnails.ThumbnailsRequester
+import kotlinx.coroutines.delay
 import org.koin.core.component.KoinComponent
+import timber.log.Timber
 
 class AvatarUtils : KoinComponent {
 
@@ -46,7 +49,7 @@ class AvatarUtils : KoinComponent {
      *                        the server. When 'false', server is not accessed, the fallback avatar is
      *                        generated instead.
      */
-    fun loadAvatarForAccount(
+    suspend fun loadAvatarForAccount(
         imageView: ImageView,
         account: Account,
         @Suppress("UnusedParameter") displayRadius: Float,
@@ -54,11 +57,24 @@ class AvatarUtils : KoinComponent {
     ) {
         val uri = ThumbnailsRequester.getAvatarUri(account)
         val loader = imageLoader ?: ThumbnailsRequester.getRevalidatingImageLoader(account)
-        imageView.load(uri, loader) {
-            placeholder(R.drawable.ic_account_circle)
-            error(R.drawable.ic_account_circle)
-            transformations(coil.transform.CircleCropTransformation())
+        // No .target(imageView) here — using execute() with a ViewTarget can hang
+        // due to Coil's internal lifecycle checks. We set the drawable manually instead.
+        val request = ImageRequest.Builder(appContext)
+            .data(uri)
+            .transformations(coil.transform.CircleCropTransformation())
+            .build()
+        Timber.d("Avatar load for $uri")
+        var result = loader.execute(request)
+        if (result is ErrorResult) {
+            // On failure, give ConnectionValidator time to refresh the token on another
+            // thread, then retry once.
+            Timber.d("Avatar load failed for $uri, retrying in 5s")
+            delay(5_000L)
+            Timber.d("Retrying avatar load for $uri")
+            result = loader.execute(request)
         }
+        (result as? coil.request.SuccessResult)?.let { imageView.setImageDrawable(it.drawable) }
+            ?: imageView.setImageResource(R.drawable.ic_account_circle)
     }
 
     fun loadAvatarForAccount(
