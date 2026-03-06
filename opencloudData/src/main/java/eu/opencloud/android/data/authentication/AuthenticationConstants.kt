@@ -47,6 +47,11 @@ const val KEY_FEATURE_SPACES = "KEY_FEATURE_SPACES"
 /**
  * OIDC Client Registration
  */
+/**
+ * Preferred username from OIDC id_token, used for login_hint
+ */
+const val KEY_PREFERRED_USERNAME = "oc_preferred_username"
+
 const val KEY_CLIENT_REGISTRATION_CLIENT_ID = "client_id"
 const val KEY_CLIENT_REGISTRATION_CLIENT_SECRET = "client_secret"
 const val KEY_CLIENT_REGISTRATION_CLIENT_EXPIRATION_DATE = "client_secret_expires_at"

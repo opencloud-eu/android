@@ -26,5 +26,6 @@ data class TokenResponse(
     val tokenType: String,
     val userId: String?,
     val scope: String?,
+    val idToken: String? = null,
     val additionalParameters: Map<String, String>?
 )

@@ -131,6 +131,7 @@ class OCRemoteOAuthDataSource(
             tokenType = this.tokenType,
             userId = this.userId,
             scope = this.scope,
+            idToken = this.idToken,
             additionalParameters = this.additionalParameters
         )
 

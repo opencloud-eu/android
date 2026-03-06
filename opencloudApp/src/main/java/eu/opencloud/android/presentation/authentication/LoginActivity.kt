@@ -48,6 +48,7 @@ import androidx.core.widget.doAfterTextChanged
 import eu.opencloud.android.BuildConfig
 import eu.opencloud.android.MainApp.Companion.accountType
 import eu.opencloud.android.R
+import eu.opencloud.android.data.authentication.KEY_PREFERRED_USERNAME
 import eu.opencloud.android.data.authentication.KEY_USER_ID
 import eu.opencloud.android.databinding.AccountSetupBinding
 import eu.opencloud.android.domain.authentication.oauth.model.ClientRegistrationInfo
@@ -117,6 +118,7 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
     private lateinit var serverBaseUrl: String
 
     private var oidcSupported = false
+    private var preferredUsername: String? = null
 
     private lateinit var binding: AccountSetupBinding
 
@@ -177,10 +179,12 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
         if (loginAction != ACTION_CREATE) {
             binding.accountUsername.isEnabled = false
             binding.accountUsername.isFocusable = false
-            userAccount?.name?.let {
-                username = getUsernameOfAccount(it)
+            userAccount?.let { account ->
+                // Prefer preferred_username from id_token (stored in AccountManager) for login_hint,
+                // fall back to the account name part (which may be a UUID)
+                username = AccountManager.get(this).getUserData(account, KEY_PREFERRED_USERNAME)
+                    ?: getUsernameOfAccount(account.name)
             }
-
         }
 
         if (savedInstanceState == null) {
@@ -555,6 +559,12 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
         resultBundle = intent.extras
         setResult(Activity.RESULT_OK, intent)
 
+        // Store preferred_username from id_token for login_hint on re-login
+        preferredUsername?.let { prefUsername ->
+            val account = Account(accountName, contextProvider.getString(R.string.account_type))
+            AccountManager.get(this).setUserData(account, KEY_PREFERRED_USERNAME, prefUsername)
+        }
+
         authenticationViewModel.discoverAccount(accountName = accountName, discoveryNeeded = loginAction == ACTION_CREATE)
         clearAuthState()
     }
@@ -776,6 +786,10 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
                 is UIResult.Success -> {
                     Timber.d("Tokens received ${uiResult.data}, trying to login, creating account and adding it to account manager")
                     val tokenResponse = uiResult.data ?: return@observe
+
+                    // Extract preferred_username from id_token for login_hint on re-login
+                    preferredUsername = extractPreferredUsernameFromIdToken(tokenResponse.idToken)
+                    Timber.d("Preferred username from id_token: $preferredUsername")
 
                     // When webfinger provides a client_id without dynamic registration,
                     // store it so AccountAuthenticator can use it for token refresh
@@ -1070,5 +1084,25 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
     private fun clearAuthState() {
         val prefs = getSharedPreferences("auth_state", android.content.Context.MODE_PRIVATE)
         prefs.edit().clear().apply()
+    }
+
+    /**
+     * Extract preferred_username from an OIDC id_token JWT.
+     * Fallback chain: preferred_username -> email -> sub
+     */
+    private fun extractPreferredUsernameFromIdToken(idToken: String?): String? {
+        if (idToken == null) return null
+        return try {
+            val parts = idToken.split(".")
+            if (parts.size != 3) return null
+            val payload = String(android.util.Base64.decode(parts[1], android.util.Base64.URL_SAFE))
+            val json = org.json.JSONObject(payload)
+            json.optString("preferred_username").ifBlank { null }
+                ?: json.optString("email").ifBlank { null }
+                ?: json.optString("sub").ifBlank { null }
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to extract preferred_username from id_token")
+            null
+        }
     }
 }

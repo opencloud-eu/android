@@ -40,6 +40,8 @@ data class TokenResponse(
     @Json(name = "user_id")
     val userId: String?,
     val scope: String?,
+    @Json(name = "id_token")
+    val idToken: String? = null,
     @Json(name = "additional_parameters")
     val additionalParameters: Map<String, String>?
 )
