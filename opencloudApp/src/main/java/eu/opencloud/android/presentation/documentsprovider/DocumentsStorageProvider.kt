@@ -62,10 +62,13 @@ import eu.opencloud.android.presentation.documentsprovider.cursors.RootCursor
 import eu.opencloud.android.presentation.documentsprovider.cursors.SpaceCursor
 import eu.opencloud.android.presentation.settings.security.SettingsSecurityFragment.Companion.PREFERENCE_LOCK_ACCESS_FROM_DOCUMENT_PROVIDER
 import eu.opencloud.android.usecases.synchronization.SynchronizeFileUseCase
+import eu.opencloud.android.usecases.transfers.downloads.DownloadFileUseCase
 import eu.opencloud.android.usecases.synchronization.SynchronizeFolderUseCase
 import eu.opencloud.android.usecases.transfers.uploads.UploadFilesFromSystemUseCase
 import eu.opencloud.android.utils.FileStorageUtils
 import eu.opencloud.android.utils.NotificationUtils
+import androidx.work.WorkInfo
+import androidx.work.WorkManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -74,7 +77,10 @@ import timber.log.Timber
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException
+import java.util.UUID
 import java.util.Vector
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.CompletableFuture
 
 class DocumentsStorageProvider : DocumentsProvider() {
     /**
@@ -88,6 +94,17 @@ class DocumentsStorageProvider : DocumentsProvider() {
     private var spacesSyncRequired = true
 
     private lateinit var fileToUpload: OCFile
+
+    // Cache to avoid redundant PROPFINDs when apps (e.g. Google Photos) call
+    // openDocument many times for the same file. Two layers:
+    // 1. In-flight dedup: concurrent calls for the same file share one PROPFIND via
+    //    a CompletableFuture. The first caller does the actual work, others wait.
+    // 2. TTL cache: after a sync completes, skip re-checking the same file for a
+    //    few seconds to handle rapid sequential calls.
+    private val inFlightSyncs = ConcurrentHashMap<Long, CompletableFuture<SynchronizeFileUseCase.SyncType?>>()
+    private val inFlightDownloads = ConcurrentHashMap<Long, CompletableFuture<Boolean>>()
+    private var propfindCacheFileId: Long? = null
+    private var propfindCacheTimestamp: Long = 0
 
     override fun openDocument(
         documentId: String,
@@ -106,15 +123,78 @@ class DocumentsStorageProvider : DocumentsProvider() {
         if (!uploadOnly) {
             ocFile = getFileByIdOrException(documentId.toInt())
 
-            if (!ocFile.isAvailableLocally || !isWrite) {
-                syncFileWithServer(ocFile)
-                do {
-                    if (!waitOrGetCancelled(signal)) {
+            if (!ocFile.isAvailableLocally) {
+                // File has never been downloaded. Enqueue the download directly —
+                // no need for a PROPFIND since we already know we need the file.
+                // Apps like Google Photos call openDocument concurrently for the
+                // same file — dedup so only one download is enqueued.
+                if (!downloadFileCoalesced(ocFile.id!!, ocFile, documentId.toInt(), signal)) {
+                    return null
+                }
+                ocFile = getFileByIdOrException(documentId.toInt())
+                if (!ocFile.isAvailableLocally) {
+                    return null
+                }
+                // Seed the TTL cache — the file was just downloaded, so there's no need
+                // for a PROPFIND if Google Photos immediately calls openDocument again.
+                propfindCacheFileId = ocFile.id
+                propfindCacheTimestamp = System.currentTimeMillis()
+            } else if (!isWrite) {
+                // File is available locally and opened for reading. Check with the server
+                // (PROPFIND) whether a newer version exists, and download it if so.
+                //
+                // Apps like Google Photos call openDocument many times concurrently for
+                // the same file. Without dedup, each call does its own PROPFIND, and due
+                // to the synchronized lock in OpenCloudClient.executeHttpMethod they
+                // serialize — causing 10+ second waits per extra call. We handle this
+                // with two layers:
+                // 1. TTL cache: skip if we just confirmed this file is up-to-date.
+                // 2. In-flight dedup: concurrent calls share one PROPFIND result.
+                val fileId = ocFile.id!!
+                val now = System.currentTimeMillis()
+                if (fileId == propfindCacheFileId && now - propfindCacheTimestamp <= PROPFIND_CACHE_TTL_MS) {
+                    Timber.d("Skipping PROPFIND for file $fileId, recently synced ${now - propfindCacheTimestamp}ms ago")
+                } else {
+                    val syncResult = syncFileWithServerCoalesced(ocFile)
+
+                    when (syncResult) {
+                        is SynchronizeFileUseCase.SyncType.AlreadySynchronized -> {
+                            // File is up to date, nothing to wait for.
+                        }
+                        is SynchronizeFileUseCase.SyncType.DownloadEnqueued -> {
+                            // A newer version exists. SynchronizeFileUseCase only enqueues
+                            // a WorkManager download, it does not wait for it to finish.
+                            if (!waitForDownload(syncResult.workerId, documentId.toInt(), signal)) {
+                                return null
+                            }
+                        }
+                        is SynchronizeFileUseCase.SyncType.ConflictDetected -> {
+                            // File changed both locally and remotely. Notify the user and
+                            // serve the local version (same behavior as before).
+                            context?.let {
+                                NotificationUtils.notifyConflict(fileInConflict = ocFile, context = it)
+                            }
+                        }
+                        is SynchronizeFileUseCase.SyncType.FileNotFound -> {
+                            return null
+                        }
+                        is SynchronizeFileUseCase.SyncType.UploadEnqueued -> {
+                            // Local file is newer, upload was enqueued. Serve the local version.
+                        }
+                        null -> {
+                            // Sync failed, serve the local version anyway.
+                        }
+                    }
+
+                    propfindCacheFileId = fileId
+                    propfindCacheTimestamp = System.currentTimeMillis()
+
+                    // Re-read the file from DB to get the updated state after download.
+                    ocFile = getFileByIdOrException(documentId.toInt())
+                    if (!ocFile.isAvailableLocally) {
                         return null
                     }
-                    ocFile = getFileByIdOrException(documentId.toInt())
-
-                } while (!ocFile.isAvailableLocally)
+                }
             }
         } else {
             ocFile = fileToUpload
@@ -146,7 +226,7 @@ class DocumentsStorageProvider : DocumentsProvider() {
                             uploadFilesUseCase(uploadFilesUseCaseParams)
                         }
                     } else {
-                        syncFileWithServer(ocFile)
+                        syncFileWithServerAsync(ocFile)
                     }
                 }
             } catch (e: IOException) {
@@ -468,26 +548,168 @@ class DocumentsStorageProvider : DocumentsProvider() {
         return NONEXISTENT_DOCUMENT_ID
     }
 
-    private fun syncFileWithServer(fileToSync: OCFile) {
-        Timber.d("Trying to sync a file ${fileToSync.id} with server")
+    /**
+     * Synchronize a file with the server, coalescing concurrent requests.
+     *
+     * If another thread is already syncing this file, we wait for its result instead of
+     * starting a second PROPFIND. This avoids the serialized lock contention in
+     * OpenCloudClient.executeHttpMethod when multiple binder threads call openDocument
+     * for the same file simultaneously.
+     *
+     * The future is always removed from [inFlightSyncs] when done (via finally),
+     * so errors or timeouts cannot leave stale entries that would block future syncs.
+     */
+    private fun syncFileWithServerCoalesced(fileToSync: OCFile): SynchronizeFileUseCase.SyncType? {
+        val fileId = fileToSync.id!!
+        val newFuture = CompletableFuture<SynchronizeFileUseCase.SyncType?>()
+        val existingFuture = inFlightSyncs.putIfAbsent(fileId, newFuture)
 
-        val synchronizeFileUseCase : SynchronizeFileUseCase by inject()
-        val synchronizeFileUseCaseParam = SynchronizeFileUseCase.Params(
-            fileToSynchronize = fileToSync
+        if (existingFuture != null) {
+            // Another thread is already syncing this file. Wait for its result.
+            Timber.d("Sync for file $fileId already in flight, waiting for result")
+            return try {
+                existingFuture.get()
+            } catch (e: Exception) {
+                Timber.w(e, "In-flight sync for file $fileId failed, serving local version")
+                null
+            }
+        }
+
+        // We are the first thread — do the actual PROPFIND.
+        return try {
+            val result = syncFileWithServerBlocking(fileToSync)
+            newFuture.complete(result)
+            result
+        } catch (e: Exception) {
+            newFuture.completeExceptionally(e)
+            throw e
+        } finally {
+            inFlightSyncs.remove(fileId)
+        }
+    }
+
+    /**
+     * Download a file, deduplicating concurrent requests for the same file.
+     *
+     * Same pattern as [syncFileWithServerCoalesced]: the first thread enqueues the
+     * WorkManager download and waits; concurrent threads wait on the same future.
+     * This prevents apps like Google Photos (which call openDocument 4+ times
+     * concurrently) from enqueuing 4 separate download workers for the same file.
+     *
+     * @return true if the download succeeded, false otherwise.
+     */
+    private fun downloadFileCoalesced(fileId: Long, ocFile: OCFile, docId: Int, signal: CancellationSignal?): Boolean {
+        val newFuture = CompletableFuture<Boolean>()
+        val existingFuture = inFlightDownloads.putIfAbsent(fileId, newFuture)
+
+        if (existingFuture != null) {
+            Timber.d("Download for file $fileId already in flight, waiting")
+            return try { existingFuture.get() } catch (_: Exception) { false }
+        }
+
+        return try {
+            val downloadFileUseCase: DownloadFileUseCase by inject()
+            val workerId = downloadFileUseCase(
+                DownloadFileUseCase.Params(accountName = ocFile.owner, file = ocFile)
+            )
+            val ok = waitForDownload(workerId, docId, signal)
+            newFuture.complete(ok)
+            ok
+        } catch (e: Exception) {
+            Timber.w(e, "Download for file $fileId failed")
+            newFuture.complete(false)
+            false
+        } finally {
+            inFlightDownloads.remove(fileId)
+        }
+    }
+
+    /**
+     * Synchronize a file with the server and return the result.
+     * Runs synchronously on the calling thread (blocks until the PROPFIND completes).
+     * Note: if a download is needed, this only *enqueues* it — use [waitForDownload] to
+     * wait for the actual download to finish.
+     */
+    private fun syncFileWithServerBlocking(fileToSync: OCFile): SynchronizeFileUseCase.SyncType? {
+        Timber.d("Trying to sync file ${fileToSync.id} with server (blocking)")
+
+        val synchronizeFileUseCase: SynchronizeFileUseCase by inject()
+        val useCaseResult = synchronizeFileUseCase(
+            SynchronizeFileUseCase.Params(fileToSynchronize = fileToSync)
         )
+        Timber.d("${fileToSync.remotePath} from ${fileToSync.owner} synced with result: $useCaseResult")
+
+        return useCaseResult.getDataOrNull()
+    }
+
+    /**
+     * Fire-and-forget sync: used in the close handler after writes,
+     * where we don't need to wait for the result.
+     */
+    private fun syncFileWithServerAsync(fileToSync: OCFile) {
+        Timber.d("Trying to sync file ${fileToSync.id} with server (async)")
+
+        val synchronizeFileUseCase: SynchronizeFileUseCase by inject()
         CoroutineScope(Dispatchers.IO).launch {
-            val useCaseResult = synchronizeFileUseCase(synchronizeFileUseCaseParam)
-            Timber.d("${fileToSync.remotePath} from ${fileToSync.owner} was synced with server with result: $useCaseResult")
+            val useCaseResult = synchronizeFileUseCase(
+                SynchronizeFileUseCase.Params(fileToSynchronize = fileToSync)
+            )
+            Timber.d("${fileToSync.remotePath} from ${fileToSync.owner} synced with result: $useCaseResult")
 
             if (useCaseResult.getDataOrNull() is SynchronizeFileUseCase.SyncType.ConflictDetected) {
                 context?.let {
-                    NotificationUtils.notifyConflict(
-                        fileInConflict = fileToSync,
-                        context = it
-                    )
+                    NotificationUtils.notifyConflict(fileInConflict = fileToSync, context = it)
                 }
             }
         }
+    }
+
+    /**
+     * Wait for a download to finish.
+     *
+     * If [workerId] is non-null, we use WorkManager to wait directly for that specific job.
+     * If [workerId] is null, it means a download for this file was already in progress
+     * (enqueued by a previous call), so we fall back to polling the DB until the file
+     * becomes available locally.
+     *
+     * Note: openDocument can be called concurrently on multiple binder threads for the
+     * same file (e.g. the calling app retries or requests the file multiple times).
+     * The first call enqueues the download and gets a workerId; subsequent concurrent
+     * calls get null (DownloadFileUseCase deduplicates) and use the polling fallback.
+     *
+     * @return true if the file is ready, false if cancelled.
+     */
+    private fun waitForDownload(workerId: UUID?, fileId: Int, signal: CancellationSignal?): Boolean {
+        if (workerId != null) {
+            // Poll WorkManager until this specific job reaches a terminal state.
+            // Note: getWorkInfoById().get() returns the *current* state immediately,
+            // it does NOT block until the work finishes.
+            Timber.d("Waiting for download worker $workerId to finish")
+            val workManager = WorkManager.getInstance(context!!)
+            do {
+                if (!waitOrGetCancelled(signal)) {
+                    return false
+                }
+                val workInfo = workManager.getWorkInfoById(workerId).get()
+                Timber.d("Download worker $workerId state: ${workInfo.state}")
+                when (workInfo.state) {
+                    WorkInfo.State.SUCCEEDED -> return true
+                    WorkInfo.State.FAILED, WorkInfo.State.CANCELLED -> return false
+                    else -> { /* ENQUEUED, RUNNING, BLOCKED — keep waiting */ }
+                }
+            } while (true)
+        }
+
+        // workerId is null — a download was already in progress from a previous request.
+        // Poll until the file appears locally, checking for cancellation each second.
+        Timber.d("Download already in progress for file $fileId, polling until available")
+        do {
+            if (!waitOrGetCancelled(signal)) {
+                return false
+            }
+            val file = getFileByIdOrException(fileId)
+            if (file.isAvailableLocally) return true
+        } while (true)
     }
 
     private fun syncDirectoryWithServer(parentDocumentId: String) {
@@ -585,5 +807,6 @@ class DocumentsStorageProvider : DocumentsProvider() {
 
     companion object {
         const val NONEXISTENT_DOCUMENT_ID = "-1"
+        const val PROPFIND_CACHE_TTL_MS = 3000L
     }
 }

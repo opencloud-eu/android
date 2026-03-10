@@ -205,14 +205,24 @@ class DownloadFileWorker(
      * We will update info about local storage (where it was stored and its size)
      */
     private fun updateDatabaseWithLatestInfoForThisFile() {
+        val finalFile = File(finalLocationForFile)
         val currentTime = System.currentTimeMillis()
         ocFile.apply {
             needsToUpdateThumbnail = true
             modificationTimestamp = downloadRemoteFileOperation.modificationTimestamp
             etag = downloadRemoteFileOperation.etag
             storagePath = finalLocationForFile
-            length = (File(finalLocationForFile).length())
-            lastSyncDateForData = currentTime
+            length = finalFile.length()
+            // Use the file's actual mtime, not the current time. SynchronizeFileUseCase
+            // compares lastSyncDateForData against the file's filesystem mtime to detect
+            // local modifications. Using currentTime here can be slightly earlier than the
+            // file's mtime (due to write time and second-precision rounding), which causes
+            // a false "changed locally" detection and an unnecessary upload.
+            // This mainly affects SAF (DocumentsStorageProvider) where apps like Google
+            // Photos call openDocument repeatedly right after download, triggering the
+            // false positive immediately. In normal app usage, the next sync is typically
+            // much later and the small timestamp difference doesn't cause issues.
+            lastSyncDateForData = finalFile.lastModified()
             modifiedAtLastSyncForData = downloadRemoteFileOperation.modificationTimestamp
             lastUsage = currentTime
         }
