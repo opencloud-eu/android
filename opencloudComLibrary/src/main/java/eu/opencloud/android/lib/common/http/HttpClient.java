@@ -28,6 +28,7 @@ import android.content.Context;
 
 import eu.opencloud.android.lib.common.http.logging.LogInterceptor;
 import eu.opencloud.android.lib.common.network.AdvancedX509TrustManager;
+import eu.opencloud.android.lib.common.network.ClientCertificateManager;
 import eu.opencloud.android.lib.common.network.KnownServersHostnameVerifier;
 import eu.opencloud.android.lib.common.network.NetworkUtils;
 import okhttp3.Cookie;
@@ -38,6 +39,7 @@ import okhttp3.Protocol;
 import okhttp3.TlsVersion;
 import timber.log.Timber;
 
+import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
@@ -69,14 +71,16 @@ public class HttpClient {
         mContext = context;
     }
 
-    public OkHttpClient getOkHttpClient() {
+    public synchronized OkHttpClient getOkHttpClient() {
         if (mOkHttpClient == null) {
             try {
                 final X509TrustManager trustManager = new AdvancedX509TrustManager(
                         NetworkUtils.getKnownServersStore(mContext));
 
                 final SSLContext sslContext = buildSSLContext();
-                sslContext.init(null, new TrustManager[]{trustManager}, null);
+
+                KeyManager[] keyManagers = ClientCertificateManager.INSTANCE.getKeyManagers(mContext);
+                sslContext.init(keyManagers, new TrustManager[]{trustManager}, null);
                 final SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
 
                 // Automatic cookie handling, NOT PERSISTENT
@@ -92,6 +96,10 @@ public class HttpClient {
             }
         }
         return mOkHttpClient;
+    }
+
+    public synchronized void invalidate() {
+        mOkHttpClient = null;
     }
 
     private SSLContext buildSSLContext() throws NoSuchAlgorithmException {

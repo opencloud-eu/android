@@ -205,6 +205,15 @@ public class SingleSessionManager {
         Timber.d("removeClientFor finishing ");
     }
 
+    public void invalidateAllClients() {
+        for (OpenCloudClient client : mClientsWithKnownUsername.values()) {
+            client.invalidate();
+        }
+        for (OpenCloudClient client : mClientsWithUnknownUsername.values()) {
+            client.invalidate();
+        }
+    }
+
     public void refreshCredentialsForAccount(String accountName, OpenCloudCredentials credentials) {
         OpenCloudClient openCloudClient = mClientsWithKnownUsername.get(accountName);
         if (openCloudClient == null) {
