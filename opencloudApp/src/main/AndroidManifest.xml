@@ -43,6 +43,7 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <uses-permission android:name="android.permission.REORDER_TASKS" />
 
     <application
         android:name=".MainApp"
@@ -238,11 +239,18 @@
             android:label="@string/pattern_label"
             android:theme="@style/Theme.openCloud" />
         <activity android:name=".presentation.security.biometric.BiometricActivity" />
+        <!-- Own taskAffinity + singleTask so LoginActivity always runs in its own task.
+             During re-auth, startActivityForResult overrides singleTask, so the first
+             instance still lands in the main task — but the OAuth redirect instance gets
+             its own task and finishes the orphaned one via a static reference.
+             autoRemoveFromRecents cleans the login task from recents once it finishes. -->
         <activity
             android:name=".presentation.authentication.LoginActivity"
+            android:autoRemoveFromRecents="true"
             android:exported="true"
             android:label="@string/login_label"
-            android:launchMode="singleTop"
+            android:launchMode="singleTask"
+            android:taskAffinity="eu.opencloud.android.login"
             android:theme="@style/Theme.openCloud.Toolbar">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />

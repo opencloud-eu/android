@@ -130,21 +130,9 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Log OAuth redirect details for debugging (especially Firefox issues)
         Timber.d("onCreate called with intent data: ${intent.data}, isTaskRoot: $isTaskRoot")
 
-        if (intent.data != null && (intent.data?.getQueryParameter("code") != null || intent.data?.getQueryParameter("error") != null)) {
-            Timber.d("OAuth redirect detected with code or error parameter")
-            if (!isTaskRoot) {
-                Timber.d("Not task root, forwarding OAuth redirect to existing LoginActivity instance")
-                val newIntent = Intent(this, LoginActivity::class.java)
-                newIntent.data = intent.data
-                newIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
-                startActivity(newIntent)
-                finish()
-                return
-            }
-        }
+        if (handleOAuthRedirectOnCreate()) return
 
         checkPasscodeEnforced(this)
 
@@ -173,8 +161,7 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
 
         // UI initialization
         binding = AccountSetupBinding.inflate(layoutInflater)
-        val view = binding.root
-        setContentView(view)
+        setContentView(binding.root)
 
         if (loginAction != ACTION_CREATE) {
             binding.accountUsername.isEnabled = false
@@ -258,8 +245,35 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
 
         // Note: pendingAuthorizationIntent is processed in checkServerType() after
         // getServerInfo() completes (process death recovery flow).
+    }
 
+    /**
+     * If this onCreate is an OAuth redirect, either forward it to the existing instance
+     * (when not task root) or let it proceed. Otherwise, track this instance so the
+     * redirect instance can finish it later (see [launchFileDisplayActivity]).
+     * @return true if onCreate should return early (redirect was forwarded).
+     */
+    private fun handleOAuthRedirectOnCreate(): Boolean {
+        val hasOAuthData = intent.data != null &&
+            (intent.data?.getQueryParameter("code") != null || intent.data?.getQueryParameter("error") != null)
 
+        if (hasOAuthData) {
+            Timber.d("OAuth redirect detected with code or error parameter")
+            if (!isTaskRoot) {
+                Timber.d("Not task root, forwarding OAuth redirect to existing LoginActivity instance")
+                val newIntent = Intent(this, LoginActivity::class.java)
+                newIntent.data = intent.data
+                newIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                startActivity(newIntent)
+                finish()
+                return true
+            }
+        } else {
+            // Not an OAuth redirect — track this instance so the redirect instance
+            // can finish it later (see companion object and launchFileDisplayActivity).
+            orphanedInstance = java.lang.ref.WeakReference(this)
+        }
+        return false
     }
 
     private fun handleDeepLink() {
@@ -274,6 +288,29 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
     }
 
     private fun launchFileDisplayActivity() {
+        // Finish the orphaned LoginActivity in the main task (if any).
+        // During re-auth, startActivityForResult forces the first instance into the main
+        // task. This second instance (OAuth redirect) runs in its own task and can't reach
+        // the first via task flags, so we finish it directly via the static reference.
+        var mainTaskId = -1
+        orphanedInstance?.get()?.let { other ->
+            if (other !== this) {
+                Timber.d("Finishing orphaned LoginActivity in main task")
+                mainTaskId = other.taskId
+                other.finish()
+            }
+        }
+        orphanedInstance = null
+
+        if (mainTaskId != -1) {
+            // The main task already has FileDisplayActivity. Bring it to the foreground
+            // and finish this instance. Just calling finish() would leave the browser on top.
+            val am = getSystemService(android.content.Context.ACTIVITY_SERVICE) as android.app.ActivityManager
+            am.moveTaskToFront(mainTaskId, 0)
+            finish()
+            return
+        }
+
         val newIntent = Intent(this, FileDisplayActivity::class.java)
         if (authenticationViewModel.launchedFromDeepLink) {
             newIntent.data = intent.data
@@ -1126,5 +1163,15 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
             Timber.e(e, "Failed to extract preferred_username from id_token")
             null
         }
+    }
+
+    companion object {
+        /**
+         * During re-auth, startActivityForResult forces the first LoginActivity into the
+         * main task (ignoring singleTask). The OAuth redirect then creates a second instance
+         * in its own task. We track the first (orphaned) instance here so the second one
+         * can explicitly finish() it after auth completes.
+         */
+        private var orphanedInstance: java.lang.ref.WeakReference<LoginActivity>? = null
     }
 }
