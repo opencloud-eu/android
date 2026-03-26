@@ -86,6 +86,7 @@ class UploadFilesFromContentUriUseCase(
             forceOverwrite = false,
             createdBy = UploadEnqueuedBy.ENQUEUED_BY_USER,
             spaceId = spaceId,
+            sourcePath = documentFile.uri.toString(),
         )
 
         return transferRepository.saveTransfer(ocTransfer).also {

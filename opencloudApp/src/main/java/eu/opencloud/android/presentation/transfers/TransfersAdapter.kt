@@ -155,7 +155,7 @@ class TransfersAdapter(
             uploadStatus.text = " — " + holder.itemView.context.getString(transferItem.transfer.statusToStringRes())
 
             Glide.with(holder.itemView)
-                .load(transferItem.transfer.localPath)
+                .load(transferItem.transfer.sourcePath ?: transferItem.transfer.localPath)
                 .diskCacheStrategy(DiskCacheStrategy.ALL)
                 .placeholder(
                     MimetypeIconUtil.getFileTypeIconId(

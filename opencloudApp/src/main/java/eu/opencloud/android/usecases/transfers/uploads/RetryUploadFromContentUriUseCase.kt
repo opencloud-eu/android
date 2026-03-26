@@ -63,7 +63,7 @@ class RetryUploadFromContentUriUseCase(
             uploadFileFromContentUriUseCase(
                 UploadFileFromContentUriUseCase.Params(
                     accountName = uploadToRetry.accountName,
-                    contentUri = uploadToRetry.localPath.toUri(),
+                    contentUri = (uploadToRetry.sourcePath ?: uploadToRetry.localPath).toUri(),
                     lastModifiedInSeconds = lastModifiedInSeconds,
                     behavior = uploadToRetry.localBehaviour.name,
                     uploadPath = uploadToRetry.remotePath,
