@@ -67,6 +67,7 @@ import eu.opencloud.android.presentation.settings.logging.SettingsLogsFragment.C
 import eu.opencloud.android.providers.CoroutinesDispatcherProvider
 import eu.opencloud.android.providers.LogsProvider
 import eu.opencloud.android.providers.MdmProvider
+import eu.opencloud.android.providers.WorkManagerProvider
 import eu.opencloud.android.ui.activity.FileDisplayActivity
 import eu.opencloud.android.ui.activity.FileDisplayActivity.Companion.PREFERENCE_CLEAR_DATA_ALREADY_TRIGGERED
 import eu.opencloud.android.ui.activity.WhatsNewActivity
@@ -78,6 +79,8 @@ import eu.opencloud.android.utils.FILE_SYNC_NOTIFICATION_CHANNEL_ID
 import eu.opencloud.android.utils.MEDIA_SERVICE_NOTIFICATION_CHANNEL_ID
 import eu.opencloud.android.utils.UPLOAD_NOTIFICATION_CHANNEL_ID
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.koin.android.ext.android.inject
@@ -117,9 +120,10 @@ class MainApp : Application() {
 
         SingleSessionManager.setUserAgent(userAgent)
 
-
-
         initDependencyInjection()
+
+        val workManagerProvider: WorkManagerProvider by inject()
+        var startedActivities = 0
 
         // register global protection with pass code, pattern lock and biometric lock
         registerActivityLifecycleCallbacks(object : ActivityLifecycleCallbacks {
@@ -219,6 +223,16 @@ class MainApp : Application() {
 
             override fun onActivityStarted(activity: Activity) {
                 Timber.v("${activity.javaClass.simpleName} onStart() starting")
+                if (startedActivities == 0) {
+                    // App entered foreground — ensure the periodic worker is registered
+                    // (recovers if the chain was dropped) and trigger an immediate scan
+                    // so the user doesn't have to wait up to 15 min.
+                    CoroutineScope(Dispatchers.IO).launch {
+                        workManagerProvider.enqueueAutomaticUploadsWorker()
+                        workManagerProvider.enqueueImmediateAutomaticUploadsWorker()
+                    }
+                }
+                startedActivities++
                 PassCodeManager.onActivityStarted(activity)
                 PatternManager.onActivityStarted(activity)
                 BiometricManager.onActivityStarted(activity)
@@ -233,6 +247,7 @@ class MainApp : Application() {
             }
 
             override fun onActivityStopped(activity: Activity) {
+                startedActivities--
                 Timber.v("${activity.javaClass.simpleName} onStop() ending")
                 PassCodeManager.onActivityStopped(activity)
                 PatternManager.onActivityStopped(activity)

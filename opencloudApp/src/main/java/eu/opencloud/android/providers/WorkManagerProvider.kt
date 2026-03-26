@@ -25,6 +25,7 @@ import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.work.Constraints
 import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
@@ -40,6 +41,7 @@ import eu.opencloud.android.workers.OldLogsCollectorWorker
 import eu.opencloud.android.workers.RemoveLocallyFilesWithLastUsageOlderThanGivenTimeWorker
 import eu.opencloud.android.workers.UploadFileFromContentUriWorker
 import eu.opencloud.android.workers.UploadFileFromFileSystemWorker
+import timber.log.Timber
 
 class WorkManagerProvider(
     val context: Context
@@ -53,6 +55,36 @@ class WorkManagerProvider(
 
         WorkManager.getInstance(context)
             .enqueueUniquePeriodicWork(AutomaticUploadsWorker.AUTOMATIC_UPLOADS_WORKER, ExistingPeriodicWorkPolicy.KEEP, automaticUploadsWorker)
+    }
+
+    /**
+     * Trigger an immediate one-time upload scan, e.g. when the app enters foreground.
+     * Skips if either the periodic or immediate worker is already running to avoid
+     * concurrent scans or redundant enqueues on rapid foreground/background switches.
+     */
+    fun enqueueImmediateAutomaticUploadsWorker() {
+        val wm = WorkManager.getInstance(context)
+
+        val periodicRunning = wm.getWorkInfosForUniqueWork(AutomaticUploadsWorker.AUTOMATIC_UPLOADS_WORKER)
+            .get().any { it.state == WorkInfo.State.RUNNING }
+        val immediateRunning = wm.getWorkInfosForUniqueWork(AutomaticUploadsWorker.IMMEDIATE_UPLOADS_WORKER)
+            .get().any { it.state == WorkInfo.State.RUNNING }
+
+        if (periodicRunning || immediateRunning) {
+            Timber.d("Automatic uploads worker already running, skipping immediate run")
+            return
+        }
+
+        val immediateWorker = OneTimeWorkRequestBuilder<AutomaticUploadsWorker>()
+            .addTag(AutomaticUploadsWorker.IMMEDIATE_UPLOADS_WORKER)
+            .setInitialDelay(AutomaticUploadsWorker.WRITE_SAFETY_BUFFER_MS, java.util.concurrent.TimeUnit.MILLISECONDS)
+            .build()
+
+        wm.enqueueUniqueWork(
+            AutomaticUploadsWorker.IMMEDIATE_UPLOADS_WORKER,
+            ExistingWorkPolicy.KEEP,
+            immediateWorker
+        )
     }
 
     fun enqueueOldLogsCollectorWorker() {

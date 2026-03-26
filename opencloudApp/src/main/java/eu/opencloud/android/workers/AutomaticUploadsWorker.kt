@@ -174,7 +174,10 @@ class AutomaticUploadsWorker(
                 chargingOnly = folderBackUpConfiguration.chargingOnly
             )
         }
-        updateTimestamp(folderBackUpConfiguration, syncType, currentTimestamp)
+        // Save safeTimestamp (not currentTimestamp) so that files skipped by the
+        // write-safety buffer are re-evaluated on the next run instead of being lost.
+        val safeTimestamp = currentTimestamp - WRITE_SAFETY_BUFFER_MS
+        updateTimestamp(folderBackUpConfiguration, syncType, safeTimestamp)
     }
 
     private fun showNotification(
@@ -255,10 +258,15 @@ class AutomaticUploadsWorker(
         val documentTree = DocumentFile.fromTreeUri(applicationContext, sourceUri)
         val arrayOfLocalFiles = documentTree?.listFiles() ?: arrayOf()
 
+        // Exclude files modified within the last few seconds. Camera apps may still be
+        // writing the file (not all apps use atomic rename), so picking it up too early
+        // can result in uploading a truncated or 0-byte JPEG.
+        val safeTimestamp = currentTimestamp - WRITE_SAFETY_BUFFER_MS
+
         val filteredList: List<DocumentFile> = arrayOfLocalFiles
             .sortedBy { it.lastModified() }
             .filter { it.lastModified() >= lastSyncTimestamp }
-            .filter { it.lastModified() < currentTimestamp }
+            .filter { it.lastModified() < safeTimestamp }
             .filter { MimetypeIconUtil.getBestMimeTypeByFilename(it.name).startsWith(syncType.prefixForType) }
 
         Timber.i("Last sync ${syncType.name}: ${Date(lastSyncTimestamp)}")
@@ -321,9 +329,11 @@ class AutomaticUploadsWorker(
 
     companion object {
         const val AUTOMATIC_UPLOADS_WORKER = "AUTOMATIC_UPLOADS_WORKER"
+        const val IMMEDIATE_UPLOADS_WORKER = "IMMEDIATE_AUTOMATIC_UPLOADS_WORKER"
         const val repeatInterval: Long = 15L
         val repeatIntervalTimeUnit: TimeUnit = TimeUnit.MINUTES
         private const val pictureUploadsNotificationId = 101
         private const val videoUploadsNotificationId = 102
+        const val WRITE_SAFETY_BUFFER_MS = 10_000L
     }
 }
