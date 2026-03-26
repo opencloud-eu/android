@@ -112,6 +112,9 @@ class OCTransferRepository(
     override fun clearSuccessfulTransfers() =
         localTransferDataSource.clearSuccessfulTransfers()
 
+    override fun existsNonFailedTransferForUri(uri: String): Boolean =
+        localTransferDataSource.existsNonFailedTransferForUri(uri)
+
     // TUS state management
     override fun updateTusState(
         id: Long,

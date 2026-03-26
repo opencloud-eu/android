@@ -88,6 +88,9 @@ interface TransferDao {
     @Query(DELETE_TRANSFERS_WITH_STATUS)
     fun deleteTransfersWithStatus(status: Int)
 
+    @Query(EXISTS_NON_FAILED_TRANSFER_FOR_URI)
+    fun existsNonFailedTransferForUri(uri: String): Boolean
+
     companion object {
         private const val SELECT_TRANSFER_WITH_ID = """
             SELECT *
@@ -176,6 +179,16 @@ interface TransferDao {
             DELETE
             FROM $TRANSFERS_TABLE_NAME
             WHERE status = :status
+        """
+
+        /** status 2 = TRANSFER_FAILED, see [TransferStatus] */
+        private const val EXISTS_NON_FAILED_TRANSFER_FOR_URI = """
+            SELECT EXISTS(
+                SELECT 1
+                FROM $TRANSFERS_TABLE_NAME
+                WHERE sourcePath = :uri
+                  AND status != 2
+            )
         """
     }
 }

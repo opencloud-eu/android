@@ -204,13 +204,26 @@ class UploadFileFromContentUriWorker(
         }
         cacheFile.createNewFile()
 
+        // openInputStream can return null if the content provider is unavailable or permissions were revoked.
+        // Failing here avoids silently uploading a 0-byte file.
         val inputStream = appContext.contentResolver.openInputStream(contentUri)
-        val outputStream = FileOutputStream(cachePath)
-        outputStream.use { fileOut ->
-            inputStream?.copyTo(fileOut)
+        if (inputStream == null) {
+            Timber.e("Failed to open input stream for %s — content provider unavailable or permissions revoked", contentUri)
+            throw LocalFileNotFoundException()
         }
-        inputStream?.close()
-        outputStream.close()
+        val outputStream = FileOutputStream(cachePath)
+        inputStream.use { input ->
+            outputStream.use { output ->
+                input.copyTo(output)
+            }
+        }
+
+        // Guard against a truncated or empty copy (e.g. file deleted mid-read).
+        if (cacheFile.length() == 0L) {
+            Timber.e("Cache file is 0 bytes after copy from %s — source may have been deleted mid-read", contentUri)
+            cacheFile.delete()
+            throw LocalFileNotFoundException()
+        }
 
         transferRepository.updateTransferSourcePath(uploadIdInStorageManager, contentUri.toString())
         transferRepository.updateTransferLocalPath(uploadIdInStorageManager, cachePath)

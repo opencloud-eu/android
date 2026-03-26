@@ -141,6 +141,9 @@ class OCLocalTransferDataSource(
         transferDao.deleteTransfersWithStatus(TransferStatus.TRANSFER_SUCCEEDED.value)
     }
 
+    override fun existsNonFailedTransferForUri(uri: String): Boolean =
+        transferDao.existsNonFailedTransferForUri(uri)
+
     // TUS state management
     override fun updateTusState(
         id: Long,

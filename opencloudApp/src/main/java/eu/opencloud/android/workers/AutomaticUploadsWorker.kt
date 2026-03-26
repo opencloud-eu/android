@@ -90,7 +90,6 @@ class AutomaticUploadsWorker(
                     } catch (illegalArgumentException: IllegalArgumentException) {
                         Timber.e(illegalArgumentException, "Source path for picture uploads is not valid")
                         showNotificationToUpdateUri(SyncType.PICTURE_UPLOADS)
-                        return Result.failure()
                     }
                 }
                 cameraUploadsConfiguration.videoUploadsConfiguration?.let { videoUploadsConfiguration ->
@@ -100,7 +99,6 @@ class AutomaticUploadsWorker(
                     } catch (illegalArgumentException: IllegalArgumentException) {
                         Timber.e(illegalArgumentException, "Source path for video uploads is not valid")
                         showNotificationToUpdateUri(SyncType.VIDEO_UPLOADS)
-                        return Result.failure()
                     }
                 }
             }
@@ -144,6 +142,16 @@ class AutomaticUploadsWorker(
         showNotification(syncType, localPicturesDocumentFiles.size)
 
         for (documentFile in localPicturesDocumentFiles) {
+            // Dedup: if this content URI already has a queued, in-progress, or succeeded transfer,
+            // skip it. Without this, a worker killed mid-loop (before updateTimestamp) or a
+            // file whose lastModified changed (e.g. media scanner) would be re-discovered and
+            // enqueued with a new upload ID — leading to duplicate uploads or 0-byte files
+            // when two workers race on the same cache path.
+            val contentUri = documentFile.uri.toString()
+            if (transferRepository.existsNonFailedTransferForUri(contentUri)) {
+                Timber.d("Skipping already-tracked file: %s", documentFile.name)
+                continue
+            }
             val uploadId = storeInUploadsDatabase(
                 documentFile = documentFile,
                 uploadPath = folderBackUpConfiguration.uploadPath.plus(File.separator).plus(documentFile.name),
@@ -305,6 +313,7 @@ class AutomaticUploadsWorker(
             forceOverwrite = false,
             createdBy = createdByWorker,
             spaceId = spaceId,
+            sourcePath = documentFile.uri.toString(),
         )
 
         return transferRepository.saveTransfer(ocTransfer)

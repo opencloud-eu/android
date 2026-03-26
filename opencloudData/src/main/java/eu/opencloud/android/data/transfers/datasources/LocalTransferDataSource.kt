@@ -57,6 +57,7 @@ interface LocalTransferDataSource {
     fun getFinishedTransfers(): List<OCTransfer>
     fun clearFailedTransfers()
     fun clearSuccessfulTransfers()
+    fun existsNonFailedTransferForUri(uri: String): Boolean
 
     // TUS state management
     fun updateTusState(
