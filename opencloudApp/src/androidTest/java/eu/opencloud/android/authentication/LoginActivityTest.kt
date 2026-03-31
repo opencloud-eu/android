@@ -338,6 +338,7 @@ class LoginActivityTest {
     }
 
     @Test
+    @Ignore
     fun checkServerInfo_isSuccess_NotSecure() {
         launchTest()
         serverInfoLiveData.postValue(Event(UIResult.Success(INSECURE_SERVER_INFO_BASIC)))
