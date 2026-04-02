@@ -26,6 +26,7 @@
         android:id="@+id/text_preview"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:textIsSelectable="true"
         android:paddingTop="@dimen/standard_half_margin"
         android:paddingBottom="@dimen/standard_half_margin"
         android:layout_marginStart="@dimen/standard_margin"
