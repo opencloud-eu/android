@@ -720,7 +720,8 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
             clientId = clientId,
             responseType = ResponseType.CODE.string,
             scope = scope,
-            prompt = if (oidcSupported) mdmProvider.getBrandingString(CONFIGURATION_OAUTH2_OPEN_ID_PROMPT, R.string.oauth2_openid_prompt) else "",
+            prompt = if (!oidcSupported) "" else if (loginAction == ACTION_CREATE) "login"
+            else mdmProvider.getBrandingString(CONFIGURATION_OAUTH2_OPEN_ID_PROMPT, R.string.oauth2_openid_prompt),
             codeChallenge = authenticationViewModel.codeChallenge,
             state = authenticationViewModel.oidcState,
             username = username,
@@ -1117,6 +1118,7 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
     private fun saveAuthState() {
         val prefs = getSharedPreferences("auth_state", android.content.Context.MODE_PRIVATE)
         prefs.edit().apply {
+            clear() // Remove stale state from any previous auth flow
             putString(KEY_CODE_VERIFIER, authenticationViewModel.codeVerifier)
             putString(KEY_CODE_CHALLENGE, authenticationViewModel.codeChallenge)
             putString(KEY_OIDC_STATE, authenticationViewModel.oidcState)
