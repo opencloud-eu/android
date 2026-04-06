@@ -30,7 +30,11 @@ class GetSpaceWithSpecialsByIdForAccountUseCase(
 
     override fun run(params: Params): OCSpace? {
         if (params.spaceId == null) return null
-        return spacesRepository.getSpaceWithSpecialsByIdForAccount(params.spaceId, params.accountName)
+        return try {
+            spacesRepository.getSpaceWithSpecialsByIdForAccount(params.spaceId, params.accountName)
+        } catch (_: Exception) {
+            null
+        }
     }
 
     data class Params(

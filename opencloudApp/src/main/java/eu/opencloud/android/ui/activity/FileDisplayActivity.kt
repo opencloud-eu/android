@@ -1775,6 +1775,10 @@ class FileDisplayActivity : FileActivity(),
     }
 
     private fun navigateTo(newFileListOption: FileListOption, initialState: Boolean = false) {
+        // account can be null if it was removed while the activity was still visible.
+        // swapToDefaultAccount (called from onRestart/onNewIntent) launches the login
+        // wizard asynchronously, but we can't navigate without an account.
+        if (account == null) return
         val previousFileListOption = fileListOption
         when (newFileListOption) {
             FileListOption.ALL_FILES -> {

@@ -148,13 +148,16 @@ object ThumbnailsRequester : KoinComponent {
         }
 
     private fun buildThumbnailImageLoader(account: Account): ImageLoader {
-        val openCloudClient = clientManager.getClientForCoilThumbnails(account.name)
         val interceptor = CoilRequestHeaderInterceptor(clientManager, account.name)
         return ImageLoader(appContext).newBuilder()
-            .okHttpClient(
-                openCloudClient.okHttpClient.newBuilder()
+            .okHttpClient {
+                // Lazy: deferred to first image request (off main thread).
+                // getClientForCoilThumbnails calls blockingGetAuthToken which
+                // must not run on the main thread.
+                clientManager.getClientForCoilThumbnails(account.name)
+                    .okHttpClient.newBuilder()
                     .addInterceptor(interceptor).build()
-            )
+            }
             .apply { if (preferencesProvider.getBoolean("enable_logging", false)) logger(DebugLogger()) }
             .memoryCache { sharedMemoryCache }
             .diskCache { sharedDiskCache }
@@ -163,15 +166,15 @@ object ThumbnailsRequester : KoinComponent {
     }
 
     private fun buildAvatarImageLoader(account: Account): ImageLoader {
-        val openCloudClient = clientManager.getClientForCoilThumbnails(account.name)
         val interceptor = CoilRequestHeaderInterceptor(clientManager, account.name)
         return ImageLoader(appContext).newBuilder()
-            .okHttpClient(
-                openCloudClient.okHttpClient.newBuilder()
+            .okHttpClient {
+                clientManager.getClientForCoilThumbnails(account.name)
+                    .okHttpClient.newBuilder()
                     .addInterceptor(interceptor)
                     .cache(avatarHttpCache)
                     .build()
-            )
+            }
             .apply { if (preferencesProvider.getBoolean("enable_logging", false)) logger(DebugLogger()) }
             .memoryCache { sharedMemoryCache }
             // No Coil disk cache — OkHttp's HTTP cache handles persistence
@@ -187,7 +190,18 @@ object ThumbnailsRequester : KoinComponent {
     ) : Interceptor {
 
         override fun intercept(chain: Interceptor.Chain): Response {
-            val openCloudClient = clientManager.getClientForCoilThumbnails(accountName)
+            val openCloudClient = try {
+                clientManager.getClientForCoilThumbnails(accountName)
+            } catch (e: Exception) {
+                Timber.d(e, "Account $accountName not found, skipping thumbnail request")
+                return Response.Builder()
+                    .request(chain.request())
+                    .protocol(okhttp3.Protocol.HTTP_1_1)
+                    .code(401)
+                    .message("Account not found")
+                    .body(okhttp3.ResponseBody.create(null, ""))
+                    .build()
+            }
             val credentials = openCloudClient.credentials
                 ?: return Response.Builder()
                     .request(chain.request())
