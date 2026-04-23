@@ -12,7 +12,6 @@ import screens.LoginScreen
 import screens.MainScreen
 import screens.ManageAccountsDialog
 import screens.StartScreen
-import screens.TrustCertificate
 
 class LoginScreenTest : TestCase(
     kaspressoBuilder = Kaspresso.Builder.advanced {
@@ -35,11 +34,13 @@ class LoginScreenTest : TestCase(
     fun loginApp() {
         before {
             adbServer.performCmd("adb", listOf("reverse", "tcp:9200", "tcp:9200"))
+
         }.after {
             adbServer.performCmd("adb", listOf("shell", "am", "force-stop", "com.android.chrome"))
             adbServer.performCmd("adb", listOf("reverse", "--remove", "tcp:9200"))
         }.run {
             step("set opencloud url") {
+
                 StartScreen {
                     hostUrlInput {
                         isVisible()
@@ -52,15 +53,7 @@ class LoginScreenTest : TestCase(
                     }
                 }
             }
-            step("trust certificate") {
-                TrustCertificate {
-                    yesBtn {
-                        isVisible()
-                        isClickable()
-                        click()
-                    }
-                }
-            }
+
             step("login") {
                 LoginScreen {
                     username.isDisplayed()
