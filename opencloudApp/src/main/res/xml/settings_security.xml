@@ -49,4 +49,16 @@
         app:summary="@string/prefs_touches_with_other_visible_windows_summary"
         app:title="@string/prefs_touches_with_other_visible_windows" />
 
+    <CheckBoxPreference
+        app:iconSpaceReserved="false"
+        app:key="enable_mtls"
+        app:summary="@string/prefs_mtls_summary"
+        app:title="@string/prefs_mtls" />
+    <Preference
+        app:dependency="enable_mtls"
+        app:iconSpaceReserved="false"
+        app:key="mtls_select_certificate"
+        app:summary="@string/prefs_mtls_select_cert_summary_none"
+        app:title="@string/prefs_mtls_select_cert" />
+
 </PreferenceScreen>
