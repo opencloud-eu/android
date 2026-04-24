@@ -14,9 +14,6 @@ when:
 steps:
   - name: emulator
     image: *emulator_image
-    privileged: true
-    devices:
-      - /dev/kvm
     detach: true
 
   - name: wait for emulator
