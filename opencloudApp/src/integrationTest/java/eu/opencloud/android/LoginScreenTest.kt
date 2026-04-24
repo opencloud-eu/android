@@ -34,16 +34,16 @@ class LoginScreenTest : TestCase(
     @Test
     fun loginApp() {
         before {
-            adbServer.performCmd("adb", listOf("reverse", "tcp:9200", "tcp:9200"))
+//            adbServer.performCmd("adb", listOf("reverse", "tcp:9200", "tcp:9200"))
         }.after {
             adbServer.performCmd("adb", listOf("shell", "am", "force-stop", "com.android.chrome"))
-            adbServer.performCmd("adb", listOf("reverse", "--remove", "tcp:9200"))
+//            adbServer.performCmd("adb", listOf("reverse", "--remove", "tcp:9200"))
         }.run {
             step("set opencloud url") {
                 StartScreen {
                     hostUrlInput {
                         isVisible()
-                        typeText("https://localhost:9200")
+                        typeText("https://cloud.rc.opencloud.rocks")
                     }
                     checkServerButton {
                         isVisible()
@@ -52,15 +52,15 @@ class LoginScreenTest : TestCase(
                     }
                 }
             }
-            step("trust certificate") {
-                TrustCertificate {
-                    yesBtn {
-                        isVisible()
-                        isClickable()
-                        click()
-                    }
-                }
-            }
+//            step("trust certificate") {
+//                TrustCertificate {
+//                    yesBtn {
+//                        isVisible()
+//                        isClickable()
+//                        click()
+//                    }
+//                }
+//            }
             step("login") {
                 LoginScreen {
                     username.isDisplayed()
