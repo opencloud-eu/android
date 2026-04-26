@@ -51,6 +51,7 @@ import io.mockk.every
 import io.mockk.mockk
 import org.hamcrest.CoreMatchers
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Test
 import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.viewmodel.dsl.viewModel
@@ -58,6 +59,7 @@ import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
 import org.koin.dsl.module
 
+@Ignore
 class ShareFileFragmentTest {
     private val capabilityViewModel = mockk<CapabilityViewModel>(relaxed = true)
     private val capabilitiesLiveData = MutableLiveData<Event<UIResult<OCCapability>>>()

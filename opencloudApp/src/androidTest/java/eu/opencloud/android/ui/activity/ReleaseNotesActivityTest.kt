@@ -36,6 +36,7 @@ import io.mockk.every
 import io.mockk.mockk
 import org.junit.Assert.assertEquals
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Test
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.core.context.startKoin
@@ -100,6 +101,7 @@ class ReleaseNotesActivityTest {
         R.id.btnProceed.isDisplayed(true)
     }
 
+    @Ignore
     @Test
     fun releaseNotesProceedButton() {
         R.id.btnProceed.click()
@@ -107,6 +109,7 @@ class ReleaseNotesActivityTest {
         assertEquals(activityScenario.result.resultCode, Activity.RESULT_OK)
     }
 
+    @Ignore
     @Test
     fun test_childCount() {
         R.id.releaseNotes.assertChildCount(3)

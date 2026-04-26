@@ -83,7 +83,7 @@ class GetRemoteShareesOperation
  * Constructor
  *
  * @param searchString string for searching users, optional
- * @param page         page index in the list of results; beginning in 1
+ * @param screens         page index in the list of results; beginning in 1
  * @param perPage      maximum number of results in a single page
  */
     (private val searchString: String, private val page: Int, private val perPage: Int) :

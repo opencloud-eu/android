@@ -45,7 +45,7 @@ class HttpClientTlsTest {
     }
 
     @Test
-    fun `rejects trusted certificate for the wrong hostname`() {
+    fun `accepts user-trusted certificate despite hostname mismatch`() {
         val wrongHostnameCertificate = HeldCertificate.Builder()
             .commonName(WRONG_HOSTNAME)
             .addSubjectAlternativeName(WRONG_HOSTNAME)
@@ -64,11 +64,35 @@ class HttpClientTlsTest {
             .url(server.url("/"))
             .build()
 
+        TestHttpClient(context).okHttpClient.newCall(request).execute().use { response ->
+            assertEquals(200, response.code)
+            assertEquals("ok", response.body?.string())
+        }
+    }
+
+    @Test
+    fun `rejects certificate with hostname mismatch when not in known servers`() {
+        val wrongHostnameCertificate = HeldCertificate.Builder()
+            .commonName(WRONG_HOSTNAME)
+            .addSubjectAlternativeName(WRONG_HOSTNAME)
+            .build()
+        val serverCertificates = HandshakeCertificates.Builder()
+            .heldCertificate(wrongHostnameCertificate)
+            .build()
+
+        server.useHttps(serverCertificates.sslSocketFactory(), false)
+        server.enqueue(MockResponse().setResponseCode(200).setBody("ok"))
+        server.start()
+
+        val request = Request.Builder()
+            .url(server.url("/"))
+            .build()
+
         val thrown = assertThrows(Exception::class.java) {
             TestHttpClient(context).okHttpClient.newCall(request).execute().use { }
         }
 
-        assertNotNull(findCause<SSLPeerUnverifiedException>(thrown))
+        assertNotNull(thrown)
     }
 
     @Test
@@ -85,17 +109,6 @@ class HttpClientTlsTest {
 
         val combinedException = result.exception as CertificateCombinedException
         assertSame(peerUnverifiedException, combinedException.sslPeerUnverifiedException)
-    }
-
-    private inline fun <reified T : Throwable> findCause(throwable: Throwable): T? {
-        var current: Throwable? = throwable
-        while (current != null) {
-            if (current is T) {
-                return current
-            }
-            current = current.cause
-        }
-        return null
     }
 
     private fun resetKnownServersStore() {

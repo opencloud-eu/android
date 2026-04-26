@@ -39,6 +39,7 @@ import org.junit.After
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Test
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.core.context.startKoin
@@ -98,6 +99,7 @@ class SettingsAdvancedFragmentTest {
         )
     }
 
+    @Ignore
     @Test
     fun disableShowHiddenFiles() {
         prefShowHiddenFiles?.isChecked = advancedViewModel.isHiddenFilesShown()

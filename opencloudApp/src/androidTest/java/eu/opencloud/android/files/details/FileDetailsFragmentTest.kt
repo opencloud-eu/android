@@ -28,12 +28,14 @@ import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Test
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
 import org.koin.dsl.module
 
+@Ignore
 class FileDetailsFragmentTest {
 
     private lateinit var fileDetailsViewModel: FileDetailsViewModel

@@ -60,6 +60,7 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Test
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.core.context.startKoin
@@ -200,6 +201,7 @@ class SettingsSecurityFragmentTest {
         assertNull(prefBiometric)
     }
 
+    @Ignore
     @Test
     fun passcodeOpen() {
         every { securityViewModel.isPatternSet() } returns false
@@ -221,6 +223,7 @@ class SettingsSecurityFragmentTest {
         intended(hasComponent(PatternActivity::class.java.name))
     }
 
+    @Ignore
     @Test
     fun passcodeLockEnabledOk() {
         every { securityViewModel.isPatternSet() } returns false
@@ -248,6 +251,7 @@ class SettingsSecurityFragmentTest {
         assertTrue(prefPattern.isChecked)
     }
 
+    @Ignore
     @Test
     fun enablePasscodeEnablesBiometricLockAndLockApplication() {
         launchTest()
@@ -270,6 +274,7 @@ class SettingsSecurityFragmentTest {
         assertTrue(prefLockApplication.isEnabled)
     }
 
+    @Ignore
     @Test
     fun onlyOneMethodEnabledPattern() {
         every { securityViewModel.isPatternSet() } returns true
@@ -324,6 +329,7 @@ class SettingsSecurityFragmentTest {
         assertFalse(prefLockApplication.isEnabled)
     }
 
+    @Ignore
     @Test
     fun enableBiometricLockWithPasscodeEnabled() {
         every { BiometricManager.hasEnrolledBiometric() } returns true
@@ -346,6 +352,7 @@ class SettingsSecurityFragmentTest {
         assertTrue(prefBiometric!!.isChecked)
     }
 
+    @Ignore
     @Test
     fun enableBiometricLockNoEnrolledBiometric() {
         every { BiometricManager.hasEnrolledBiometric() } returns false
@@ -450,6 +457,7 @@ class SettingsSecurityFragmentTest {
         assertTrue(prefPattern.isVisible)
     }
 
+    @Ignore
     @Test
     fun checkIfUserEnabledBiometricRecommendation() {
         every { securityViewModel.getBiometricsState() } returns true

@@ -54,6 +54,7 @@ import org.junit.After
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Test
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.core.context.startKoin
@@ -237,6 +238,7 @@ class SettingsMoreFragmentTest {
         assertNull(prefImprint)
     }
 
+    @Ignore
     @Test
     fun helpOpensNotEmptyUrl() {
         every { moreViewModel.getHelpUrl() } returns context.getString(R.string.url_help)

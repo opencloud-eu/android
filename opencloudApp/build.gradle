@@ -82,6 +82,9 @@ dependencies {
     androidTestImplementation libs.dexopener
     androidTestImplementation(libs.mockk.android) { exclude module: "objenesis" }
 
+    // Kaspresso
+    androidTestImplementation libs.kaspresso
+
     // Debug
     debugImplementation libs.androidx.fragment.testing
     debugImplementation libs.androidx.test.monitor
@@ -90,6 +93,17 @@ dependencies {
     // Detekt
     detektPlugins libs.detekt.formatting
     detektPlugins libs.detekt.libraries
+}
+
+configurations.all {
+    resolutionStrategy {
+        force "androidx.test:core:1.6.1"
+        force "androidx.test:core-ktx:1.6.1"
+        force "androidx.test:monitor:1.7.2"
+        force "androidx.test:runner:1.6.2"
+        force "androidx.test:rules:1.6.1"
+        force "androidx.test.espresso:espresso-core:3.6.1"
+    }
 }
 
 android {
@@ -125,6 +139,10 @@ android {
     sourceSets {
         androidTest.java.srcDirs += "src/test-common/java"
         test.java.srcDirs += "src/test-common/java"
+
+        androidTest {
+            java.srcDirs += ['src/integrationTest/java']
+        }
     }
 
     lint {

@@ -29,7 +29,7 @@ dependencies {
     testImplementation 'com.squareup.okhttp3:mockwebserver:4.9.2'
     testImplementation 'com.squareup.okhttp3:okhttp-tls:4.9.2'
     // AndroidX test core to obtain application context in unit tests
-    testImplementation 'androidx.test:core:1.5.0'
+    testImplementation libs.androidx.test.core
     debugImplementation 'com.facebook.stetho:stetho-okhttp3:1.6.0'
 
     // Detekt

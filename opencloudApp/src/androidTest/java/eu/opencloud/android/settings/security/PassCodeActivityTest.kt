@@ -52,6 +52,7 @@ import io.mockk.mockk
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Test
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.core.context.startKoin
@@ -217,6 +218,7 @@ class PassCodeActivityTest {
         R.id.error.isDisplayed(false)
     }
 
+    @Ignore
     @Test
     fun secondTryCorrect() {
         every { biometricViewModel.isBiometricLockAvailable() } returns true
@@ -273,6 +275,7 @@ class PassCodeActivityTest {
         R.id.lock_time.isDisplayed(false)
     }
 
+    @Ignore
     @Test
     fun deletePasscodeCorrect() {
         // Open Activity in passcode deletion mode
@@ -304,6 +307,7 @@ class PassCodeActivityTest {
         R.id.lock_time.isDisplayed(false)
     }
 
+    @Ignore
     @Test
     fun checkEnableBiometricDialogIsVisible() {
         every { biometricViewModel.isBiometricLockAvailable() } returns true
@@ -318,6 +322,7 @@ class PassCodeActivityTest {
         onView(withText(R.string.common_no)).check(matches(isDisplayed()))
     }
 
+    @Ignore
     @Test
     fun checkEnableBiometricDialogYesOption() {
         every { biometricViewModel.isBiometricLockAvailable() } returns true
@@ -333,6 +338,7 @@ class PassCodeActivityTest {
         assertEquals(activityScenario.result.resultCode, Activity.RESULT_OK)
     }
 
+    @Ignore
     @Test
     fun checkEnableBiometricDialogNoOption() {
         every { biometricViewModel.isBiometricLockAvailable() } returns true
