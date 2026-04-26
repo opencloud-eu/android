@@ -48,32 +48,27 @@ class OCLocalFolderBackupDataSourceTest {
 
     @Test
     fun `getAutomaticUploadsConfiguration returns an AutomaticUploadsConfiguration when having valid configurations`() {
-        every { folderBackupDao.getFolderBackUpConfigurationByName(FolderBackUpConfiguration.pictureUploadsName) } returns OC_BACKUP_ENTITY
-        every { folderBackupDao.getFolderBackUpConfigurationByName(FolderBackUpConfiguration.videoUploadsName) } returns OC_BACKUP_ENTITY
+        every { folderBackupDao.getAllFolderBackUpConfigurations() } returns listOf(OC_BACKUP_ENTITY)
 
         val resultCurrent = ocLocalFolderBackupDataSource.getAutomaticUploadsConfiguration()
 
-        assertEquals(OC_BACKUP_ENTITY.toModel(), resultCurrent?.pictureUploadsConfiguration)
-        assertEquals(OC_BACKUP_ENTITY.toModel(), resultCurrent?.videoUploadsConfiguration)
+        assertEquals(OC_BACKUP_ENTITY.toModel(), resultCurrent?.folderBackUpConfigurations?.get(0))
 
         verify(exactly = 1) {
-            folderBackupDao.getFolderBackUpConfigurationByName(FolderBackUpConfiguration.pictureUploadsName)
-            folderBackupDao.getFolderBackUpConfigurationByName(FolderBackUpConfiguration.videoUploadsName)
+            folderBackupDao.getAllFolderBackUpConfigurations()
         }
     }
 
     @Test
     fun `getAutomaticUploadsConfiguration returns null when there are not configurations`() {
-        every { folderBackupDao.getFolderBackUpConfigurationByName(FolderBackUpConfiguration.pictureUploadsName) } returns null
-        every { folderBackupDao.getFolderBackUpConfigurationByName(FolderBackUpConfiguration.videoUploadsName) } returns null
+        every { folderBackupDao.getAllFolderBackUpConfigurations() } returns emptyList()
 
         val resultCurrent = ocLocalFolderBackupDataSource.getAutomaticUploadsConfiguration()
 
         assertNull(resultCurrent)
 
         verify(exactly = 1) {
-            folderBackupDao.getFolderBackUpConfigurationByName(FolderBackUpConfiguration.pictureUploadsName)
-            folderBackupDao.getFolderBackUpConfigurationByName(FolderBackUpConfiguration.videoUploadsName)
+            folderBackupDao.getAllFolderBackUpConfigurations()
         }
     }
 

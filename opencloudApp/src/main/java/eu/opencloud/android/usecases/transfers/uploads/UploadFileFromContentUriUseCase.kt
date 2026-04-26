@@ -30,12 +30,12 @@ import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
-import java.util.concurrent.TimeUnit
 import eu.opencloud.android.domain.BaseUseCase
 import eu.opencloud.android.domain.automaticuploads.model.UploadBehavior
 import eu.opencloud.android.workers.RemoveSourceFileWorker
 import eu.opencloud.android.workers.UploadFileFromContentUriWorker
 import timber.log.Timber
+import java.util.concurrent.TimeUnit
 
 class UploadFileFromContentUriUseCase(
     private val workManager: WorkManager
@@ -51,6 +51,9 @@ class UploadFileFromContentUriUseCase(
             .apply {
                 params.lastModifiedInSeconds?.let {
                     putString(UploadFileFromContentUriWorker.KEY_PARAM_LAST_MODIFIED, it)
+                }
+                params.autoUploadSourcePath?.let {
+                    putString(UploadFileFromContentUriWorker.KEY_PARAM_AUTO_UPLOAD_SOURCE_PATH, it)
                 }
             }
             .build()
@@ -89,7 +92,7 @@ class UploadFileFromContentUriUseCase(
                 ExistingWorkPolicy.KEEP, // Keep existing work to prevent duplicate uploads
                 uploadFileFromContentUriWorker
             ).then(removeSourceFileWorker) // File is already uploaded, so the original one can be removed if the behaviour is MOVE
-            .enqueue()
+                .enqueue()
         } else {
             workManager.enqueueUniqueWork(
                 uniqueWorkName,
@@ -110,5 +113,6 @@ class UploadFileFromContentUriUseCase(
         val uploadIdInStorageManager: Long,
         val wifiOnly: Boolean,
         val chargingOnly: Boolean,
+        val autoUploadSourcePath: String?,
     )
 }

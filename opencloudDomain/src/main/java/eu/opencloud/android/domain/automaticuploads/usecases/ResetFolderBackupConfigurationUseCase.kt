@@ -18,14 +18,15 @@
  */
 package eu.opencloud.android.domain.automaticuploads.usecases
 
-import eu.opencloud.android.domain.BaseUseCase
+import eu.opencloud.android.domain.BaseUseCaseWithResult
 import eu.opencloud.android.domain.automaticuploads.FolderBackupRepository
-import eu.opencloud.android.domain.automaticuploads.model.FolderBackUpConfiguration.Companion.pictureUploadsName
 
-class ResetPictureUploadsUseCase(
+class ResetFolderBackupConfigurationUseCase(
     private val folderBackupRepository: FolderBackupRepository
-) : BaseUseCase<Unit, Unit>() {
+) : BaseUseCaseWithResult<Unit, ResetFolderBackupConfigurationUseCase.Params>() {
 
-    override fun run(params: Unit) =
-        folderBackupRepository.resetFolderBackupConfigurationByName(pictureUploadsName)
+    override fun run(params: Params) =
+        folderBackupRepository.resetFolderBackupConfigurationByName(params.name)
+
+    data class Params(val name: String)
 }

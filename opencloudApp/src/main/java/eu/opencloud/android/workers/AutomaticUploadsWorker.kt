@@ -33,22 +33,21 @@ import eu.opencloud.android.domain.UseCaseResult
 import eu.opencloud.android.domain.automaticuploads.model.FolderBackUpConfiguration
 import eu.opencloud.android.domain.automaticuploads.model.UploadBehavior
 import eu.opencloud.android.domain.automaticuploads.usecases.GetAutomaticUploadsConfigurationUseCase
-import eu.opencloud.android.domain.automaticuploads.usecases.SavePictureUploadsConfigurationUseCase
-import eu.opencloud.android.domain.automaticuploads.usecases.SaveVideoUploadsConfigurationUseCase
+import eu.opencloud.android.domain.automaticuploads.usecases.SaveFolderBackupConfigurationUseCase
+import eu.opencloud.android.domain.automaticuploads.usecases.SaveFolderBackupConfigurationUseCase.Params
 import eu.opencloud.android.domain.transfers.TransferRepository
 import eu.opencloud.android.domain.transfers.model.OCTransfer
 import eu.opencloud.android.domain.transfers.model.TransferStatus
-import eu.opencloud.android.presentation.settings.SettingsActivity
 import eu.opencloud.android.domain.transfers.model.UploadEnqueuedBy
+import eu.opencloud.android.presentation.settings.SettingsActivity
 import eu.opencloud.android.usecases.transfers.uploads.UploadFileFromContentUriUseCase
+import eu.opencloud.android.utils.AutoUploadPathBuilder
 import eu.opencloud.android.utils.MimetypeIconUtil
 import eu.opencloud.android.utils.NotificationUtils
 import eu.opencloud.android.utils.UPLOAD_NOTIFICATION_CHANNEL_ID
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-
 import timber.log.Timber
-import java.io.File
 import java.util.Date
 import java.util.concurrent.TimeUnit
 
@@ -78,30 +77,27 @@ class AutomaticUploadsWorker(
         Timber.i("Starting AutomaticUploadsWorker with UUID ${this.id}")
         when (val useCaseResult = getAutomaticUploadsConfigurationUseCase(Unit)) {
             is UseCaseResult.Success -> {
-                val cameraUploadsConfiguration = useCaseResult.data
-                if (cameraUploadsConfiguration == null || cameraUploadsConfiguration.areAutomaticUploadsDisabled()) {
+                val autoUploadConfiguration = useCaseResult.data
+                if (autoUploadConfiguration == null || autoUploadConfiguration.areAutomaticUploadsDisabled()) {
                     cancelWorker()
                     return Result.success()
                 }
-                cameraUploadsConfiguration.pictureUploadsConfiguration?.let { pictureUploadsConfiguration ->
+                for (folderBackUpConfiguration in autoUploadConfiguration.folderBackUpConfigurations) {
                     try {
-                        checkSourcePathIsAValidUriOrThrowException(pictureUploadsConfiguration.sourcePath)
-                        syncFolder(pictureUploadsConfiguration)
+                        checkSourcePathIsAValidUriOrThrowException(folderBackUpConfiguration.sourcePath)
+                        syncFolder(folderBackUpConfiguration)
                     } catch (illegalArgumentException: IllegalArgumentException) {
-                        Timber.e(illegalArgumentException, "Source path for picture uploads is not valid")
-                        showNotificationToUpdateUri(SyncType.PICTURE_UPLOADS)
-                    }
-                }
-                cameraUploadsConfiguration.videoUploadsConfiguration?.let { videoUploadsConfiguration ->
-                    try {
-                        checkSourcePathIsAValidUriOrThrowException(videoUploadsConfiguration.sourcePath)
-                        syncFolder(videoUploadsConfiguration)
-                    } catch (illegalArgumentException: IllegalArgumentException) {
-                        Timber.e(illegalArgumentException, "Source path for video uploads is not valid")
-                        showNotificationToUpdateUri(SyncType.VIDEO_UPLOADS)
+                        Timber.e(illegalArgumentException, "Source path for ${folderBackUpConfiguration.name} is not valid")
+                        val syncType = when {
+                            folderBackUpConfiguration.isPictureUploads -> SyncType.PICTURE_UPLOADS
+                            folderBackUpConfiguration.isVideoUploads -> SyncType.VIDEO_UPLOADS
+                            else -> SyncType.PICTURE_UPLOADS
+                        }
+                        showNotificationToUpdateUri(syncType)
                     }
                 }
             }
+
             is UseCaseResult.Error -> {
                 Timber.e(useCaseResult.throwable, "Worker ${useCaseResult.throwable}")
             }
@@ -141,6 +137,27 @@ class AutomaticUploadsWorker(
 
         showNotification(syncType, localPicturesDocumentFiles.size)
 
+        var activeConfig = folderBackUpConfiguration
+        when (val latestResult = getAutomaticUploadsConfigurationUseCase(Unit)) {
+            is UseCaseResult.Success -> {
+                val latestConfigList = latestResult.data?.folderBackUpConfigurations
+                val latestConfig = latestConfigList?.find {
+                    it.sourcePath == folderBackUpConfiguration.sourcePath &&
+                            it.accountName == folderBackUpConfiguration.accountName &&
+                            it.name == folderBackUpConfiguration.name
+                }
+
+                if (latestConfig == null) {
+                    Timber.w("Settings were changed. Aborting sync for ${folderBackUpConfiguration.sourcePath}.")
+                    return
+                }
+                activeConfig = latestConfig
+            }
+            is UseCaseResult.Error -> {
+                Timber.e(latestResult.throwable, "Error fetching updated folder configuration")
+            }
+        }
+
         for (documentFile in localPicturesDocumentFiles) {
             // Dedup: if this content URI already has a queued, in-progress, or succeeded transfer,
             // skip it. Without this, a worker killed mid-loop (before updateTimestamp) or a
@@ -152,32 +169,35 @@ class AutomaticUploadsWorker(
                 Timber.d("Skipping already-tracked file: %s", documentFile.name)
                 continue
             }
+
+            val uploadPath = AutoUploadPathBuilder.buildUploadPath(documentFile, activeConfig)
+
             val uploadId = storeInUploadsDatabase(
                 documentFile = documentFile,
-                uploadPath = folderBackUpConfiguration.uploadPath.plus(File.separator).plus(documentFile.name),
-                accountName = folderBackUpConfiguration.accountName,
-                behavior = folderBackUpConfiguration.behavior,
+                uploadPath = uploadPath,
+                accountName = activeConfig.accountName,
+                behavior = activeConfig.behavior,
                 createdByWorker = when (syncType) {
                     SyncType.PICTURE_UPLOADS -> UploadEnqueuedBy.ENQUEUED_AS_AUTOMATIC_UPLOAD_PICTURE
                     SyncType.VIDEO_UPLOADS -> UploadEnqueuedBy.ENQUEUED_AS_AUTOMATIC_UPLOAD_VIDEO
                 },
-                spaceId = folderBackUpConfiguration.spaceId
+                spaceId = activeConfig.spaceId
             )
+
             enqueueSingleUpload(
                 contentUri = documentFile.uri,
-                uploadPath = folderBackUpConfiguration.uploadPath.plus(File.separator).plus(documentFile.name),
+                uploadPath = uploadPath,
                 lastModified = documentFile.lastModified(),
-                behavior = folderBackUpConfiguration.behavior.toString(),
-                accountName = folderBackUpConfiguration.accountName,
+                behavior = activeConfig.behavior.toString(),
+                accountName = activeConfig.accountName,
                 uploadId = uploadId,
-                wifiOnly = folderBackUpConfiguration.wifiOnly,
-                chargingOnly = folderBackUpConfiguration.chargingOnly
+                wifiOnly = activeConfig.wifiOnly,
+                chargingOnly = activeConfig.chargingOnly,
+                autoUploadSourcePath = activeConfig.sourcePath
             )
         }
-        // Save safeTimestamp (not currentTimestamp) so that files skipped by the
-        // write-safety buffer are re-evaluated on the next run instead of being lost.
         val safeTimestamp = currentTimestamp - WRITE_SAFETY_BUFFER_MS
-        updateTimestamp(folderBackUpConfiguration, syncType, safeTimestamp)
+        updateTimestamp(activeConfig, safeTimestamp)
     }
 
     private fun showNotification(
@@ -228,22 +248,33 @@ class AutomaticUploadsWorker(
 
     private fun updateTimestamp(
         folderBackUpConfiguration: FolderBackUpConfiguration,
-        syncType: SyncType,
         currentTimestamp: Long,
     ) {
+        val saveFolderBackUpConfigurationUseCase: SaveFolderBackupConfigurationUseCase by inject()
 
-        when (syncType) {
-            SyncType.PICTURE_UPLOADS -> {
-                val savePictureUploadsConfigurationUseCase: SavePictureUploadsConfigurationUseCase by inject()
-                savePictureUploadsConfigurationUseCase(
-                    SavePictureUploadsConfigurationUseCase.Params(folderBackUpConfiguration.copy(lastSyncTimestamp = currentTimestamp))
-                )
+        when (val latestResult = getAutomaticUploadsConfigurationUseCase(Unit)) {
+            is UseCaseResult.Success -> {
+                val latestConfigList = latestResult.data?.folderBackUpConfigurations ?: return
+
+                val latestConfig = latestConfigList.find {
+                    it.sourcePath == folderBackUpConfiguration.sourcePath &&
+                            it.accountName == folderBackUpConfiguration.accountName &&
+                            it.name == folderBackUpConfiguration.name
+                }
+
+                if (latestConfig != null) {
+                    saveFolderBackUpConfigurationUseCase(
+                        Params(
+                            latestConfig.copy(lastSyncTimestamp = currentTimestamp)
+                        )
+                    )
+                } else {
+                    Timber.w("Cannot update timestamp: config for ${folderBackUpConfiguration.sourcePath} no longer exists.")
+                }
             }
-            SyncType.VIDEO_UPLOADS -> {
-                val saveVideoUploadsConfigurationUseCase: SaveVideoUploadsConfigurationUseCase by inject()
-                saveVideoUploadsConfigurationUseCase(
-                    SaveVideoUploadsConfigurationUseCase.Params(folderBackUpConfiguration.copy(lastSyncTimestamp = currentTimestamp))
-                )
+
+            is UseCaseResult.Error<*> -> {
+                Timber.e(latestResult.throwable, "Failed to fetch latest config for timestamp update")
             }
         }
     }
@@ -285,7 +316,8 @@ class AutomaticUploadsWorker(
         accountName: String,
         uploadId: Long,
         wifiOnly: Boolean,
-        chargingOnly: Boolean
+        chargingOnly: Boolean,
+        autoUploadSourcePath: String?
     ) {
         val lastModifiedInSeconds = (lastModified / 1000L).toString()
 
@@ -298,7 +330,8 @@ class AutomaticUploadsWorker(
                 uploadPath = uploadPath,
                 uploadIdInStorageManager = uploadId,
                 wifiOnly = wifiOnly,
-                chargingOnly = chargingOnly
+                chargingOnly = chargingOnly,
+                autoUploadSourcePath = autoUploadSourcePath
             )
         )
     }

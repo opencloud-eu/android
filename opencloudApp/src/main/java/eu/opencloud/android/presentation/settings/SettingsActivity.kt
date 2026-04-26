@@ -31,10 +31,13 @@ import androidx.appcompat.widget.Toolbar
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
+import androidx.preference.Preference
+import androidx.preference.PreferenceFragmentCompat
 import eu.opencloud.android.R
+import eu.opencloud.android.domain.automaticuploads.model.FolderBackUpConfiguration.Companion.pictureUploadsName
+import eu.opencloud.android.domain.automaticuploads.model.FolderBackUpConfiguration.Companion.videoUploadsName
 import eu.opencloud.android.presentation.settings.advanced.SettingsAdvancedFragment
-import eu.opencloud.android.presentation.settings.automaticuploads.SettingsPictureUploadsFragment
-import eu.opencloud.android.presentation.settings.automaticuploads.SettingsVideoUploadsFragment
+import eu.opencloud.android.presentation.settings.automaticuploads.SettingsAutoUploadFragment
 import eu.opencloud.android.presentation.settings.logging.SettingsLogsFragment
 import eu.opencloud.android.presentation.settings.more.SettingsMoreFragment
 import eu.opencloud.android.presentation.settings.security.SettingsSecurityFragment
@@ -42,7 +45,7 @@ import eu.opencloud.android.ui.activity.FileDisplayActivity
 import eu.opencloud.android.ui.activity.enableEdgeToEdgePostSetContentView
 import eu.opencloud.android.ui.activity.enableEdgeToEdgePreSetContentView
 
-class SettingsActivity : AppCompatActivity() {
+class SettingsActivity : AppCompatActivity(), PreferenceFragmentCompat.OnPreferenceStartFragmentCallback {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -75,15 +78,53 @@ class SettingsActivity : AppCompatActivity() {
         redirectToSubsection(intent)
     }
 
+    override fun onPreferenceStartFragment(caller: PreferenceFragmentCompat, pref: Preference): Boolean {
+        val args = pref.extras
+        val fragment = supportFragmentManager.fragmentFactory.instantiate(
+            classLoader,
+            pref.fragment!!
+        ).apply {
+            arguments = args
+        }
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.settings_container, fragment)
+            .addToBackStack(null)
+            .commit()
+        return true
+    }
+
     private fun updateToolbarTitle() {
         val titleId = when (supportFragmentManager.fragments.lastOrNull()) {
-            is SettingsSecurityFragment -> R.string.prefs_subsection_security
-            is SettingsLogsFragment -> R.string.prefs_subsection_logging
-            is SettingsPictureUploadsFragment -> R.string.prefs_subsection_picture_uploads
-            is SettingsVideoUploadsFragment -> R.string.prefs_subsection_video_uploads
-            is SettingsAdvancedFragment -> R.string.prefs_subsection_advanced
-            is SettingsMoreFragment -> R.string.prefs_subsection_more
-            else -> R.string.actionbar_settings
+            is SettingsSecurityFragment -> {
+                R.string.prefs_subsection_security
+            }
+
+            is SettingsLogsFragment -> {
+                R.string.prefs_subsection_logging
+            }
+
+            is SettingsAutoUploadFragment -> {
+                val fragment = supportFragmentManager.fragments.lastOrNull()
+                val configName = fragment?.arguments?.getString(SettingsAutoUploadFragment.ARG_CONFIG_NAME)
+                if (configName == pictureUploadsName) {
+                    R.string.prefs_subsection_picture_uploads
+                } else {
+                    R.string.prefs_subsection_video_uploads
+                }
+            }
+
+            is SettingsAdvancedFragment -> {
+                R.string.prefs_subsection_advanced
+            }
+
+            is SettingsMoreFragment -> {
+                R.string.prefs_subsection_more
+            }
+
+            else -> {
+                R.string.actionbar_settings
+            }
+
         }
         setTitle(titleId)
         supportActionBar?.setTitle(titleId)
@@ -107,8 +148,8 @@ class SettingsActivity : AppCompatActivity() {
 
     private fun redirectToSubsection(intent: Intent?) {
         val fragment = when (intent?.getStringExtra(KEY_NOTIFICATION_INTENT)) {
-            NOTIFICATION_INTENT_PICTURES -> SettingsPictureUploadsFragment()
-            NOTIFICATION_INTENT_VIDEOS -> SettingsVideoUploadsFragment()
+            NOTIFICATION_INTENT_PICTURES -> SettingsAutoUploadFragment.newInstance(pictureUploadsName)
+            NOTIFICATION_INTENT_VIDEOS -> SettingsAutoUploadFragment.newInstance(videoUploadsName)
             else -> SettingsFragment()
         }
 

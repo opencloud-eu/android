@@ -58,6 +58,7 @@ interface TransferRepository {
     fun clearFailedTransfers()
     fun clearSuccessfulTransfers()
     fun existsNonFailedTransferForUri(uri: String): Boolean
+    fun updateTransferRemotePath(id: Long, remotePath: String)
 
     // TUS state management
     fun updateTusState(

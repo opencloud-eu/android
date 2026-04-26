@@ -24,9 +24,8 @@ import eu.opencloud.android.data.folderbackup.db.FolderBackUpEntity
 import eu.opencloud.android.data.folderbackup.db.FolderBackupDao
 import eu.opencloud.android.domain.automaticuploads.model.AutomaticUploadsConfiguration
 import eu.opencloud.android.domain.automaticuploads.model.FolderBackUpConfiguration
-import eu.opencloud.android.domain.automaticuploads.model.FolderBackUpConfiguration.Companion.pictureUploadsName
-import eu.opencloud.android.domain.automaticuploads.model.FolderBackUpConfiguration.Companion.videoUploadsName
 import eu.opencloud.android.domain.automaticuploads.model.UploadBehavior
+import eu.opencloud.android.domain.automaticuploads.model.UseSubfoldersBehaviour
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -35,14 +34,12 @@ class OCLocalFolderBackupDataSource(
 ) : LocalFolderBackupDataSource {
 
     override fun getAutomaticUploadsConfiguration(): AutomaticUploadsConfiguration? {
-        val pictureUploadsConfiguration = folderBackupDao.getFolderBackUpConfigurationByName(pictureUploadsName)
-        val videoUploadsConfiguration = folderBackupDao.getFolderBackUpConfigurationByName(videoUploadsName)
+        val folderBackUpConfigurations = folderBackupDao.getAllFolderBackUpConfigurations()
 
-        if (pictureUploadsConfiguration == null && videoUploadsConfiguration == null) return null
+        if (folderBackUpConfigurations.isEmpty()) return null
 
         return AutomaticUploadsConfiguration(
-            pictureUploadsConfiguration = pictureUploadsConfiguration?.toModel(),
-            videoUploadsConfiguration = videoUploadsConfiguration?.toModel(),
+            folderBackUpConfigurations = folderBackUpConfigurations.map { it.toModel() }
         )
     }
 
@@ -68,6 +65,7 @@ class OCLocalFolderBackupDataSource(
             sourcePath = sourcePath,
             uploadPath = uploadPath,
             wifiOnly = wifiOnly,
+            useSubfoldersBehaviour = useSubfoldersBehaviour.toString(),
             chargingOnly = chargingOnly,
             name = name,
             lastSyncTimestamp = lastSyncTimestamp,
@@ -84,6 +82,7 @@ class OCLocalFolderBackupDataSource(
                 uploadPath = uploadPath,
                 wifiOnly = wifiOnly,
                 chargingOnly = chargingOnly,
+                useSubfoldersBehaviour = UseSubfoldersBehaviour.fromString(useSubfoldersBehaviour),
                 lastSyncTimestamp = lastSyncTimestamp,
                 name = name,
                 spaceId = spaceId,

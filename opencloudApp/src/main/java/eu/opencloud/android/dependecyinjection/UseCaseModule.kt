@@ -35,22 +35,18 @@ import eu.opencloud.android.domain.authentication.usecases.GetBaseUrlUseCase
 import eu.opencloud.android.domain.authentication.usecases.LoginBasicAsyncUseCase
 import eu.opencloud.android.domain.authentication.usecases.LoginOAuthAsyncUseCase
 import eu.opencloud.android.domain.authentication.usecases.SupportsOAuth2UseCase
+import eu.opencloud.android.domain.automaticuploads.usecases.GetAutomaticUploadsConfigurationUseCase
+import eu.opencloud.android.domain.automaticuploads.usecases.GetFolderBackupConfigurationStreamUseCase
+import eu.opencloud.android.domain.automaticuploads.usecases.ResetFolderBackupConfigurationUseCase
+import eu.opencloud.android.domain.automaticuploads.usecases.SaveFolderBackupConfigurationUseCase
 import eu.opencloud.android.domain.availableoffline.usecases.GetFilesAvailableOfflineFromAccountAsStreamUseCase
 import eu.opencloud.android.domain.availableoffline.usecases.GetFilesAvailableOfflineFromAccountUseCase
 import eu.opencloud.android.domain.availableoffline.usecases.GetFilesAvailableOfflineFromEveryAccountUseCase
 import eu.opencloud.android.domain.availableoffline.usecases.SetFilesAsAvailableOfflineUseCase
 import eu.opencloud.android.domain.availableoffline.usecases.UnsetFilesAsAvailableOfflineUseCase
-import eu.opencloud.android.domain.automaticuploads.usecases.GetAutomaticUploadsConfigurationUseCase
-import eu.opencloud.android.domain.automaticuploads.usecases.GetPictureUploadsConfigurationStreamUseCase
-import eu.opencloud.android.domain.automaticuploads.usecases.GetVideoUploadsConfigurationStreamUseCase
-import eu.opencloud.android.domain.automaticuploads.usecases.ResetPictureUploadsUseCase
-import eu.opencloud.android.domain.automaticuploads.usecases.ResetVideoUploadsUseCase
-import eu.opencloud.android.domain.automaticuploads.usecases.SavePictureUploadsConfigurationUseCase
-import eu.opencloud.android.domain.automaticuploads.usecases.SaveVideoUploadsConfigurationUseCase
 import eu.opencloud.android.domain.capabilities.usecases.GetCapabilitiesAsLiveDataUseCase
 import eu.opencloud.android.domain.capabilities.usecases.GetStoredCapabilitiesUseCase
 import eu.opencloud.android.domain.capabilities.usecases.RefreshCapabilitiesFromServerAsyncUseCase
-import eu.opencloud.android.domain.files.usecases.IsAnyFileAvailableLocallyAndNotAvailableOfflineUseCase
 import eu.opencloud.android.domain.files.usecases.CleanConflictUseCase
 import eu.opencloud.android.domain.files.usecases.CleanWorkersUUIDUseCase
 import eu.opencloud.android.domain.files.usecases.CopyFileUseCase
@@ -68,6 +64,7 @@ import eu.opencloud.android.domain.files.usecases.GetSearchFolderContentUseCase
 import eu.opencloud.android.domain.files.usecases.GetSharedByLinkForAccountAsStreamUseCase
 import eu.opencloud.android.domain.files.usecases.GetSharesRootFolderForAccount
 import eu.opencloud.android.domain.files.usecases.GetWebDavUrlForSpaceUseCase
+import eu.opencloud.android.domain.files.usecases.IsAnyFileAvailableLocallyAndNotAvailableOfflineUseCase
 import eu.opencloud.android.domain.files.usecases.ManageDeepLinkUseCase
 import eu.opencloud.android.domain.files.usecases.MoveFileUseCase
 import eu.opencloud.android.domain.files.usecases.RemoveFileUseCase
@@ -102,12 +99,12 @@ import eu.opencloud.android.domain.transfers.usecases.ClearSuccessfulTransfersUs
 import eu.opencloud.android.domain.transfers.usecases.GetAllTransfersAsStreamUseCase
 import eu.opencloud.android.domain.transfers.usecases.GetAllTransfersUseCase
 import eu.opencloud.android.domain.transfers.usecases.UpdatePendingUploadsPathUseCase
-import eu.opencloud.android.domain.user.usecases.GetStoredQuotaUseCase
 import eu.opencloud.android.domain.user.usecases.GetStoredQuotaAsStreamUseCase
+import eu.opencloud.android.domain.user.usecases.GetStoredQuotaUseCase
 import eu.opencloud.android.domain.user.usecases.GetUserAvatarAsyncUseCase
 import eu.opencloud.android.domain.user.usecases.GetUserInfoAsyncUseCase
-import eu.opencloud.android.domain.user.usecases.GetUserQuotasUseCase
 import eu.opencloud.android.domain.user.usecases.GetUserQuotasAsStreamUseCase
+import eu.opencloud.android.domain.user.usecases.GetUserQuotasUseCase
 import eu.opencloud.android.domain.user.usecases.RefreshUserQuotaFromServerAsyncUseCase
 import eu.opencloud.android.domain.webfinger.usecases.GetOpenCloudInstanceFromWebFingerUseCase
 import eu.opencloud.android.domain.webfinger.usecases.GetOpenCloudInstancesFromAuthenticatedWebFingerUseCase
@@ -269,13 +266,9 @@ val useCaseModule = module {
 
     // Camera Uploads
     factoryOf(::GetAutomaticUploadsConfigurationUseCase)
-    factoryOf(::GetPictureUploadsConfigurationStreamUseCase)
-    factoryOf(::GetVideoUploadsConfigurationStreamUseCase)
-    factoryOf(::ResetPictureUploadsUseCase)
-    factoryOf(::ResetVideoUploadsUseCase)
-    factoryOf(::SavePictureUploadsConfigurationUseCase)
-    factoryOf(::SaveVideoUploadsConfigurationUseCase)
-
+    factoryOf(::GetFolderBackupConfigurationStreamUseCase)
+    factoryOf(::SaveFolderBackupConfigurationUseCase)
+    factoryOf(::ResetFolderBackupConfigurationUseCase)
     // Accounts
     factoryOf(::RemoveAccountUseCase)
 }

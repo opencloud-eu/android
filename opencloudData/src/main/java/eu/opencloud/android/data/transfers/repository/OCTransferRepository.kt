@@ -53,6 +53,10 @@ class OCTransferRepository(
         localTransferDataSource.updateTransferSourcePath(id = id, sourcePath = sourcePath)
     }
 
+    override fun updateTransferRemotePath(id: Long, remotePath: String) {
+        localTransferDataSource.updateTransferRemotePath(id = id, remotePath = remotePath)
+    }
+
     override fun updateTransferWhenFinished(
         id: Long,
         status: TransferStatus,
