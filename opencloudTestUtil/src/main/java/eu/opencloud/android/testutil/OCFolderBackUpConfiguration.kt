@@ -53,6 +53,5 @@ val OC_BACKUP_ENTITY = FolderBackUpEntity(
 )
 
 val OC_AUTOMATIC_UPLOADS_CONFIGURATION = AutomaticUploadsConfiguration(
-    pictureUploadsConfiguration = OC_BACKUP,
-    videoUploadsConfiguration = OC_BACKUP
+    folderBackUpConfigurations = listOf(OC_BACKUP, OC_BACKUP)
 )

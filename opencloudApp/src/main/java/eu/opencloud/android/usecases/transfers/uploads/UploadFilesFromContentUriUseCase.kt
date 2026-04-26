@@ -109,7 +109,8 @@ class UploadFilesFromContentUriUseCase(
             accountName = accountName,
             uploadIdInStorageManager = uploadIdInStorageManager,
             wifiOnly = false,
-            chargingOnly = false
+            chargingOnly = false,
+            autoUploadSourcePath = null,
         )
         uploadFileFromContentUriUseCase(uploadFileParams)
     }

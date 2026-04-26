@@ -28,8 +28,7 @@ import eu.opencloud.android.data.spaces.datasources.LocalSpacesDataSource
 import eu.opencloud.android.data.user.datasources.LocalUserDataSource
 import eu.opencloud.android.domain.BaseUseCase
 import eu.opencloud.android.domain.automaticuploads.usecases.GetAutomaticUploadsConfigurationUseCase
-import eu.opencloud.android.domain.automaticuploads.usecases.ResetPictureUploadsUseCase
-import eu.opencloud.android.domain.automaticuploads.usecases.ResetVideoUploadsUseCase
+import eu.opencloud.android.domain.automaticuploads.usecases.ResetFolderBackupConfigurationUseCase
 import eu.opencloud.android.usecases.transfers.uploads.CancelTransfersFromAccountUseCase
 
 /*
@@ -39,8 +38,7 @@ import eu.opencloud.android.usecases.transfers.uploads.CancelTransfersFromAccoun
 */
 class RemoveAccountUseCase(
     private val getAutomaticUploadsConfigurationUseCase: GetAutomaticUploadsConfigurationUseCase,
-    private val resetPictureUploadsUseCase: ResetPictureUploadsUseCase,
-    private val resetVideoUploadsUseCase: ResetVideoUploadsUseCase,
+    private val resetFolderBackupConfigurationUseCase: ResetFolderBackupConfigurationUseCase,
     private val cancelTransfersFromAccountUseCase: CancelTransfersFromAccountUseCase,
     private val localFileDataSource: LocalFileDataSource,
     private val localCapabilitiesDataSource: LocalCapabilitiesDataSource,
@@ -52,12 +50,11 @@ class RemoveAccountUseCase(
 
     override fun run(params: Params) {
         // Reset camera uploads if they were enabled for the removed account
-        val cameraUploadsConfiguration = getAutomaticUploadsConfigurationUseCase(Unit)
-        if (params.accountName == cameraUploadsConfiguration.getDataOrNull()?.pictureUploadsConfiguration?.accountName) {
-            resetPictureUploadsUseCase(Unit)
-        }
-        if (params.accountName == cameraUploadsConfiguration.getDataOrNull()?.videoUploadsConfiguration?.accountName) {
-            resetVideoUploadsUseCase(Unit)
+        val autoUploadConfiguration = getAutomaticUploadsConfigurationUseCase(Unit).getDataOrNull()
+        autoUploadConfiguration?.folderBackUpConfigurations?.forEach { folderBackUpConfiguration ->
+            if (params.accountName == folderBackUpConfiguration.accountName) {
+                resetFolderBackupConfigurationUseCase(ResetFolderBackupConfigurationUseCase.Params(folderBackUpConfiguration.name))
+            }
         }
 
         // Cancel transfers of the removed account

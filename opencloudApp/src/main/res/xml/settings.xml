@@ -15,7 +15,8 @@
   You should have received a copy of the GNU General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
-<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto"
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     app:key="settings_screen">
 
     <Preference
@@ -41,18 +42,26 @@
 
     <Preference
         app:allowDividerAbove="true"
-        app:fragment="eu.opencloud.android.presentation.settings.automaticuploads.SettingsPictureUploadsFragment"
+        app:fragment="eu.opencloud.android.presentation.settings.automaticuploads.SettingsAutoUploadFragment"
         app:icon="@drawable/ic_picture_uploads"
         app:key="picture_uploads_subsection"
         app:summary="@string/prefs_subsection_picture_uploads_summary"
-        app:title="@string/prefs_subsection_picture_uploads" />
+        app:title="@string/prefs_subsection_picture_uploads">
+        <extra
+            android:name="config_name"
+            android:value="Picture uploads" />
+    </Preference>
 
     <Preference
-        app:fragment="eu.opencloud.android.presentation.settings.automaticuploads.SettingsVideoUploadsFragment"
+        app:fragment="eu.opencloud.android.presentation.settings.automaticuploads.SettingsAutoUploadFragment"
         app:icon="@drawable/ic_video_uploads"
         app:key="video_uploads_subsection"
         app:summary="@string/prefs_subsection_video_uploads_summary"
-        app:title="@string/prefs_subsection_video_uploads" />
+        app:title="@string/prefs_subsection_video_uploads">
+        <extra
+            android:name="config_name"
+            android:value="Video uploads" />
+    </Preference>
 
     <Preference
         app:allowDividerAbove="true"

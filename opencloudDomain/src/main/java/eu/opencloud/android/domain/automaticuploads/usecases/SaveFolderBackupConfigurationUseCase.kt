@@ -22,14 +22,14 @@ import eu.opencloud.android.domain.BaseUseCaseWithResult
 import eu.opencloud.android.domain.automaticuploads.FolderBackupRepository
 import eu.opencloud.android.domain.automaticuploads.model.FolderBackUpConfiguration
 
-class SaveVideoUploadsConfigurationUseCase(
+class SaveFolderBackupConfigurationUseCase(
     private val folderBackupRepository: FolderBackupRepository
-) : BaseUseCaseWithResult<Unit, SaveVideoUploadsConfigurationUseCase.Params>() {
+) : BaseUseCaseWithResult<Unit, SaveFolderBackupConfigurationUseCase.Params>() {
 
     override fun run(params: Params) =
-        folderBackupRepository.saveFolderBackupConfiguration(params.videoUploadsConfiguration)
+        folderBackupRepository.saveFolderBackupConfiguration(params.folderBackupConfiguration)
 
     data class Params(
-        val videoUploadsConfiguration: FolderBackUpConfiguration
+        val folderBackupConfiguration: FolderBackUpConfiguration
     )
 }

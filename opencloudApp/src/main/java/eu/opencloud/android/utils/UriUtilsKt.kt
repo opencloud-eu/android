@@ -3,6 +3,7 @@ package eu.opencloud.android.utils
 import android.content.ContentResolver
 import android.content.Context
 import android.net.Uri
+import android.provider.DocumentsContract
 import androidx.core.content.FileProvider
 import eu.opencloud.android.R
 import eu.opencloud.android.domain.files.model.OCFile
@@ -19,7 +20,7 @@ object UriUtilsKt {
             FileProvider.getUriForFile(
                 context,
                 context.getString(R.string.file_provider_authority),
-                File(ocFile.storagePath)
+                File(ocFile.storagePath.toString())
             )
         } catch (e: IllegalArgumentException) {
             Timber.e(e, "File can't be exported")
@@ -42,4 +43,11 @@ object UriUtilsKt {
             path(file.storagePath)
         }.build()
     }
+
+    fun getPathFromUri(uri: Uri): String =
+        if (DocumentsContract.isTreeUri(uri)) {
+            DocumentsContract.getTreeDocumentId(uri)
+        } else {
+            uri.path.orEmpty()
+        }
 }

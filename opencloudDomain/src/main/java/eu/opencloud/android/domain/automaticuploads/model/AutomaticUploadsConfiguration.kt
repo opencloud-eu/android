@@ -19,8 +19,7 @@
 package eu.opencloud.android.domain.automaticuploads.model
 
 data class AutomaticUploadsConfiguration(
-    val pictureUploadsConfiguration: FolderBackUpConfiguration?,
-    val videoUploadsConfiguration: FolderBackUpConfiguration?
+    val folderBackUpConfigurations: List<FolderBackUpConfiguration>
 ) {
-    fun areAutomaticUploadsDisabled() = pictureUploadsConfiguration == null && videoUploadsConfiguration == null
+    fun areAutomaticUploadsDisabled() = folderBackUpConfigurations.isEmpty()
 }
