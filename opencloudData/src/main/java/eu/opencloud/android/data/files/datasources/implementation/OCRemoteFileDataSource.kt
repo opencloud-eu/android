@@ -218,7 +218,11 @@ class OCRemoteFileDataSource(
             OCFile(
                 owner = owner,
                 remoteId = remoteId,
-                remotePath = remotePath,
+                remotePath = if (isFolder && !remotePath.endsWith(OCFile.PATH_SEPARATOR)) {
+                    "$remotePath${OCFile.PATH_SEPARATOR}"
+                } else {
+                    remotePath
+                },
                 length = if (isFolder) {
                     size
                 } else {

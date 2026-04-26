@@ -64,6 +64,7 @@ object ThumbnailsRequester : KoinComponent {
 
     private val thumbnailImageLoaders = ConcurrentHashMap<String, ImageLoader>()
     private val avatarImageLoaders = ConcurrentHashMap<String, ImageLoader>()
+    private val accountBaseUrls = ConcurrentHashMap<String, String>()
 
     private val sharedDiskCache: DiskCache by lazy {
         DiskCache.Builder()
@@ -86,11 +87,12 @@ object ThumbnailsRequester : KoinComponent {
     }
 
     fun getAvatarUri(account: Account): String {
-        val accountManager = AccountManager.get(appContext)
-        val baseUrl =
+        val baseUrl = accountBaseUrls.getOrPut(account.name) {
+            val accountManager = AccountManager.get(appContext)
             accountManager.getUserData(account, eu.opencloud.android.lib.common.accounts.AccountUtils.Constants.KEY_OC_BASE_URL)
                 ?.trimEnd('/')
                 .orEmpty()
+        }
         // ?u= disambiguates the Coil cache key per account; without it two accounts
         // on the same server share the same URL and collide in the shared disk/memory cache.
         return "$baseUrl/graph/v1.0/me/photo/\$value?u=${account.name.hashCode().toString(16)}"
@@ -106,10 +108,12 @@ object ThumbnailsRequester : KoinComponent {
         String.format(Locale.US, SPACE_SPECIAL_PREVIEW_URI, spaceSpecial.webDavUrl, 1024, 1024, spaceSpecial.eTag)
 
     private fun getPreviewUri(remotePath: String?, etag: String?, account: Account, width: Int, height: Int): String {
-        val accountManager = AccountManager.get(appContext)
-        val baseUrl = accountManager.getUserData(account, eu.opencloud.android.lib.common.accounts.AccountUtils.Constants.KEY_OC_BASE_URL)
-            ?.trimEnd('/')
-            .orEmpty()
+        val baseUrl = accountBaseUrls.getOrPut(account.name) {
+            val accountManager = AccountManager.get(appContext)
+            accountManager.getUserData(account, eu.opencloud.android.lib.common.accounts.AccountUtils.Constants.KEY_OC_BASE_URL)
+                ?.trimEnd('/')
+                .orEmpty()
+        }
         val path = if (remotePath?.startsWith("/") == true) remotePath else "/$remotePath"
         val encodedPath = Uri.encode(path, "/")
 
@@ -156,7 +160,9 @@ object ThumbnailsRequester : KoinComponent {
                 // must not run on the main thread.
                 clientManager.getClientForCoilThumbnails(account.name)
                     .okHttpClient.newBuilder()
-                    .addInterceptor(interceptor).build()
+                    .addInterceptor(interceptor)
+                    .addNetworkInterceptor(CoilCacheResponseInterceptor())
+                    .build()
             }
             .apply { if (preferencesProvider.getBoolean("enable_logging", false)) logger(DebugLogger()) }
             .memoryCache { sharedMemoryCache }
@@ -172,6 +178,7 @@ object ThumbnailsRequester : KoinComponent {
                 clientManager.getClientForCoilThumbnails(account.name)
                     .okHttpClient.newBuilder()
                     .addInterceptor(interceptor)
+                    .addNetworkInterceptor(CoilCacheResponseInterceptor())
                     .cache(avatarHttpCache)
                     .build()
             }
@@ -221,7 +228,13 @@ object ThumbnailsRequester : KoinComponent {
             requestHeaders.toHeaders().forEach { requestBuilder.addHeader(it.first, it.second) }
             val requestWithHeaders = requestBuilder.build()
 
-            var response = chain.proceed(requestWithHeaders)
+            return chain.proceed(requestWithHeaders)
+        }
+    }
+
+    private class CoilCacheResponseInterceptor : Interceptor {
+        override fun intercept(chain: Interceptor.Chain): Response {
+            val response = chain.proceed(chain.request())
 
             var builder = response.newBuilder()
             var changed = false
@@ -252,6 +265,5 @@ object ThumbnailsRequester : KoinComponent {
             }
             return response
         }
-
     }
 }
