@@ -22,6 +22,7 @@ package eu.opencloud.android.dependecyinjection
 
 import androidx.work.WorkManager
 
+import eu.opencloud.android.data.download.DownloadProgressDataStore
 import eu.opencloud.android.providers.AccountProvider
 import eu.opencloud.android.providers.ContextProvider
 import eu.opencloud.android.providers.CoroutinesDispatcherProvider
@@ -43,4 +44,5 @@ val commonModule = module {
     single { WorkManagerProvider(androidContext()) }
     single { AccountProvider(androidContext()) }
     single { WorkManager.getInstance(androidApplication()) }
+    single { DownloadProgressDataStore(androidContext()) }
 }

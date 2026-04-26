@@ -31,7 +31,6 @@ import eu.opencloud.android.presentation.authentication.AuthenticationViewModel
 import eu.opencloud.android.presentation.authentication.oauth.OAuthViewModel
 import eu.opencloud.android.presentation.capabilities.CapabilityViewModel
 import eu.opencloud.android.presentation.common.DrawerViewModel
-import eu.opencloud.android.presentation.conflicts.ConflictsResolveViewModel
 import eu.opencloud.android.presentation.files.details.FileDetailsViewModel
 import eu.opencloud.android.presentation.files.filelist.MainFileListViewModel
 import eu.opencloud.android.presentation.files.operations.FileOperationsViewModel
@@ -94,7 +93,6 @@ val viewModelModule = module {
         MainFileListViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(),
             initialFolderToDisplay, fileListOption)
     }
-    viewModel { (ocFile: OCFile) -> ConflictsResolveViewModel(get(), get(), get(), get(), get(), ocFile) }
     viewModel { AuthenticationViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
     viewModel { MigrationViewModel(MainApp.dataFolder, get(), get(), get(), get(), get(), get(), get()) }
     viewModel { TransfersViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(),

@@ -36,20 +36,22 @@ import java.io.File
 import java.util.concurrent.TimeUnit
 import kotlin.system.measureTimeMillis
 
-sealed class LocalStorageProvider(private val rootFolderName: String) {
+sealed class LocalStorageProvider(protected val rootFolderName: String) {
 
     abstract fun getPrimaryStorageDirectory(): File
 
     /**
      * Return the root path of primary shared/external storage directory for this application.
-     * For example: /storage/emulated/0/opencloud
+     * For example: /storage/emulated/0/OpenCloud
      */
-    fun getRootFolderPath(): String = getPrimaryStorageDirectory().absolutePath + File.separator + rootFolderName
+    open fun getRootFolderPath(): String = getPrimaryStorageDirectory().absolutePath + File.separator + rootFolderName
+
+    open fun invalidateCache() {}
 
     /**
      * Get local storage path for accountName.
      */
-    private fun getAccountDirectoryPath(
+    protected open fun getAccountDirectoryPath(
         accountName: String
     ): String = getRootFolderPath() + File.separator + getEncodedAccountName(accountName)
 
@@ -62,9 +64,16 @@ sealed class LocalStorageProvider(private val rootFolderName: String) {
         accountName: String,
         remotePath: String,
         spaceId: String?,
+        spaceName: String? = null,
     ): String =
         if (spaceId != null) {
-            getAccountDirectoryPath(accountName) + File.separator + spaceId + File.separator + remotePath
+            val spaceFolder = if (!spaceName.isNullOrBlank()) {
+                val sanitized = sanitizeAccountName(spaceName)
+                "$sanitized ($spaceId)"
+            } else {
+                spaceId
+            }
+            getAccountDirectoryPath(accountName) + File.separator + spaceFolder + File.separator + remotePath
         } else {
             getAccountDirectoryPath(accountName) + remotePath
         }
@@ -149,6 +158,13 @@ sealed class LocalStorageProvider(private val rootFolderName: String) {
      */
     private fun getEncodedAccountName(accountName: String?): String = Uri.encode(accountName, "@")
 
+    /**
+     * Sanitize account name for use as a directory name.
+     * Uses URI encoding to avoid collisions between different account names.
+     * Keeps '@' unencoded so email-based accounts remain readable.
+     */
+    protected fun sanitizeAccountName(accountName: String): String = Uri.encode(accountName, "@")
+
     fun moveLegacyToScopedStorage() {
         val timeInMillis = measureTimeMillis {
             moveFileOrFolderToScopedStorage(retrieveRootLegacyStorage())
@@ -230,10 +246,30 @@ sealed class LocalStorageProvider(private val rootFolderName: String) {
         }
         val targetFile = File(finalStoragePath)
         val targetFolder = targetFile.parentFile
-        if (targetFolder != null && !targetFolder.exists()) {
-            targetFolder.mkdirs()
+        if (targetFolder != null && !targetFolder.mkdirs() && !targetFolder.exists()) {
+            val safeRoot = File(getRootFolderPath())
+            var current = targetFolder
+            while (current != null && !current.exists() && current != safeRoot && current.parentFile != null) {
+                current = current.parentFile
+            }
+            if (current != null && current != safeRoot && current.isFile) {
+                Timber.e("Cannot create directory ${targetFolder.absolutePath}: a file exists at ${current.absolutePath} blocking the path")
+                return
+            }
         }
-        fileToMove.renameTo(targetFile)
+        if (!fileToMove.renameTo(targetFile)) {
+            Timber.w("renameTo failed for ${fileToMove.absolutePath} -> ${targetFile.absolutePath}. Falling back to copy+delete.")
+            try {
+                fileToMove.copyTo(targetFile, overwrite = true)
+                if (!fileToMove.delete()) {
+                    Timber.e("Fallback copy succeeded but delete failed for ${fileToMove.absolutePath}. Removing copy to avoid duplicates.")
+                    targetFile.delete()
+                }
+            } catch (e: Exception) {
+                Timber.e(e, "Fallback copy+delete also failed for ${fileToMove.absolutePath}")
+                targetFile.delete()
+            }
+        }
     }
 
     fun clearUnrelatedTemporalFiles(uploads: List<OCTransfer>, accountsNames: List<String>) {

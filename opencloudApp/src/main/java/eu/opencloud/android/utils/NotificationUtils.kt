@@ -33,12 +33,10 @@ import android.os.Process
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import eu.opencloud.android.R
-import eu.opencloud.android.domain.files.model.OCFile
 import eu.opencloud.android.presentation.authentication.ACTION_UPDATE_EXPIRED_TOKEN
 import eu.opencloud.android.presentation.authentication.EXTRA_ACCOUNT
 import eu.opencloud.android.presentation.authentication.EXTRA_ACTION
 import eu.opencloud.android.presentation.authentication.LoginActivity
-import eu.opencloud.android.presentation.conflicts.ConflictsResolveActivity
 import eu.opencloud.android.presentation.settings.SettingsActivity
 import eu.opencloud.android.presentation.settings.SettingsActivity.Companion.KEY_NOTIFICATION_INTENT
 import eu.opencloud.android.ui.activity.UploadListActivity
@@ -149,42 +147,4 @@ object NotificationUtils {
         }, delayInMillis)
     }
 
-    /**
-     * Show a notification with file conflict information, that will open a dialog to solve it when tapping it
-     *
-     * @param fileInConflict file in conflict
-     * @param account        account which the file in conflict belongs to
-     */
-    @JvmStatic
-    fun notifyConflict(fileInConflict: OCFile, context: Context) {
-        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        val notificationBuilder = newNotificationBuilder(context, FILE_SYNC_CONFLICT_NOTIFICATION_CHANNEL_ID)
-        notificationBuilder
-            .setTicker(context.getString(R.string.conflict_title))
-            .setContentTitle(context.getString(R.string.conflict_title))
-            .setContentText(
-                String.format(
-                    context.getString(R.string.conflict_description),
-                    fileInConflict.remotePath
-                )
-            )
-            .setAutoCancel(true)
-        val showConflictActivityIntent = Intent(context, ConflictsResolveActivity::class.java)
-        showConflictActivityIntent.flags = showConflictActivityIntent.flags or Intent.FLAG_ACTIVITY_NEW_TASK or
-                Intent.FLAG_FROM_BACKGROUND
-        showConflictActivityIntent.putExtra(ConflictsResolveActivity.EXTRA_FILE, fileInConflict)
-        notificationBuilder.setContentIntent(
-            PendingIntent.getActivity(
-                context, System.currentTimeMillis().toInt(),
-                showConflictActivityIntent, pendingIntentFlags
-            )
-        )
-        var notificationId = 0
-
-        // We need a notification id for each file in conflict, let's use the file id but in a safe way
-        if (fileInConflict.id!!.toInt() >= Int.MIN_VALUE && fileInConflict.id!!.toInt() <= Int.MAX_VALUE) {
-            notificationId = fileInConflict.id!!.toInt()
-        }
-        notificationManager.notify(notificationId, notificationBuilder.build())
-    }
 }

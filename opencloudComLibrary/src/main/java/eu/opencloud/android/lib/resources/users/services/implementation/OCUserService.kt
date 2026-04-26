@@ -42,7 +42,7 @@ class OCUserService(override val client: OpenCloudClient) : UserService {
     override fun getUserQuota(): RemoteOperationResult<GetRemoteUserQuotaOperation.RemoteQuota> =
         GetRemoteUserQuotaOperation().execute(client)
 
-    override fun getUserAvatar(avatarDimension: Int): RemoteOperationResult<RemoteAvatarData> =
+    override fun getUserAvatar(): RemoteOperationResult<RemoteAvatarData> =
         GetRemoteUserAvatarOperation().execute(client)
 
 }

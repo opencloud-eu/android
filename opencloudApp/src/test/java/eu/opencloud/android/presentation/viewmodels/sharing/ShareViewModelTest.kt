@@ -51,7 +51,7 @@ import io.mockk.spyk
 import io.mockk.unmockkAll
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.TestCoroutineDispatcher
+import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
 import org.junit.After
@@ -84,7 +84,7 @@ class ShareViewModelTest {
     private val sharesLiveData = MutableLiveData<List<OCShare>>()
     private val privateShareLiveData = MutableLiveData<OCShare>()
 
-    private val testCoroutineDispatcher = TestCoroutineDispatcher()
+    private val testCoroutineDispatcher = StandardTestDispatcher()
     private val coroutineDispatcherProvider: CoroutinesDispatcherProvider = CoroutinesDispatcherProvider(
         io = testCoroutineDispatcher,
         main = testCoroutineDispatcher,
@@ -117,7 +117,6 @@ class ShareViewModelTest {
     @After
     fun tearDown() {
         Dispatchers.resetMain()
-        testCoroutineDispatcher.cleanupTestCoroutines()
 
         stopKoin()
         unmockkAll()
@@ -136,8 +135,6 @@ class ShareViewModelTest {
 
         every { getSharesAsLiveDataUseCase(any()) } returns sharesLiveData
         every { getShareAsLiveDataUseCase(any()) } returns privateShareLiveData
-
-        testCoroutineDispatcher.pauseDispatcher()
 
         shareViewModel = ShareViewModel(
             filePath,
@@ -193,7 +190,7 @@ class ShareViewModelTest {
         )
 
         val emittedValues = shareViewModel.privateShareCreationStatus.getEmittedValues(expectedValues.size) {
-            testCoroutineDispatcher.resumeDispatcher()
+            testCoroutineDispatcher.scheduler.advanceUntilIdle()
         }
         assertEquals(expectedValues, emittedValues)
 
@@ -209,7 +206,7 @@ class ShareViewModelTest {
         shareViewModel.refreshPrivateShare(OC_SHARE.remoteId)
 
         val emittedValues = shareViewModel.privateShare.getLastEmittedValue {
-            testCoroutineDispatcher.resumeDispatcher()
+            testCoroutineDispatcher.scheduler.advanceUntilIdle()
         }
         assertEquals(Event(UIResult.Success(OC_SHARE)), emittedValues)
 
@@ -248,7 +245,7 @@ class ShareViewModelTest {
         )
 
         val emittedValues = shareViewModel.privateShareEditionStatus.getEmittedValues(expectedValues.size) {
-            testCoroutineDispatcher.resumeDispatcher()
+            testCoroutineDispatcher.scheduler.advanceUntilIdle()
         }
         assertEquals(expectedValues, emittedValues)
 
@@ -295,7 +292,7 @@ class ShareViewModelTest {
         )
 
         val emittedValues = shareViewModel.publicShareCreationStatus.getEmittedValues(expectedValues.size) {
-            testCoroutineDispatcher.resumeDispatcher()
+            testCoroutineDispatcher.scheduler.advanceUntilIdle()
         }
         assertEquals(expectedValues, emittedValues)
 
@@ -338,7 +335,7 @@ class ShareViewModelTest {
         )
 
         val emittedValues = shareViewModel.publicShareEditionStatus.getEmittedValues(expectedValues.size) {
-            testCoroutineDispatcher.resumeDispatcher()
+            testCoroutineDispatcher.scheduler.advanceUntilIdle()
         }
         assertEquals(expectedValues, emittedValues)
 
@@ -378,7 +375,7 @@ class ShareViewModelTest {
         shareViewModel.deleteShare(remoteId = OC_SHARE.remoteId)
 
         val emittedValues = shareViewModel.shareDeletionStatus.getEmittedValues(expectedValues.size) {
-            testCoroutineDispatcher.resumeDispatcher()
+            testCoroutineDispatcher.scheduler.advanceUntilIdle()
         }
 
         assertEquals(expectedValues, emittedValues)

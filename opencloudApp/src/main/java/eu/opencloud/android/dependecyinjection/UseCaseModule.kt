@@ -72,7 +72,6 @@ import eu.opencloud.android.domain.files.usecases.ManageDeepLinkUseCase
 import eu.opencloud.android.domain.files.usecases.MoveFileUseCase
 import eu.opencloud.android.domain.files.usecases.RemoveFileUseCase
 import eu.opencloud.android.domain.files.usecases.RenameFileUseCase
-import eu.opencloud.android.domain.files.usecases.SaveConflictUseCase
 import eu.opencloud.android.domain.files.usecases.SaveDownloadWorkerUUIDUseCase
 import eu.opencloud.android.domain.files.usecases.SaveFileOrFolderUseCase
 import eu.opencloud.android.domain.files.usecases.SetLastUsageFileUseCase
@@ -184,7 +183,6 @@ val useCaseModule = module {
     factoryOf(::RemoveLocalFilesForAccountUseCase)
     factoryOf(::RemoveLocallyFilesWithLastUsageOlderThanGivenTimeUseCase)
     factoryOf(::RenameFileUseCase)
-    factoryOf(::SaveConflictUseCase)
     factoryOf(::SaveDownloadWorkerUUIDUseCase)
     factoryOf(::SaveFileOrFolderUseCase)
     factoryOf(::SetLastUsageFileUseCase)

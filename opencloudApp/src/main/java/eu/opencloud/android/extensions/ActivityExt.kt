@@ -33,7 +33,6 @@ import android.net.Uri
 import android.text.method.LinkMovementMethod
 import android.util.TypedValue
 import android.view.inputmethod.InputMethodManager
-import android.webkit.MimeTypeMap
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
@@ -163,8 +162,8 @@ private fun getIntentForSavedMimeType(data: Uri, type: String): Intent {
 private fun getIntentForGuessedMimeType(storagePath: String, type: String, data: Uri): Intent? {
     var intentForGuessedMimeType: Intent? = null
     if (storagePath.lastIndexOf('.') >= 0) {
-        val guessedMimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(storagePath.substring(storagePath.lastIndexOf('.') + 1))
-        if (guessedMimeType != null && guessedMimeType != type) {
+        val guessedMimeType = MimetypeIconUtil.getBestMimeTypeByFilename(storagePath)
+        if (guessedMimeType != null && guessedMimeType != type && guessedMimeType != "application/octet-stream") {
             intentForGuessedMimeType = Intent(Intent.ACTION_VIEW)
             intentForGuessedMimeType.setDataAndType(data, guessedMimeType)
             intentForGuessedMimeType.flags = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
@@ -456,8 +455,13 @@ fun FragmentActivity.sendDownloadedFilesByShareSheet(ocFiles: List<OCFile>) {
 }
 
 fun Activity.openOCFile(ocFile: OCFile) {
+    var finalMimeType = MimetypeIconUtil.getBestMimeTypeByFilename(ocFile.fileName)
+    if (finalMimeType.isNullOrEmpty() || finalMimeType == "application/octet-stream") {
+        finalMimeType = ocFile.mimeType
+    }
+
     val intentForSavedMimeType = Intent(Intent.ACTION_VIEW).apply {
-        setDataAndType(getExposedFileUriForOCFile(this@openOCFile, ocFile), ocFile.mimeType)
+        setDataAndType(getExposedFileUriForOCFile(this@openOCFile, ocFile), finalMimeType)
         flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
         if (ocFile.hasWritePermission) {
             flags = flags or Intent.FLAG_GRANT_WRITE_URI_PERMISSION

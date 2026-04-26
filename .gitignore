@@ -33,3 +33,6 @@ lint-*ml
 
 # Prevent exidental commits of build folders
 opencloudApp/release
+
+# Log files
+logcat.txt

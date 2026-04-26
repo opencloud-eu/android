@@ -32,7 +32,6 @@ import eu.opencloud.android.lib.resources.users.RemoteUserInfo
 
 class OCRemoteUserDataSource(
     private val clientManager: ClientManager,
-    private val avatarDimension: Int
 ) : RemoteUserDataSource {
 
     override fun getUserInfo(accountName: String): UserInfo =
@@ -47,7 +46,7 @@ class OCRemoteUserDataSource(
 
     override fun getUserAvatar(accountName: String): UserAvatar =
         executeRemoteOperation {
-            clientManager.getUserService(accountName = accountName).getUserAvatar(avatarDimension)
+            clientManager.getUserService(accountName = accountName).getUserAvatar()
         }.toDomain()
 
 }

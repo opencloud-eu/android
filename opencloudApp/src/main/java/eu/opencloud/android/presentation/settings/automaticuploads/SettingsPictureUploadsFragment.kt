@@ -183,8 +183,12 @@ class SettingsPictureUploadsFragment : PreferenceFragmentCompat() {
                     positiveButtonText = getString(R.string.common_yes),
                     positiveButtonListener = { _: DialogInterface?, _: Int ->
                         picturesViewModel.disablePictureUploads()
+                        prefEnablePictureUploads?.isChecked = false
                     },
-                    negativeButtonText = getString(R.string.common_no)
+                    negativeButtonText = getString(R.string.common_no),
+                    negativeButtonListener = { _, _ ->
+                        prefEnablePictureUploads?.isChecked = true
+                    }
                 )
                 false
             }

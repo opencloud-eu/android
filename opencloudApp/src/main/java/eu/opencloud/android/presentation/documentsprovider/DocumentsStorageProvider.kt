@@ -65,8 +65,6 @@ import eu.opencloud.android.usecases.synchronization.SynchronizeFileUseCase
 import eu.opencloud.android.usecases.transfers.downloads.DownloadFileUseCase
 import eu.opencloud.android.usecases.synchronization.SynchronizeFolderUseCase
 import eu.opencloud.android.usecases.transfers.uploads.UploadFilesFromSystemUseCase
-import eu.opencloud.android.utils.FileStorageUtils
-import eu.opencloud.android.utils.NotificationUtils
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import kotlinx.coroutines.CoroutineScope
@@ -168,11 +166,10 @@ class DocumentsStorageProvider : DocumentsProvider() {
                                 return null
                             }
                         }
-                        is SynchronizeFileUseCase.SyncType.ConflictDetected -> {
-                            // File changed both locally and remotely. Notify the user and
-                            // serve the local version (same behavior as before).
-                            context?.let {
-                                NotificationUtils.notifyConflict(fileInConflict = ocFile, context = it)
+                        is SynchronizeFileUseCase.SyncType.ConflictResolvedWithCopy -> {
+                            // Conflict resolved by keeping a local copy and downloading the remote version.
+                            if (!waitForDownload(syncResult.workerId, documentId.toInt(), signal)) {
+                                return null
                             }
                         }
                         is SynchronizeFileUseCase.SyncType.FileNotFound -> {
@@ -532,7 +529,11 @@ class DocumentsStorageProvider : DocumentsProvider() {
     ): String {
         // We just need to return a Document ID, so we'll return an empty one. File does not exist in our db yet.
         // File will be created at [openDocument] method.
-        val tempDir = File(FileStorageUtils.getTemporalPath(parentDocument.owner, parentDocument.spaceId))
+        val cacheBase = context?.externalCacheDir ?: context?.cacheDir
+        val baseTmpDir = File(cacheBase, "upload_tmp")
+        val accountSanitized = Uri.encode(parentDocument.owner, "@")
+        val accountDir = File(baseTmpDir, accountSanitized)
+        val tempDir = if (parentDocument.spaceId != null) File(accountDir, parentDocument.spaceId!!) else accountDir
         val newFile = File(tempDir, displayName)
         newFile.parentFile?.mkdirs()
         fileToUpload = OCFile(
@@ -656,10 +657,9 @@ class DocumentsStorageProvider : DocumentsProvider() {
             )
             Timber.d("${fileToSync.remotePath} from ${fileToSync.owner} synced with result: $useCaseResult")
 
-            if (useCaseResult.getDataOrNull() is SynchronizeFileUseCase.SyncType.ConflictDetected) {
-                context?.let {
-                    NotificationUtils.notifyConflict(fileInConflict = fileToSync, context = it)
-                }
+            val syncResult = useCaseResult.getDataOrNull()
+            if (syncResult is SynchronizeFileUseCase.SyncType.ConflictResolvedWithCopy) {
+                Timber.i("File sync conflict auto-resolved. Conflicted copy at: ${syncResult.conflictedCopyPath}")
             }
         }
     }

@@ -86,7 +86,7 @@ class StorageMigrationActivity : AppCompatActivity() {
 
     companion object {
 
-        private val legacyStorageFolder = File(LegacyStorageProvider(MainApp.dataFolder).getRootFolderPath())
+        private val legacyStorageFolder = File(LegacyStorageProvider(MainApp.dataFolder.lowercase()).getRootFolderPath())
 
         const val PREFERENCE_ALREADY_MIGRATED_TO_SCOPED_STORAGE = "MIGRATED_TO_SCOPED_STORAGE"
 

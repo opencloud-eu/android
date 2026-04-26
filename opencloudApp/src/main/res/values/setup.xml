@@ -11,7 +11,7 @@
     <string name="search_suggest_intent_action" formatted="false">eu.opencloud.search.users_and_groups.action.SHARE_WITH</string>
     <string name="db_file" formatted="false">opencloud.db</string>
     <string name="db_name" formatted="false">OpenCloud</string>
-    <string name="data_folder" formatted="false">opencloud</string>
+    <string name="data_folder" formatted="false">OpenCloud</string>
     <string name="log_name" formatted="false">OpenCloud_</string>
     <string name="default_display_name_for_root_folder" formatted="false">OpenCloud</string>
     <string name="user_agent">Mozilla/5.0 (Android) OpenCloud-android/%1$s</string>

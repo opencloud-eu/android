@@ -94,7 +94,8 @@ class UploadFileFromFileSystemWorker(
     private val getWebdavUrlForSpaceUseCase: GetWebDavUrlForSpaceUseCase by inject()
 
     // Etag in conflict required to overwrite files in server. Otherwise, the upload will be rejected.
-    private var eTagInConflict: String = ""
+    private var overwriteEtag: String = ""
+    private var overwriteEtagFromInput: String? = null
 
     private var lastPercent = -1
 
@@ -151,6 +152,7 @@ class UploadFileFromFileSystemWorker(
         val paramFileSystemUri = workerParameters.inputData.getString(KEY_PARAM_LOCAL_PATH)
         val paramUploadId = workerParameters.inputData.getLong(KEY_PARAM_UPLOAD_ID, -1)
         val paramRemoveLocal = workerParameters.inputData.getBoolean(KEY_PARAM_REMOVE_LOCAL, false)
+        overwriteEtagFromInput = workerParameters.inputData.getString(KEY_PARAM_OVERWRITE_ETAG)
 
         account = AccountUtils.getOpenCloudAccountByName(appContext, paramAccountName) ?: return false
         fileSystemPath = paramFileSystemUri.takeUnless { it.isNullOrBlank() } ?: return false
@@ -223,18 +225,19 @@ class UploadFileFromFileSystemWorker(
     private fun checkNameCollisionAndGetAnAvailableOneInCase(client: OpenCloudClient) {
         if (ocTransfer.forceOverwrite) {
 
-            val getFileByRemotePathUseCase: GetFileByRemotePathUseCase by inject()
-            val useCaseResult = getFileByRemotePathUseCase(
-                GetFileByRemotePathUseCase.Params(
-                    ocTransfer.accountName,
-                    ocTransfer.remotePath,
-                    ocTransfer.spaceId
+            overwriteEtag = overwriteEtagFromInput ?: run {
+                val getFileByRemotePathUseCase: GetFileByRemotePathUseCase by inject()
+                val useCaseResult = getFileByRemotePathUseCase(
+                    GetFileByRemotePathUseCase.Params(
+                        ocTransfer.accountName,
+                        ocTransfer.remotePath,
+                        ocTransfer.spaceId
+                    )
                 )
-            )
+                useCaseResult.getDataOrNull()?.etag.orEmpty()
+            }
 
-            eTagInConflict = useCaseResult.getDataOrNull()?.etagInConflict.orEmpty()
-
-            Timber.d("Upload will overwrite current server file with the following etag in conflict: $eTagInConflict")
+            Timber.d("Upload will overwrite current server file with required etag: $overwriteEtag")
         } else {
 
             Timber.d("Checking name collision in server")
@@ -323,7 +326,7 @@ class UploadFileFromFileSystemWorker(
             remotePath = uploadPath,
             mimeType = mimetype,
             lastModifiedTimestamp = lastModified,
-            requiredEtag = eTagInConflict,
+            requiredEtag = overwriteEtag,
             spaceWebDavUrl = spaceWebDavUrl,
         ).apply {
             addDataTransferProgressListener(this@UploadFileFromFileSystemWorker)
@@ -415,7 +418,8 @@ class UploadFileFromFileSystemWorker(
                 if (ocTransfer.forceOverwrite) {
                     ocFile.copy(
                         needsToUpdateThumbnail = true,
-                        etag = finalEtag,
+                        etag = finalEtag.ifBlank { ocFile.etag },
+                        remoteEtag = finalEtag.ifBlank { ocFile.remoteEtag },
                         length = fileSize,
                         lastSyncDateForData = currentTime,
                         modifiedAtLastSyncForData = currentTime,
@@ -426,6 +430,7 @@ class UploadFileFromFileSystemWorker(
                         storagePath = null,
                         needsToUpdateThumbnail = true,
                         etag = finalEtag.ifBlank { ocFile.etag },
+                        remoteEtag = finalEtag.ifBlank { ocFile.remoteEtag },
                         length = fileSize,
                         lastSyncDateForData = currentTime,
                         modifiedAtLastSyncForData = currentTime,
@@ -569,5 +574,6 @@ class UploadFileFromFileSystemWorker(
         const val KEY_PARAM_UPLOAD_PATH: String = "KEY_PARAM_UPLOAD_PATH"
         const val KEY_PARAM_UPLOAD_ID: String = "KEY_PARAM_UPLOAD_ID"
         const val KEY_PARAM_REMOVE_LOCAL: String = "KEY_REMOVE_LOCAL"
+        const val KEY_PARAM_OVERWRITE_ETAG: String = "KEY_PARAM_OVERWRITE_ETAG"
     }
 }

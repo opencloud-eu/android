@@ -44,8 +44,6 @@ class OCRemoteUserDataSourceTest {
     private val clientManager: ClientManager = mockk(relaxed = true)
     private val ocUserService: OCUserService = mockk()
 
-    private val avatarDimension = 128
-
     private val remoteUserInfo = RemoteUserInfo(
         id = OC_USER_INFO.id,
         displayName = OC_USER_INFO.displayName,
@@ -69,7 +67,6 @@ class OCRemoteUserDataSourceTest {
 
         ocRemoteUserDataSource = OCRemoteUserDataSource(
             clientManager,
-            avatarDimension
         )
     }
 
@@ -113,7 +110,7 @@ class OCRemoteUserDataSourceTest {
             createRemoteOperationResultMock(data = remoteAvatar, isSuccess = true)
 
         every {
-            ocUserService.getUserAvatar(avatarDimension)
+            ocUserService.getUserAvatar()
         } returns getUserAvatarResult
 
         val userAvatar = ocRemoteUserDataSource.getUserAvatar(OC_ACCOUNT_NAME)
@@ -121,7 +118,7 @@ class OCRemoteUserDataSourceTest {
         assertNotNull(userAvatar)
         assertEquals(OC_USER_AVATAR, userAvatar)
 
-        verify(exactly = 1) { ocUserService.getUserAvatar(avatarDimension) }
+        verify(exactly = 1) { ocUserService.getUserAvatar() }
     }
 }
 
