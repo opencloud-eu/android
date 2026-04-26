@@ -47,8 +47,7 @@ import eu.opencloud.android.presentation.security.passcode.PasscodeAction
 import eu.opencloud.android.presentation.security.pattern.PatternViewModel
 import eu.opencloud.android.presentation.settings.SettingsViewModel
 import eu.opencloud.android.presentation.settings.advanced.SettingsAdvancedViewModel
-import eu.opencloud.android.presentation.settings.automaticuploads.SettingsPictureUploadsViewModel
-import eu.opencloud.android.presentation.settings.automaticuploads.SettingsVideoUploadsViewModel
+import eu.opencloud.android.presentation.settings.automaticuploads.SettingsAutoUploadViewModel
 import eu.opencloud.android.presentation.settings.logging.SettingsLogsViewModel
 import eu.opencloud.android.presentation.settings.more.SettingsMoreViewModel
 import eu.opencloud.android.presentation.settings.security.SettingsSecurityViewModel
@@ -79,9 +78,7 @@ val viewModelModule = module {
     viewModelOf(::SettingsAdvancedViewModel)
     viewModelOf(::SettingsLogsViewModel)
     viewModelOf(::SettingsMoreViewModel)
-    viewModelOf(::SettingsPictureUploadsViewModel)
     viewModelOf(::SettingsSecurityViewModel)
-    viewModelOf(::SettingsVideoUploadsViewModel)
     viewModelOf(::SettingsViewModel)
     viewModelOf(::FileOperationsViewModel)
 
@@ -102,5 +99,8 @@ val viewModelModule = module {
     viewModel { ReceiveExternalFilesViewModel(get(), get(), get(), get()) }
     viewModel { (accountName: String, showPersonalSpace: Boolean) ->
         SpacesListViewModel(get(), get(), get(), get(), get(), get(), get(), accountName, showPersonalSpace)
+    }
+    viewModel { (configName: String) ->
+        SettingsAutoUploadViewModel(configName, get(), get(), get(), get(), get(), get(), get(), get(), get(), get())
     }
 }

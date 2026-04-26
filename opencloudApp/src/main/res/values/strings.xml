@@ -202,6 +202,8 @@
     <string name="list_layout">List layout</string>
     <string name="action_share">Share</string>
     <string name="login_account_preparing">Preparing account for first launch</string>
+    <string name="common_ok">OK</string>
+    <string name="common_cancel">Cancel</string>
     <string name="common_yes">Yes</string>
     <string name="common_no">No</string>
     <string name="common_remove_upload">Remove upload</string>
@@ -573,10 +575,15 @@
     <string name="file_list__footer__files">%1$d files</string>
     <string name="file_list__footer__files_and_folder">%1$d files, 1 folder</string>
     <string name="file_list__footer__files_and_folders">%1$d files, %2$d folders</string>
+    <string name="prefs_auto_upload_no_account_selected">No account selected</string>
+
+    <string name="prefs_camera_upload_no_account_selected">No account selected</string>
+    <string name="prefs_camera_upload_source_path_empty_summary">None</string>
+    <string name="prefs_camera_upload_last_sync_empty_summary">Never</string>
     <string name="prefs_picture_upload_account">Account to upload pictures</string>
     <string name="prefs_video_upload_account">Account to upload videos</string>
-    <string name="prefs_camera_upload_source_path_title">Camera folder (%1$s)</string>
-    <string name="prefs_camera_upload_source_path_title_required">required</string>
+    <string name="prefs_camera_upload_source_path_title">Camera folder</string>
+    <string name="prefs_camera_upload_source_path_title_required">Camera folder (required)</string>
     <string name="prefs_camera_upload_behaviour_dialog_title">Original file will be</string>
     <string name="prefs_camera_upload_behaviour_title">Original file will be</string>
     <string name="prefs_camera_upload_last_sync_title">Last synchronization</string>

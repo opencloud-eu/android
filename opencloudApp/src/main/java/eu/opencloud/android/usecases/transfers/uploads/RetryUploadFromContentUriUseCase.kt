@@ -26,6 +26,7 @@ import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import eu.opencloud.android.domain.BaseUseCase
 import eu.opencloud.android.domain.transfers.TransferRepository
+import eu.opencloud.android.domain.transfers.model.UploadEnqueuedBy
 import eu.opencloud.android.extensions.getWorkInfoByTags
 import eu.opencloud.android.workers.UploadFileFromContentUriWorker
 import timber.log.Timber
@@ -60,6 +61,12 @@ class RetryUploadFromContentUriUseCase(
                 ?.div(1000)
                 ?.toString()
 
+            val autoUploadSourcePath = when (uploadToRetry.createdBy) {
+                UploadEnqueuedBy.ENQUEUED_AS_AUTOMATIC_UPLOAD_PICTURE,
+                UploadEnqueuedBy.ENQUEUED_AS_AUTOMATIC_UPLOAD_VIDEO -> null
+                else -> uploadToRetry.sourcePath
+            }
+
             uploadFileFromContentUriUseCase(
                 UploadFileFromContentUriUseCase.Params(
                     accountName = uploadToRetry.accountName,
@@ -69,7 +76,8 @@ class RetryUploadFromContentUriUseCase(
                     uploadPath = uploadToRetry.remotePath,
                     uploadIdInStorageManager = params.uploadIdInStorageManager,
                     wifiOnly = false,
-                    chargingOnly = false
+                    chargingOnly = false,
+                    autoUploadSourcePath = autoUploadSourcePath,
                 )
             )
         } else {
