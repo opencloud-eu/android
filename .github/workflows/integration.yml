@@ -45,5 +45,7 @@ jobs:
           script: |
             curl -L -o adbserver-desktop.jar https://github.com/KasperskyLab/Kaspresso/raw/master/artifacts/adbserver-desktop.jar
             java -jar adbserver-desktop.jar &
+            ADB_SERVER_PID=$!
             sleep 3
             ./gradlew :opencloudApp:connectedOriginalDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=eu.opencloud.android.LoginScreenTest#loginApp
+            kill $ADB_SERVER_PID || true
