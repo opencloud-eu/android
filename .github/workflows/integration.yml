@@ -47,3 +47,11 @@ jobs:
             java -jar adbserver-desktop.jar &
             sleep 3
             ./gradlew :opencloudApp:connectedOriginalDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=eu.opencloud.android.LoginScreenTest#loginApp
+            adb pull /sdcard/Documents/screenshots/ opencloudApp/build/screenshots/ || true
+
+      - name: Upload test artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-artifacts
+          path: opencloudApp/build/screenshots/

@@ -30,6 +30,11 @@ class LoginScreenTest : TestCase(
     @get:Rule
     val activityRule = ActivityScenarioRule(SplashActivity::class.java)
 
+    @get:Rule
+    val permissionRule: GrantPermissionRule = GrantPermissionRule.grant(
+        android.Manifest.permission.READ_EXTERNAL_STORAGE,
+        android.Manifest.permission.WRITE_EXTERNAL_STORAGE
+    )
 
     @Test
     fun loginApp() {
