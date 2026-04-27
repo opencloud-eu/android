@@ -35,6 +35,9 @@ class LoginScreenTest : TestCase(
     fun loginApp() {
         before {
 //            adbServer.performCmd("adb", listOf("reverse", "tcp:9200", "tcp:9200"))
+            adbServer.performCmd("adb", listOf("shell", "settings", "put", "global", "heads_up_notifications_enabled", "0"))
+            adbServer.performCmd("adb", listOf("shell", "wm", "dismiss-keyguard"))
+            adbServer.performCmd("adb", listOf("shell", "input", "keyevent", "82"))
         }.after {
             adbServer.performCmd("adb", listOf("shell", "am", "force-stop", "com.android.chrome"))
 //            adbServer.performCmd("adb", listOf("reverse", "--remove", "tcp:9200"))
