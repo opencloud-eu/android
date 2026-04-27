@@ -1,0 +1,27 @@
+services:
+  android-container:
+    build:
+      context: .
+    container_name: android-container
+    privileged: true
+    environment:
+      - EMULATOR_DEVICE=Samsung Galaxy S10
+      - WEB_VNC=true
+      - WEB_LOG=true
+      - WEB_LOG_PORT=9000
+      - VNC_PASSWORD=yRBLPq4h5bVAzDT83f6jQX
+      - ENV_LOG_PATH=/var/log/
+    volumes:
+      - data:/home/androidusr
+      - root:/root
+    ports:
+      - "6080:6080"
+      - "9005:9000"
+      - "5555:5555"
+    devices:
+      - "/dev/kvm:/dev/kvm"
+    restart: always
+
+volumes:
+  data:
+  root:
