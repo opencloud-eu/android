@@ -26,9 +26,9 @@ package eu.opencloud.android.presentation.accounts
 import android.accounts.Account
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import eu.opencloud.android.domain.user.model.UserQuota
 import eu.opencloud.android.domain.automaticuploads.model.AutomaticUploadsConfiguration
 import eu.opencloud.android.domain.automaticuploads.usecases.GetAutomaticUploadsConfigurationUseCase
+import eu.opencloud.android.domain.user.model.UserQuota
 import eu.opencloud.android.domain.user.usecases.GetStoredQuotaUseCase
 import eu.opencloud.android.domain.user.usecases.GetUserQuotasAsStreamUseCase
 import eu.opencloud.android.domain.utils.Event
@@ -83,8 +83,7 @@ class ManageAccountsViewModel(
     }
 
     fun hasAutomaticUploadsAttached(accountName: String): Boolean =
-        accountName == automaticUploadsConfiguration?.pictureUploadsConfiguration?.accountName ||
-                accountName == automaticUploadsConfiguration?.videoUploadsConfiguration?.accountName
+        automaticUploadsConfiguration?.folderBackUpConfigurations?.any { it.accountName == accountName } ?: false
 
     fun checkUserLight(accountName: String): Boolean = runBlocking(CoroutinesDispatcherProvider().io) {
         val quota = withContext(CoroutinesDispatcherProvider().io) {

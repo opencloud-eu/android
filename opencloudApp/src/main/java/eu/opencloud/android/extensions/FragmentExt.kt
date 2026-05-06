@@ -53,18 +53,30 @@ fun Fragment.showMessageInSnackbar(
 
 fun Fragment.showAlertDialog(
     title: String,
-    message: String,
+    message: String?,
     positiveButtonText: String = getString(android.R.string.ok),
-    positiveButtonListener: ((DialogInterface, Int) -> Unit)? = null,
+    positiveButtonAction: (() -> Unit)? = null,
     negativeButtonText: String = "",
-    negativeButtonListener: ((DialogInterface, Int) -> Unit)? = null
+    negativeButtonAction: (() -> Unit)? = null,
+    cancelable: Boolean = true,
+    singleChoiceItems: Array<String>? = null,
+    checkedItem: Int = -1,
+    onSingleChoiceItemSelected: ((DialogInterface, Int) -> Unit)? = null
 ) {
     val requiredActivity = activity ?: return
     AlertDialog.Builder(requiredActivity)
         .setTitle(title)
         .setMessage(message)
-        .setPositiveButton(positiveButtonText, positiveButtonListener)
-        .setNegativeButton(negativeButtonText, negativeButtonListener)
+        .setPositiveButton(positiveButtonText) { _, _ -> positiveButtonAction?.invoke() }
+        .apply {
+            if (negativeButtonText.isNotEmpty()) {
+                setNegativeButton(negativeButtonText) { _, _ -> negativeButtonAction?.invoke() }
+            }
+            if (singleChoiceItems != null) {
+                setSingleChoiceItems(singleChoiceItems, checkedItem, onSingleChoiceItemSelected)
+            }
+        }
+        .setCancelable(cancelable)
         .show()
         .avoidScreenshotsIfNeeded()
 }

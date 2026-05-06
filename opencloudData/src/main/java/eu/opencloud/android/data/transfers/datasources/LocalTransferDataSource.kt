@@ -40,6 +40,7 @@ interface LocalTransferDataSource {
 
     fun updateTransferLocalPath(id: Long, localPath: String)
     fun updateTransferSourcePath(id: Long, sourcePath: String)
+    fun updateTransferRemotePath(id: Long, remotePath: String)
     fun updateTransferStorageDirectoryInLocalPath(
         id: Long,
         oldDirectory: String,

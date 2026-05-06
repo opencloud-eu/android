@@ -22,35 +22,43 @@
 
     <SwitchPreferenceCompat
         app:iconSpaceReserved="false"
-        app:key="enable_picture_uploads"
-        app:summary="@string/prefs_camera_picture_upload_summary"
-        app:title="@string/prefs_camera_picture_upload" />
+        app:key="auto_upload_enabled"
+        app:summary=""
+        app:title="" />
     <ListPreference
-        app:dialogTitle="@string/prefs_picture_upload_account"
+        app:dialogTitle=""
         app:iconSpaceReserved="false"
-        app:key="picture_uploads_account_name"
+        app:key="auto_upload_account_name"
         app:negativeButtonText=""
-        app:title="@string/prefs_picture_upload_account"
+        app:title=""
         app:useSimpleSummaryProvider="true" />
     <Preference
         app:iconSpaceReserved="false"
-        app:key="picture_uploads_path"
+        app:key="auto_upload_path"
         app:title="@string/prefs_camera_picture_upload_path_title" />
     <Preference
         app:iconSpaceReserved="false"
-        app:key="picture_uploads_source_path"
+        app:key="auto_upload_source_path"
         app:title="@string/prefs_camera_upload_source_path_title" />
     <ListPreference
         app:defaultValue="NOTHING"
         app:dialogTitle="@string/prefs_camera_upload_behaviour_dialog_title"
         app:iconSpaceReserved="false"
-        app:key="picture_uploads_behaviour"
+        app:key="auto_upload_behaviour"
         app:negativeButtonText=""
         app:title="@string/prefs_camera_upload_behaviour_title"
         app:useSimpleSummaryProvider="true" />
+    <ListPreference
+        app:defaultValue="NONE"
+        app:dialogTitle="@string/prefs_camera_upload_use_subfolders_dialog_title"
+        app:iconSpaceReserved="false"
+        app:key="auto_upload_use_subfolders_behaviour"
+        app:negativeButtonText=""
+        app:title="@string/prefs_camera_upload_use_subfolders_title"
+        app:useSimpleSummaryProvider="true" />
     <Preference
         app:iconSpaceReserved="false"
-        app:key="picture_uploads_last_sync"
+        app:key="auto_upload_last_sync"
         app:title="@string/prefs_camera_upload_last_sync_title" />
     <eu.opencloud.android.presentation.settings.LargePreferenceCategory
         android:title="@string/prefs_camera_picture_upload_conditions_title"
@@ -58,11 +66,11 @@
         app:summary="@string/prefs_camera_picture_upload_conditions_summary">
         <CheckBoxPreference
             app:iconSpaceReserved="false"
-            app:key="picture_uploads_on_wifi"
+            app:key="auto_upload_on_wifi"
             app:title="@string/prefs_camera_picture_upload_on_wifi" />
         <CheckBoxPreference
             app:iconSpaceReserved="false"
-            app:key="picture_uploads_on_charging"
+            app:key="auto_upload_on_charging"
             app:title="@string/prefs_camera_picture_upload_on_charging" />
     </eu.opencloud.android.presentation.settings.LargePreferenceCategory>
 </PreferenceScreen>

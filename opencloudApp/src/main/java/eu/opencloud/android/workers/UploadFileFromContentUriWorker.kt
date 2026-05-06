@@ -36,7 +36,11 @@ import androidx.work.workDataOf
 import eu.opencloud.android.R
 import eu.opencloud.android.data.executeRemoteOperation
 import eu.opencloud.android.data.providers.LocalStorageProvider
+import eu.opencloud.android.domain.UseCaseResult
+import eu.opencloud.android.domain.automaticuploads.model.FolderBackUpConfiguration
 import eu.opencloud.android.domain.automaticuploads.model.UploadBehavior
+import eu.opencloud.android.domain.automaticuploads.usecases.GetAutomaticUploadsConfigurationUseCase
+import eu.opencloud.android.domain.capabilities.usecases.GetStoredCapabilitiesUseCase
 import eu.opencloud.android.domain.exceptions.LocalFileNotFoundException
 import eu.opencloud.android.domain.exceptions.NetworkErrorException
 import eu.opencloud.android.domain.exceptions.NoConnectionWithServerException
@@ -50,9 +54,9 @@ import eu.opencloud.android.domain.transfers.TransferRepository
 import eu.opencloud.android.domain.transfers.model.OCTransfer
 import eu.opencloud.android.domain.transfers.model.TransferResult
 import eu.opencloud.android.domain.transfers.model.TransferStatus
+import eu.opencloud.android.domain.transfers.model.UploadEnqueuedBy
 import eu.opencloud.android.extensions.isContentUri
 import eu.opencloud.android.extensions.parseError
-import eu.opencloud.android.domain.capabilities.usecases.GetStoredCapabilitiesUseCase
 import eu.opencloud.android.lib.common.OpenCloudAccount
 import eu.opencloud.android.lib.common.OpenCloudClient
 import eu.opencloud.android.lib.common.SingleSessionManager
@@ -62,9 +66,10 @@ import eu.opencloud.android.lib.resources.files.CheckPathExistenceRemoteOperatio
 import eu.opencloud.android.lib.resources.files.CreateRemoteFolderOperation
 import eu.opencloud.android.lib.resources.files.UploadFileFromFileSystemOperation
 import eu.opencloud.android.presentation.authentication.AccountUtils
+import eu.opencloud.android.utils.AutoUploadPathBuilder
 import eu.opencloud.android.utils.NotificationUtils
-import eu.opencloud.android.utils.UPLOAD_NOTIFICATION_CHANNEL_ID
 import eu.opencloud.android.utils.RemoteFileUtils.getAvailableRemotePath
+import eu.opencloud.android.utils.UPLOAD_NOTIFICATION_CHANNEL_ID
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -108,6 +113,7 @@ class UploadFileFromContentUriWorker(
     private val transferRepository: TransferRepository by inject()
     private val getWebdavUrlForSpaceUseCase: GetWebDavUrlForSpaceUseCase by inject()
     private val getStoredCapabilitiesUseCase: GetStoredCapabilitiesUseCase by inject()
+    private val getAutomaticUploadsConfigurationUseCase: GetAutomaticUploadsConfigurationUseCase by inject()
 
     override suspend fun doWork(): Result = try {
         prepareFile()
@@ -156,6 +162,7 @@ class UploadFileFromContentUriWorker(
         val paramBehavior = workerParameters.inputData.getString(KEY_PARAM_BEHAVIOR)
         val paramContentUri = workerParameters.inputData.getString(KEY_PARAM_CONTENT_URI)
         val paramUploadId = workerParameters.inputData.getLong(KEY_PARAM_UPLOAD_ID, -1)
+        val paramAutoUploadSourcePath = workerParameters.inputData.getString(KEY_PARAM_AUTO_UPLOAD_SOURCE_PATH)
 
         account = AccountUtils.getOpenCloudAccountByName(appContext, paramAccountName) ?: return false
         contentUri = paramContentUri?.toUri() ?: return false
@@ -164,6 +171,47 @@ class UploadFileFromContentUriWorker(
         lastModified = paramLastModified.orEmpty()
         uploadIdInStorageManager = paramUploadId
         ocTransfer = retrieveUploadInfoFromDatabase() ?: return false
+
+        if (paramAutoUploadSourcePath != null &&
+            (ocTransfer.createdBy == UploadEnqueuedBy.ENQUEUED_AS_AUTOMATIC_UPLOAD_PICTURE ||
+                    ocTransfer.createdBy == UploadEnqueuedBy.ENQUEUED_AS_AUTOMATIC_UPLOAD_VIDEO)
+        ) {
+            val expectedName = if (ocTransfer.createdBy == UploadEnqueuedBy.ENQUEUED_AS_AUTOMATIC_UPLOAD_PICTURE) {
+                FolderBackUpConfiguration.pictureUploadsName
+            } else {
+                FolderBackUpConfiguration.videoUploadsName
+            }
+
+            val result = getAutomaticUploadsConfigurationUseCase(Unit)
+            if (result is UseCaseResult.Success) {
+                val latestConfig = result.data?.folderBackUpConfigurations?.find {
+                    it.sourcePath == paramAutoUploadSourcePath &&
+                            it.accountName == account.name &&
+                            it.name == expectedName
+                }
+
+                if (latestConfig != null) {
+                    val documentFile = DocumentFile.fromSingleUri(appContext, contentUri)
+                    if (documentFile != null) {
+                        uploadPath = AutoUploadPathBuilder.buildUploadPath(documentFile, latestConfig)
+
+                        ocTransfer = ocTransfer.copy(
+                            remotePath = uploadPath,
+                            spaceId = latestConfig.spaceId,
+                        )
+
+                        Timber.i("Autoupload path updated to: %s", uploadPath)
+
+                        transferRepository.updateTransfer(ocTransfer)
+                    }
+                } else {
+                    // If config changed while waiting for wifi
+                    Timber.w("Autoupload config deleted before upload started! Canceling.")
+                    return false
+                }
+            }
+        }
+        // -----------------------------------------------------
 
         return true
     }
@@ -567,5 +615,6 @@ class UploadFileFromContentUriWorker(
         const val KEY_PARAM_LAST_MODIFIED = "KEY_PARAM_LAST_MODIFIED"
         const val KEY_PARAM_UPLOAD_PATH = "KEY_PARAM_UPLOAD_PATH"
         const val KEY_PARAM_UPLOAD_ID = "KEY_PARAM_UPLOAD_ID"
+        const val KEY_PARAM_AUTO_UPLOAD_SOURCE_PATH = "auto_upload_source_path"
     }
 }

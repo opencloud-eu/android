@@ -18,6 +18,7 @@
  */
 package eu.opencloud.android.data.folderbackup.db
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import eu.opencloud.android.data.ProviderMeta
@@ -29,6 +30,8 @@ data class FolderBackUpEntity(
     val sourcePath: String,
     val uploadPath: String,
     val wifiOnly: Boolean,
+    @ColumnInfo(name = "useSubfoldersBehaviour", defaultValue = "NONE")
+    val useSubfoldersBehaviour: String,
     val chargingOnly: Boolean,
     val name: String,
     val lastSyncTimestamp: Long,

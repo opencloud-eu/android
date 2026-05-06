@@ -29,6 +29,9 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface FolderBackupDao {
+    @Query(SELECT_ALL)
+    fun getAllFolderBackUpConfigurations(): List<FolderBackUpEntity>
+
     @Query(SELECT)
     fun getFolderBackUpConfigurationByName(
         name: String
@@ -52,6 +55,11 @@ interface FolderBackupDao {
     }
 
     companion object {
+        private const val SELECT_ALL = """
+            SELECT *
+            FROM ${ProviderMeta.ProviderTableMeta.FOLDER_BACKUP_TABLE_NAME}
+        """
+
         private const val SELECT = """
             SELECT *
             FROM ${ProviderMeta.ProviderTableMeta.FOLDER_BACKUP_TABLE_NAME}
