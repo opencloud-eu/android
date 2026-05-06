@@ -48,7 +48,9 @@ import eu.opencloud.android.db.PreferenceManager.PREF__CAMERA_PICTURE_UPLOADS_LA
 import eu.opencloud.android.db.PreferenceManager.PREF__CAMERA_PICTURE_UPLOADS_PATH
 import eu.opencloud.android.db.PreferenceManager.PREF__CAMERA_PICTURE_UPLOADS_SOURCE
 import eu.opencloud.android.db.PreferenceManager.PREF__CAMERA_PICTURE_UPLOADS_WIFI_ONLY
+import eu.opencloud.android.db.PreferenceManager.PREF__CAMERA_PICTURE_UPLOADS_USE_SUBFOLDERS_BEHAVIOUR
 import eu.opencloud.android.domain.automaticuploads.model.UploadBehavior
+import eu.opencloud.android.domain.automaticuploads.model.UseSubfoldersBehaviour
 import eu.opencloud.android.extensions.collectLatestLifecycleFlow
 import eu.opencloud.android.extensions.showAlertDialog
 import eu.opencloud.android.extensions.showMessageInSnackbar
@@ -71,6 +73,7 @@ class SettingsPictureUploadsFragment : PreferenceFragmentCompat() {
     private var prefPictureUploadsOnCharging: CheckBoxPreference? = null
     private var prefPictureUploadsSourcePath: Preference? = null
     private var prefPictureUploadsBehaviour: ListPreference? = null
+    private var prefPictureUploadsUseSubfolderBehaviour: ListPreference? = null
     private var prefPictureUploadsAccount: ListPreference? = null
     private var prefPictureUploadsLastSync: Preference? = null
     private var spaceId: String? = null
@@ -108,6 +111,20 @@ class SettingsPictureUploadsFragment : PreferenceFragmentCompat() {
                 getString(R.string.pref_behaviour_entries_remove_original_file)
             ).toTypedArray()
             entryValues = listOf(UploadBehavior.COPY.name, UploadBehavior.MOVE.name).toTypedArray()
+        }
+        prefPictureUploadsUseSubfolderBehaviour = findPreference<ListPreference>(PREF__CAMERA_PICTURE_UPLOADS_USE_SUBFOLDERS_BEHAVIOUR)?.apply {
+            entries = listOf(
+                getString(R.string.pref_use_subfolders_behaviour_none),
+                getString(R.string.pref_use_subfolders_behaviour_year),
+                getString(R.string.pref_use_subfolders_behaviour_year_month),
+                getString(R.string.pref_use_subfolders_behaviour_year_month_day),
+            ).toTypedArray()
+            entryValues = listOf(
+                UseSubfoldersBehaviour.NONE.name,
+                UseSubfoldersBehaviour.YEAR.name,
+                UseSubfoldersBehaviour.YEAR_MONTH.name,
+                UseSubfoldersBehaviour.YEAR_MONTH_DAY.name
+            ).toTypedArray()
         }
         prefPictureUploadsAccount = findPreference(PREF__CAMERA_PICTURE_UPLOADS_ACCOUNT_NAME)
 
@@ -155,6 +172,7 @@ class SettingsPictureUploadsFragment : PreferenceFragmentCompat() {
                                 prefPictureUploadsOnWifi?.isChecked = it.wifiOnly
                                 prefPictureUploadsOnCharging?.isChecked = it.chargingOnly
                                 prefPictureUploadsBehaviour?.value = it.behavior.name
+                                prefPictureUploadsUseSubfolderBehaviour?.value = it.useSubfoldersBehaviour.name
                                 prefPictureUploadsLastSync?.summary = DisplayUtils.unixTimeToHumanReadable(it.lastSyncTimestamp)
                                 spaceId = it.spaceId
                             } ?: resetFields()
@@ -223,6 +241,12 @@ class SettingsPictureUploadsFragment : PreferenceFragmentCompat() {
             true
         }
 
+        prefPictureUploadsUseSubfolderBehaviour?.setOnPreferenceChangeListener { _, newValue ->
+            newValue as String
+            picturesViewModel.handleSelectUseSubfoldersBehaviour(newValue)
+            true
+        }
+
         prefPictureUploadsOnWifi?.setOnPreferenceChangeListener { _, newValue ->
             newValue as Boolean
             picturesViewModel.useWifiOnly(newValue)
@@ -264,6 +288,7 @@ class SettingsPictureUploadsFragment : PreferenceFragmentCompat() {
         prefPictureUploadsSourcePath?.isEnabled = value
         prefPictureUploadsBehaviour?.isEnabled = value
         prefPictureUploadsAccount?.isEnabled = value
+        prefPictureUploadsUseSubfolderBehaviour?.isEnabled = value
         prefPictureUploadsLastSync?.isEnabled = value
     }
 
@@ -274,6 +299,7 @@ class SettingsPictureUploadsFragment : PreferenceFragmentCompat() {
         prefPictureUploadsOnWifi?.isChecked = false
         prefPictureUploadsOnCharging?.isChecked = false
         prefPictureUploadsBehaviour?.value = UploadBehavior.COPY.name
+        prefPictureUploadsUseSubfolderBehaviour?.value = UseSubfoldersBehaviour.NONE.name
         prefPictureUploadsLastSync?.summary = null
     }
 

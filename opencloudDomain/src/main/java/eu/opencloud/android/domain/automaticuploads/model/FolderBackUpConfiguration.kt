@@ -24,6 +24,7 @@ data class FolderBackUpConfiguration(
     val behavior: UploadBehavior,
     val sourcePath: String,
     val uploadPath: String,
+    val useSubfoldersBehaviour: UseSubfoldersBehaviour,
     val wifiOnly: Boolean,
     val chargingOnly: Boolean,
     val lastSyncTimestamp: Long,
@@ -65,6 +66,20 @@ enum class UploadBehavior {
                 MOVE
             } else {
                 COPY
+            }
+    }
+}
+
+enum class UseSubfoldersBehaviour {
+    NONE, YEAR, YEAR_MONTH, YEAR_MONTH_DAY;
+
+    companion object {
+        fun fromString(string: String): UseSubfoldersBehaviour =
+            when (string.uppercase()) {
+                YEAR.name -> YEAR
+                YEAR_MONTH.name -> YEAR_MONTH
+                YEAR_MONTH_DAY.name -> YEAR_MONTH_DAY
+                else -> NONE
             }
     }
 }

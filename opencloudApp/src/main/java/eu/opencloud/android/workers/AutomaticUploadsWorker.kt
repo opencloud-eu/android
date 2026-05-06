@@ -32,23 +32,27 @@ import eu.opencloud.android.R
 import eu.opencloud.android.domain.UseCaseResult
 import eu.opencloud.android.domain.automaticuploads.model.FolderBackUpConfiguration
 import eu.opencloud.android.domain.automaticuploads.model.UploadBehavior
+import eu.opencloud.android.domain.automaticuploads.model.UseSubfoldersBehaviour
 import eu.opencloud.android.domain.automaticuploads.usecases.GetAutomaticUploadsConfigurationUseCase
 import eu.opencloud.android.domain.automaticuploads.usecases.SavePictureUploadsConfigurationUseCase
 import eu.opencloud.android.domain.automaticuploads.usecases.SaveVideoUploadsConfigurationUseCase
 import eu.opencloud.android.domain.transfers.TransferRepository
 import eu.opencloud.android.domain.transfers.model.OCTransfer
 import eu.opencloud.android.domain.transfers.model.TransferStatus
-import eu.opencloud.android.presentation.settings.SettingsActivity
 import eu.opencloud.android.domain.transfers.model.UploadEnqueuedBy
+import eu.opencloud.android.presentation.settings.SettingsActivity
 import eu.opencloud.android.usecases.transfers.uploads.UploadFileFromContentUriUseCase
 import eu.opencloud.android.utils.MimetypeIconUtil
 import eu.opencloud.android.utils.NotificationUtils
 import eu.opencloud.android.utils.UPLOAD_NOTIFICATION_CHANNEL_ID
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-
 import timber.log.Timber
 import java.io.File
+import java.time.Instant
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.util.Date
 import java.util.concurrent.TimeUnit
 
@@ -152,9 +156,10 @@ class AutomaticUploadsWorker(
                 Timber.d("Skipping already-tracked file: %s", documentFile.name)
                 continue
             }
+            val uploadPath = buildUploadPath(documentFile, folderBackUpConfiguration)
             val uploadId = storeInUploadsDatabase(
                 documentFile = documentFile,
-                uploadPath = folderBackUpConfiguration.uploadPath.plus(File.separator).plus(documentFile.name),
+                uploadPath = uploadPath,
                 accountName = folderBackUpConfiguration.accountName,
                 behavior = folderBackUpConfiguration.behavior,
                 createdByWorker = when (syncType) {
@@ -165,7 +170,7 @@ class AutomaticUploadsWorker(
             )
             enqueueSingleUpload(
                 contentUri = documentFile.uri,
-                uploadPath = folderBackUpConfiguration.uploadPath.plus(File.separator).plus(documentFile.name),
+                uploadPath = uploadPath,
                 lastModified = documentFile.lastModified(),
                 behavior = folderBackUpConfiguration.behavior.toString(),
                 accountName = folderBackUpConfiguration.accountName,
@@ -178,6 +183,38 @@ class AutomaticUploadsWorker(
         // write-safety buffer are re-evaluated on the next run instead of being lost.
         val safeTimestamp = currentTimestamp - WRITE_SAFETY_BUFFER_MS
         updateTimestamp(folderBackUpConfiguration, syncType, safeTimestamp)
+    }
+
+    private fun buildUploadPath(
+        documentFile: DocumentFile,
+        folderBackUpConfiguration: FolderBackUpConfiguration,
+    ): String {
+        val pathBuilder = StringBuilder(folderBackUpConfiguration.uploadPath.plus(File.separator))
+
+        val lastModifiedDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(documentFile.lastModified()), ZoneId.systemDefault())
+        val yearStr = lastModifiedDateTime.format(DateTimeFormatter.ofPattern("yyyy"))
+        val monthStr = lastModifiedDateTime.format(DateTimeFormatter.ofPattern("MM"))
+        val dayStr = lastModifiedDateTime.format(DateTimeFormatter.ofPattern("dd"))
+
+        when (folderBackUpConfiguration.useSubfoldersBehaviour) {
+            UseSubfoldersBehaviour.YEAR_MONTH_DAY -> {
+                pathBuilder.append(yearStr).append(File.separator)
+                pathBuilder.append(monthStr).append(File.separator)
+                pathBuilder.append(dayStr).append(File.separator)
+            }
+
+            UseSubfoldersBehaviour.YEAR_MONTH -> {
+                pathBuilder.append(yearStr).append(File.separator)
+                pathBuilder.append(monthStr).append(File.separator)
+            }
+
+            UseSubfoldersBehaviour.YEAR -> {
+                pathBuilder.append(yearStr).append(File.separator)
+            }
+
+            else -> {}
+        }
+        return pathBuilder.append(documentFile.name).toString()
     }
 
     private fun showNotification(
