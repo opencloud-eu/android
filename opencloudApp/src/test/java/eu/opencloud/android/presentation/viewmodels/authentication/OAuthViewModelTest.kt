@@ -87,8 +87,6 @@ class OAuthViewModelTest : ViewModelTest() {
         requestTokenUseCase = mockk()
         registerClientUseCase = mockk()
 
-        testCoroutineDispatcher.pauseDispatcher()
-
         oAuthViewModel = OAuthViewModel(
             getOIDCDiscoveryUseCase = getOIDCDiscoveryUseCase,
             requestTokenUseCase = requestTokenUseCase,

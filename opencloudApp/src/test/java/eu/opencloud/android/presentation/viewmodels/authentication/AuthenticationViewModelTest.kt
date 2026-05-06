@@ -129,8 +129,6 @@ class AuthenticationViewModelTest : ViewModelTest() {
         every { contextProvider.getBoolean(R.bool.enforce_secure_connection) } returns false
         every { contextProvider.getBoolean(R.bool.enforce_oidc) } returns false
 
-        testCoroutineDispatcher.pauseDispatcher()
-
         authenticationViewModel = AuthenticationViewModel(
             loginBasicAsyncUseCase = loginBasicAsyncUseCase,
             loginOAuthAsyncUseCase = loginOAuthAsyncUseCase,
