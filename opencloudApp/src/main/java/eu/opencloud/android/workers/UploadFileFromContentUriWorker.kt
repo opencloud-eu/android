@@ -50,7 +50,6 @@ import eu.opencloud.android.domain.transfers.TransferRepository
 import eu.opencloud.android.domain.transfers.model.OCTransfer
 import eu.opencloud.android.domain.transfers.model.TransferResult
 import eu.opencloud.android.domain.transfers.model.TransferStatus
-import eu.opencloud.android.extensions.isContentUri
 import eu.opencloud.android.extensions.parseError
 import eu.opencloud.android.domain.capabilities.usecases.GetStoredCapabilitiesUseCase
 import eu.opencloud.android.lib.common.OpenCloudAccount
@@ -142,7 +141,12 @@ class UploadFileFromContentUriWorker(
         val localStorageProvider: LocalStorageProvider by inject()
         cachePath = localStorageProvider.getTemporalPath(account.name, ocTransfer.spaceId) + uploadPath
 
-        if (ocTransfer.isContentUri(appContext)) {
+        // Re-copy if the cache file is missing or empty. A previous run may have copied it
+        // and then had it removed (e.g. by removeCacheFile() after a sibling worker for the
+        // same uploadPath completed). Without this, the PUT would go out against a stale or
+        // missing cache file. Only the contentUri from worker params is authoritative.
+        val cacheFile = File(cachePath)
+        if (!cacheFile.exists() || cacheFile.length() == 0L) {
             checkDocumentFileExists()
             checkPermissionsToReadDocumentAreGranted()
             copyFileToLocalStorage()
