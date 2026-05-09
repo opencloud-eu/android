@@ -60,6 +60,7 @@ public class MimetypeIconUtil {
     /** Mapping: mime type for file extension. */
     private static final Map<String, List<String>> FILE_EXTENSION_TO_MIMETYPE_MAPPING =
             new HashMap<String, List<String>>();
+    public static final String UNKNOWN_MIME_TYPE = "application/octet-stream";
 
     static {
         populateFileExtensionMimeTypeMapping();
@@ -95,9 +96,24 @@ public class MimetypeIconUtil {
     public static String getBestMimeTypeByFilename(String filename) {
         List<String> candidates = determineMimeTypesByFilename(filename);
         if (candidates == null || candidates.size() < 1) {
-            return "application/octet-stream";
+            return UNKNOWN_MIME_TYPE;
         }
         return candidates.get(0);
+    }
+
+    /**
+     * Returns a MIME type from the file extension, or {@code defaultMimeType} when the extension is unknown.
+     *
+     * @param filename        Name of file
+     * @param defaultMimeType Fallback MIME type
+     * @return Best known MIME type for the file
+     */
+    public static String getBestMimeTypeByFilenameOrDefault(String filename, String defaultMimeType) {
+        String mimeType = getBestMimeTypeByFilename(filename);
+        if (mimeType == null || mimeType.isEmpty() || UNKNOWN_MIME_TYPE.equals(mimeType)) {
+            return defaultMimeType;
+        }
+        return mimeType;
     }
 
     /**
@@ -151,7 +167,8 @@ public class MimetypeIconUtil {
             return mimeTypeList;
         } else {
             // try detecting the mime type via android itself
-            String mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(fileExtension);
+            MimeTypeMap mimeTypeMap = MimeTypeMap.getSingleton();
+            String mimeType = mimeTypeMap != null ? mimeTypeMap.getMimeTypeFromExtension(fileExtension) : null;
             if (mimeType != null) {
                 return Collections.singletonList(mimeType);
             } else {
@@ -186,7 +203,7 @@ public class MimetypeIconUtil {
         MIMETYPE_TO_ICON_MAPPING.put("application/msexcel", R.drawable.file_xls);
         MIMETYPE_TO_ICON_MAPPING.put("application/mspowerpoint", R.drawable.file_ppt);
         MIMETYPE_TO_ICON_MAPPING.put("application/msword", R.drawable.file_doc);
-        MIMETYPE_TO_ICON_MAPPING.put("application/octet-stream", R.drawable.file);
+        MIMETYPE_TO_ICON_MAPPING.put(UNKNOWN_MIME_TYPE, R.drawable.file);
         MIMETYPE_TO_ICON_MAPPING.put("application/postscript", R.drawable.file_image);
         MIMETYPE_TO_ICON_MAPPING.put("application/pdf", R.drawable.file_pdf);
         MIMETYPE_TO_ICON_MAPPING.put("application/rss+xml", R.drawable.file_code);

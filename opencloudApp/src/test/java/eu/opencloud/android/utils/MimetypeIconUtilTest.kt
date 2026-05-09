@@ -1,0 +1,47 @@
+/**
+ * openCloud Android client application
+ *
+ * Copyright (C) 2026 openCloud GmbH.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2,
+ * as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package eu.opencloud.android.utils
+
+import org.junit.Assert.assertEquals
+import org.junit.Test
+
+class MimetypeIconUtilTest {
+
+    @Test
+    fun `getBestMimeTypeByFilenameOrDefault prefers known file extension`() {
+        val mimeType = MimetypeIconUtil.getBestMimeTypeByFilenameOrDefault(
+            "Invoice.PDF",
+            MimetypeIconUtil.UNKNOWN_MIME_TYPE,
+        )
+
+        assertEquals("application/pdf", mimeType)
+    }
+
+    @Test
+    fun `getBestMimeTypeByFilenameOrDefault falls back for unknown file extension`() {
+        val fallbackMimeType = "application/x-opencloud-test"
+
+        val mimeType = MimetypeIconUtil.getBestMimeTypeByFilenameOrDefault(
+            "file.unknownextension",
+            fallbackMimeType,
+        )
+
+        assertEquals(fallbackMimeType, mimeType)
+    }
+}

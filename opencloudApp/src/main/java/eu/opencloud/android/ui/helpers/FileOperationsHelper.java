@@ -31,7 +31,6 @@ import android.accounts.AccountManager;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.net.Uri;
-import android.webkit.MimeTypeMap;
 
 import eu.opencloud.android.R;
 import eu.opencloud.android.domain.files.model.OCFile;
@@ -43,6 +42,7 @@ import eu.opencloud.android.services.OperationsService;
 import eu.opencloud.android.ui.activity.FileActivity;
 import eu.opencloud.android.usecases.synchronization.SynchronizeFileUseCase;
 import eu.opencloud.android.usecases.synchronization.SynchronizeFolderUseCase;
+import eu.opencloud.android.utils.MimetypeIconUtil;
 import eu.opencloud.android.utils.UriUtilsKt;
 import kotlin.Lazy;
 import org.jetbrains.annotations.NotNull;
@@ -78,9 +78,9 @@ public class FileOperationsHelper {
         Intent intentForGuessedMimeType = null;
 
         if (storagePath != null && storagePath.lastIndexOf('.') >= 0) {
-            String guessedMimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(storagePath.substring(storagePath.lastIndexOf('.') + 1));
+            String guessedMimeType = MimetypeIconUtil.getBestMimeTypeByFilenameOrDefault(storagePath, type);
 
-            if (guessedMimeType != null && !guessedMimeType.equals(type)) {
+            if (!guessedMimeType.equals(type)) {
                 intentForGuessedMimeType = new Intent(Intent.ACTION_VIEW);
                 intentForGuessedMimeType.setDataAndType(data, guessedMimeType);
                 int flags = Intent.FLAG_GRANT_READ_URI_PERMISSION;
