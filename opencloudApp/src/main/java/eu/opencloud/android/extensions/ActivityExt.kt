@@ -164,7 +164,7 @@ private fun getIntentForSavedMimeType(data: Uri, type: String): Intent {
 private fun getIntentForGuessedMimeType(storagePath: String, type: String, data: Uri): Intent? {
     var intentForGuessedMimeType: Intent? = null
     if (storagePath.lastIndexOf('.') >= 0) {
-        val guessedMimeType = MimetypeIconUtil.getBestMimeTypeByFilenameOrDefault(storagePath, type)
+        val guessedMimeType = MimetypeIconUtil.getBestMimeTypeForOpen(type, storagePath)
         if (guessedMimeType != type) {
             intentForGuessedMimeType = Intent(Intent.ACTION_VIEW)
             intentForGuessedMimeType.setDataAndType(data, guessedMimeType)
@@ -457,7 +457,7 @@ fun FragmentActivity.sendDownloadedFilesByShareSheet(ocFiles: List<OCFile>) {
 }
 
 fun Activity.openOCFile(ocFile: OCFile) {
-    val finalMimeType = MimetypeIconUtil.getBestMimeTypeByFilenameOrDefault(ocFile.fileName, ocFile.mimeType)
+    val finalMimeType = MimetypeIconUtil.getBestMimeTypeForOpen(ocFile.mimeType, ocFile.fileName)
 
     val intentForSavedMimeType = Intent(Intent.ACTION_VIEW).apply {
         setDataAndType(getExposedFileUriForOCFile(this@openOCFile, ocFile), finalMimeType)

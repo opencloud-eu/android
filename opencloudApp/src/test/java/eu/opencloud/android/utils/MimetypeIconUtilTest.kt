@@ -24,24 +24,102 @@ import org.junit.Test
 class MimetypeIconUtilTest {
 
     @Test
-    fun `getBestMimeTypeByFilenameOrDefault prefers known file extension`() {
-        val mimeType = MimetypeIconUtil.getBestMimeTypeByFilenameOrDefault(
+    fun `getBestMimeTypeForOpen keeps specific server mime type`() {
+        val mimeType = MimetypeIconUtil.getBestMimeTypeForOpen(
+            "application/pdf",
             "Invoice.PDF",
-            MimetypeIconUtil.UNKNOWN_MIME_TYPE,
         )
 
         assertEquals("application/pdf", mimeType)
     }
 
     @Test
-    fun `getBestMimeTypeByFilenameOrDefault falls back for unknown file extension`() {
-        val fallbackMimeType = "application/x-opencloud-test"
-
-        val mimeType = MimetypeIconUtil.getBestMimeTypeByFilenameOrDefault(
-            "file.unknownextension",
-            fallbackMimeType,
+    fun `getBestMimeTypeForOpen uses file extension when server mime type is generic`() {
+        val mimeType = MimetypeIconUtil.getBestMimeTypeForOpen(
+            MimetypeIconUtil.UNKNOWN_MIME_TYPE,
+            "Invoice.PDF",
         )
 
-        assertEquals(fallbackMimeType, mimeType)
+        assertEquals("application/pdf", mimeType)
+    }
+
+    @Test
+    fun `getBestMimeTypeForOpen uses file extension when server mime type is wildcard`() {
+        val mimeType = MimetypeIconUtil.getBestMimeTypeForOpen(
+            "*/*",
+            "Invoice.PDF",
+        )
+
+        assertEquals("application/pdf", mimeType)
+    }
+
+    @Test
+    fun `getBestMimeTypeForOpen uses file extension when server mime type is null or blank`() {
+        assertEquals(
+            "application/pdf",
+            MimetypeIconUtil.getBestMimeTypeForOpen(
+                null,
+                "Invoice.PDF",
+            )
+        )
+        assertEquals(
+            "application/pdf",
+            MimetypeIconUtil.getBestMimeTypeForOpen(
+                "",
+                "Invoice.PDF",
+            )
+        )
+        assertEquals(
+            "application/pdf",
+            MimetypeIconUtil.getBestMimeTypeForOpen(
+                " ",
+                "Invoice.PDF",
+            )
+        )
+    }
+
+    @Test
+    fun `getBestMimeTypeForOpen does not override specific server mime type`() {
+        val mimeType = MimetypeIconUtil.getBestMimeTypeForOpen(
+            "text/markdown",
+            "Invoice.PDF",
+        )
+
+        assertEquals("text/markdown", mimeType)
+    }
+
+    @Test
+    fun `getBestMimeTypeForOpen falls back to unknown mime type for unknown extension`() {
+        val mimeType = MimetypeIconUtil.getBestMimeTypeForOpen(
+            MimetypeIconUtil.UNKNOWN_MIME_TYPE,
+            "Invoice.notarealextension",
+        )
+
+        assertEquals(MimetypeIconUtil.UNKNOWN_MIME_TYPE, mimeType)
+    }
+
+    @Test
+    fun `getBestMimeTypeForOpen handles filenames without extensions`() {
+        assertEquals(
+            MimetypeIconUtil.UNKNOWN_MIME_TYPE,
+            MimetypeIconUtil.getBestMimeTypeForOpen(
+                MimetypeIconUtil.UNKNOWN_MIME_TYPE,
+                "Invoice",
+            )
+        )
+        assertEquals(
+            MimetypeIconUtil.UNKNOWN_MIME_TYPE,
+            MimetypeIconUtil.getBestMimeTypeForOpen(
+                MimetypeIconUtil.UNKNOWN_MIME_TYPE,
+                "",
+            )
+        )
+        assertEquals(
+            MimetypeIconUtil.UNKNOWN_MIME_TYPE,
+            MimetypeIconUtil.getBestMimeTypeForOpen(
+                MimetypeIconUtil.UNKNOWN_MIME_TYPE,
+                null,
+            )
+        )
     }
 }

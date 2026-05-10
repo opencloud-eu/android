@@ -74,48 +74,20 @@ public class FileOperationsHelper {
         return intentForSavedMimeType;
     }
 
-    private Intent getIntentForGuessedMimeType(String storagePath, String type, Uri data, boolean hasWritePermission) {
-        Intent intentForGuessedMimeType = null;
-
-        if (storagePath != null && storagePath.lastIndexOf('.') >= 0) {
-            String guessedMimeType = MimetypeIconUtil.getBestMimeTypeByFilenameOrDefault(storagePath, type);
-
-            if (!guessedMimeType.equals(type)) {
-                intentForGuessedMimeType = new Intent(Intent.ACTION_VIEW);
-                intentForGuessedMimeType.setDataAndType(data, guessedMimeType);
-                int flags = Intent.FLAG_GRANT_READ_URI_PERMISSION;
-                if (hasWritePermission) {
-                    flags = flags | Intent.FLAG_GRANT_WRITE_URI_PERMISSION;
-                }
-                intentForGuessedMimeType.setFlags(flags);
-            }
-        }
-        return intentForGuessedMimeType;
-    }
-
     public void openFile(OCFile ocFile) {
         if (ocFile != null) {
+            String finalMimeType = MimetypeIconUtil.getBestMimeTypeForOpen(ocFile.getMimeType(), ocFile.getFileName());
             Intent intentForSavedMimeType = getIntentForSavedMimeType(UriUtilsKt.INSTANCE.getExposedFileUriForOCFile(mFileActivity, ocFile),
-                    ocFile.getMimeType(), ocFile.getHasWritePermission());
+                    finalMimeType, ocFile.getHasWritePermission());
 
-            Intent intentForGuessedMimeType = getIntentForGuessedMimeType(ocFile.getStoragePath(), ocFile.getMimeType(),
-                    UriUtilsKt.INSTANCE.getExposedFileUriForOCFile(mFileActivity, ocFile), ocFile.getHasWritePermission());
-
-            openFileWithIntent(intentForSavedMimeType, intentForGuessedMimeType);
+            openFileWithIntent(intentForSavedMimeType);
 
         } else {
             Timber.e("Trying to open a NULL OCFile");
         }
     }
 
-    private void openFileWithIntent(Intent intentForSavedMimeType, Intent intentForGuessedMimeType) {
-        Intent openFileWithIntent;
-
-        if (intentForGuessedMimeType != null) {
-            openFileWithIntent = intentForGuessedMimeType;
-        } else {
-            openFileWithIntent = intentForSavedMimeType;
-        }
+    private void openFileWithIntent(Intent openFileWithIntent) {
         try {
             mFileActivity.startActivity(Intent.createChooser(openFileWithIntent, mFileActivity.getString(R.string.actionbar_open_with)));
         } catch (ActivityNotFoundException anfe) {

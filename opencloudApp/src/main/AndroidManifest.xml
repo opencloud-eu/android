@@ -45,11 +45,12 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
     <uses-permission android:name="android.permission.REORDER_TASKS" />
 
-    <!-- Android 11+ package visibility: allow discovering apps that handle file open/send -->
     <queries>
         <intent>
             <action android:name="android.intent.action.VIEW" />
-            <data android:mimeType="*/*" />
+            <data
+                android:mimeType="*/*"
+                android:scheme="content" />
         </intent>
         <intent>
             <action android:name="android.intent.action.SEND" />

@@ -28,6 +28,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -102,18 +103,26 @@ public class MimetypeIconUtil {
     }
 
     /**
-     * Returns a MIME type from the file extension, or {@code defaultMimeType} when the extension is unknown.
+     * Returns the server MIME type unless it is generic, then falls back to the file extension.
      *
-     * @param filename        Name of file
-     * @param defaultMimeType Fallback MIME type
-     * @return Best known MIME type for the file
+     * @param serverMimeType MIME type reported by the server
+     * @param filename       Name of file
+     * @return MIME type to use when opening the file
      */
-    public static String getBestMimeTypeByFilenameOrDefault(String filename, String defaultMimeType) {
-        String mimeType = getBestMimeTypeByFilename(filename);
-        if (mimeType == null || mimeType.isEmpty() || UNKNOWN_MIME_TYPE.equals(mimeType)) {
-            return defaultMimeType;
+    public static String getBestMimeTypeForOpen(String serverMimeType, String filename) {
+        if (!isGenericMimeType(serverMimeType)) {
+            return serverMimeType;
         }
-        return mimeType;
+
+        String mimeTypeFromFilename = getBestMimeTypeByFilename(filename);
+        if (isGenericMimeType(mimeTypeFromFilename)) {
+            return UNKNOWN_MIME_TYPE;
+        }
+        return mimeTypeFromFilename;
+    }
+
+    private static boolean isGenericMimeType(String mimeType) {
+        return mimeType == null || mimeType.trim().isEmpty() || UNKNOWN_MIME_TYPE.equals(mimeType) || "*/*".equals(mimeType);
     }
 
     /**
@@ -184,8 +193,16 @@ public class MimetypeIconUtil {
      * @return the file extension
      */
     private static String getExtension(String filename) {
-        String extension = filename.substring(filename.lastIndexOf(".") + 1).toLowerCase();
-        return extension;
+        if (filename == null || filename.isEmpty()) {
+            return "";
+        }
+
+        int extensionStart = filename.lastIndexOf(".");
+        if (extensionStart < 0 || extensionStart == filename.length() - 1) {
+            return "";
+        }
+
+        return filename.substring(extensionStart + 1).toLowerCase(Locale.ROOT);
     }
 
     /**
