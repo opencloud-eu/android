@@ -73,7 +73,7 @@ data class ShareItem(
     fun toRemoteShare() = RemoteShare(
         id = id ?: "0",
         shareWith = shareWith.orEmpty(),
-        path = if (itemType == ItemType.FOLDER.fileValue) path.plus(File.separator) else path.orEmpty(),
+        path = if (itemType == ItemType.FOLDER.fileValue) path?.plus(File.separator).orEmpty() else path.orEmpty(),
         token = token.orEmpty(),
         itemType = itemType.orEmpty(),
         sharedWithDisplayName = sharedWithDisplayName.orEmpty(),

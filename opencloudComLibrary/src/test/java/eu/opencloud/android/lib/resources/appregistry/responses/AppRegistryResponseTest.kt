@@ -1,7 +1,5 @@
 /* openCloud Android Library is available under MIT license
- *   @author Abel García de Prada
- *
- *   Copyright (C) 2023 ownCloud GmbH.
+ *   Copyright (C) 2026 openCloud GmbH.
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -25,34 +23,41 @@
  */
 package eu.opencloud.android.lib.resources.appregistry.responses
 
-import com.squareup.moshi.Json
-import com.squareup.moshi.JsonClass
+import com.squareup.moshi.Moshi
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
+import org.junit.Test
 
-@JsonClass(generateAdapter = true)
-data class AppRegistryResponse(
-    @Json(name = "mime-types")
-    val value: List<AppRegistryMimeTypeResponse>
-)
+class AppRegistryResponseTest {
 
-@JsonClass(generateAdapter = true)
-data class AppRegistryMimeTypeResponse(
-    @Json(name = "mime_type") val mimeType: String,
-    val ext: String? = null,
-    @Json(name = "app_providers")
-    val appProviders: List<AppRegistryProviderResponse>,
-    val name: String? = null,
-    val icon: String? = null,
-    val description: String? = null,
-    @Json(name = "allow_creation")
-    val allowCreation: Boolean? = null,
-    @Json(name = "default_application")
-    val defaultApplication: String? = null
-)
+    private val adapter = Moshi.Builder().build().adapter(AppRegistryResponse::class.java)
 
-@JsonClass(generateAdapter = true)
-data class AppRegistryProviderResponse(
-    val name: String,
-    @Json(name = "product_name")
-    val productName: String? = null,
-    val icon: String,
-)
+    @Test
+    fun parsesBackendProvidersWithoutProductName() {
+        val response = adapter.fromJson(
+            """
+            {
+              "mime-types": [
+                {
+                  "mime_type": "application/pdf",
+                  "ext": "pdf",
+                  "app_providers": [
+                    {
+                      "name": "OnlyOffice",
+                      "icon": "https://some-website.test/onlyoffice-pdf-icon.png"
+                    }
+                  ],
+                  "name": "PDF",
+                  "description": "PDF document"
+                }
+              ]
+            }
+            """.trimIndent()
+        )
+
+        val provider = response!!.value.single().appProviders.single()
+        assertEquals("OnlyOffice", provider.name)
+        assertNull(provider.productName)
+        assertEquals("https://some-website.test/onlyoffice-pdf-icon.png", provider.icon)
+    }
+}
