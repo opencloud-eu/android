@@ -20,10 +20,13 @@
 
 package eu.opencloud.android.presentation.settings.privacypolicy
 
+import android.content.ActivityNotFoundException
+import android.content.Intent
 import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
 import android.webkit.WebChromeClient
+import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.LinearLayout
@@ -94,6 +97,21 @@ class PrivacyPolicyActivity : AppCompatActivity() {
             webViewClient = object : WebViewClient() {
                 override fun onReceivedError(view: WebView, errorCode: Int, description: String, failingUrl: String) {
                     showMessageInSnackbar(message = getString(R.string.privacy_policy_error) + description)
+                }
+
+                override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
+                    val url = request?.url ?: return false
+                    val scheme = url.scheme?.lowercase()
+                    if (scheme == "http" || scheme == "https") return false
+                    return try {
+                        val intent = Intent(Intent.ACTION_VIEW, url).apply {
+                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        }
+                        startActivity(intent)
+                        true
+                    } catch (e: ActivityNotFoundException) {
+                        false
+                    }
                 }
             }
 
