@@ -291,6 +291,7 @@ interface FileDao {
                 name = null,
                 needsToUpdateThumbnail = true,
                 etag = "",
+                remoteEtag = sourceFile.remoteEtag?.takeIf { it.isNotBlank() } ?: sourceFile.etag,
                 creationTimestamp = null,
                 permissions = null,
                 treeEtag = "",

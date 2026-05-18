@@ -52,6 +52,7 @@ import eu.opencloud.android.lib.common.network.OnDatatransferProgressListener
 import eu.opencloud.android.lib.common.operations.RemoteOperationResult.ResultCode
 import eu.opencloud.android.lib.resources.files.CheckPathExistenceRemoteOperation
 import eu.opencloud.android.lib.resources.files.CreateRemoteFolderOperation
+import eu.opencloud.android.lib.resources.files.ReadRemoteFileOperation
 import eu.opencloud.android.lib.resources.files.UploadFileFromFileSystemOperation
 import eu.opencloud.android.presentation.authentication.AccountUtils
 import eu.opencloud.android.utils.NotificationUtils
@@ -102,6 +103,7 @@ class UploadFileFromFileSystemWorker(
     private val tusUploadHelper by lazy { TusUploadHelper(transferRepository) }
 
     private var finalEtag: String = ""
+    private var finalContentHashToken: String? = null
 
     private val foregroundJob = SupervisorJob()
     private val foregroundScope = CoroutineScope(Dispatchers.Default + foregroundJob)
@@ -126,6 +128,7 @@ class UploadFileFromFileSystemWorker(
             checkParentFolderExistence(clientForThisUpload)
             checkNameCollisionAndGetAnAvailableOneInCase(clientForThisUpload)
             uploadDocument(clientForThisUpload)
+            resolveFinalEtagIfNeeded(clientForThisUpload)
             updateUploadsDatabaseWithResult(null)
             updateFilesDatabaseWithLatestDetails()
             Result.success()
@@ -299,6 +302,7 @@ class UploadFileFromFileSystemWorker(
             }
 
             if (tusSucceeded) {
+                captureFinalContentHashTokenIfNeeded()
                 if (removeLocal) {
                     removeLocalFile()
                 }
@@ -315,6 +319,7 @@ class UploadFileFromFileSystemWorker(
 
         Timber.d("Falling back to single PUT upload for %s", uploadPath)
         uploadPlainFile(client)
+        captureFinalContentHashTokenIfNeeded()
     }
 
     private fun uploadPlainFile(client: OpenCloudClient) {
@@ -337,6 +342,28 @@ class UploadFileFromFileSystemWorker(
             if (removeLocal) {
                 removeLocalFile() // Removed file from tmp folder
             }
+        }
+    }
+
+    private fun resolveFinalEtagIfNeeded(client: OpenCloudClient) {
+        if (finalEtag.isNotBlank()) return
+
+        finalEtag = try {
+            executeRemoteOperation {
+                ReadRemoteFileOperation(
+                    remotePath = uploadPath,
+                    spaceWebDavUrl = spaceWebDavUrl,
+                ).execute(client)
+            }.etag.orEmpty()
+        } catch (e: Throwable) {
+            Timber.w(e, "Could not resolve final ETag for %s after upload", uploadPath)
+            ""
+        }
+    }
+
+    private fun captureFinalContentHashTokenIfNeeded() {
+        if (finalEtag.isBlank() && finalContentHashToken.isNullOrBlank()) {
+            finalContentHashToken = FileEtagCacheTokenResolver.sha256Token(File(fileSystemPath))
         }
     }
 
@@ -409,13 +436,20 @@ class UploadFileFromFileSystemWorker(
     private fun updateFilesDatabaseWithLatestDetails() {
         val currentTime = System.currentTimeMillis()
         val getFileByRemotePathUseCase: GetFileByRemotePathUseCase by inject()
-        val file = getFileByRemotePathUseCase(GetFileByRemotePathUseCase.Params(account.name, ocTransfer.remotePath, ocTransfer.spaceId))
+        val file = getFileByRemotePathUseCase(GetFileByRemotePathUseCase.Params(account.name, uploadPath, ocTransfer.spaceId))
         file.getDataOrNull()?.let { ocFile ->
+            val resolvedEtags = FileEtagCacheTokenResolver.resolve(
+                serverEtag = finalEtag,
+                existingEtag = ocFile.etag,
+                existingRemoteEtag = ocFile.remoteEtag,
+                localContentHashToken = finalContentHashToken,
+            )
             val fileWithNewDetails =
                 if (ocTransfer.forceOverwrite) {
                     ocFile.copy(
                         needsToUpdateThumbnail = true,
-                        etag = finalEtag,
+                        etag = resolvedEtags.etag,
+                        remoteEtag = resolvedEtags.remoteEtag,
                         length = fileSize,
                         lastSyncDateForData = currentTime,
                         modifiedAtLastSyncForData = currentTime,
@@ -425,7 +459,8 @@ class UploadFileFromFileSystemWorker(
                     ocFile.copy(
                         storagePath = null,
                         needsToUpdateThumbnail = true,
-                        etag = finalEtag.ifBlank { ocFile.etag },
+                        etag = resolvedEtags.etag,
+                        remoteEtag = resolvedEtags.remoteEtag,
                         length = fileSize,
                         lastSyncDateForData = currentTime,
                         modifiedAtLastSyncForData = currentTime,

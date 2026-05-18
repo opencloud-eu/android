@@ -208,9 +208,16 @@ class DownloadFileWorker(
         val finalFile = File(finalLocationForFile)
         val currentTime = System.currentTimeMillis()
         ocFile.apply {
+            val resolvedEtags = FileEtagCacheTokenResolver.resolve(
+                serverEtag = downloadRemoteFileOperation.etag,
+                existingEtag = etag,
+                existingRemoteEtag = remoteEtag,
+                localContentHashTokenProvider = { FileEtagCacheTokenResolver.sha256Token(finalFile) },
+            )
             needsToUpdateThumbnail = true
             modificationTimestamp = downloadRemoteFileOperation.modificationTimestamp
-            etag = downloadRemoteFileOperation.etag
+            etag = resolvedEtags.etag
+            remoteEtag = resolvedEtags.remoteEtag
             storagePath = finalLocationForFile
             length = finalFile.length()
             // Use the file's actual mtime, not the current time. SynchronizeFileUseCase

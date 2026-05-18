@@ -23,6 +23,7 @@ package eu.opencloud.android.presentation.thumbnails
 import android.accounts.Account
 import android.accounts.AccountManager
 import android.net.Uri
+import androidx.annotation.VisibleForTesting
 import coil.ImageLoader
 import coil.disk.DiskCache
 import coil.memory.MemoryCache
@@ -99,13 +100,20 @@ object ThumbnailsRequester : KoinComponent {
     }
 
     fun getPreviewUriForFile(file: OCFile, account: Account, etag: String? = null, width: Int = 1024, height: Int = 1024): String =
-        getPreviewUri(file.remotePath, etag ?: file.remoteEtag, account, width, height)
+        getPreviewUri(file.remotePath, getThumbnailCacheToken(file, etag), account, width, height)
 
     fun getPreviewUriForFile(fileWithSyncInfo: OCFileWithSyncInfo, account: Account, width: Int = 1024, height: Int = 1024): String =
         getPreviewUriForFile(fileWithSyncInfo.file, account, null, width, height)
 
     fun getPreviewUriForSpaceSpecial(spaceSpecial: SpaceSpecial): String =
         String.format(Locale.US, SPACE_SPECIAL_PREVIEW_URI, spaceSpecial.webDavUrl, 1024, 1024, spaceSpecial.eTag)
+
+    @VisibleForTesting
+    internal fun getThumbnailCacheToken(file: OCFile, explicitEtag: String? = null): String =
+        firstNotBlank(explicitEtag, file.remoteEtag, file.etag).orEmpty()
+
+    private fun firstNotBlank(vararg values: String?): String? =
+        values.firstOrNull { !it.isNullOrBlank() }
 
     private fun getPreviewUri(remotePath: String?, etag: String?, account: Account, width: Int, height: Int): String {
         val baseUrl = accountBaseUrls.getOrPut(account.name) {
