@@ -78,7 +78,7 @@ public class FileOperationsHelper {
         Intent intentForGuessedMimeType = null;
 
         if (storagePath != null && storagePath.lastIndexOf('.') >= 0) {
-            String guessedMimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(storagePath.substring(storagePath.lastIndexOf('.') + 1));
+            String guessedMimeType = eu.opencloud.android.utils.MimetypeIconUtil.getBestMimeTypeByFilename(storagePath);
 
             if (guessedMimeType != null && !guessedMimeType.equals(type)) {
                 intentForGuessedMimeType = new Intent(Intent.ACTION_VIEW);

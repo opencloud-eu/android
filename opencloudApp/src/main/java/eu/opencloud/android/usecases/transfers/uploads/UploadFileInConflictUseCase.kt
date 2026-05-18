@@ -23,11 +23,11 @@
 package eu.opencloud.android.usecases.transfers.uploads
 
 import androidx.work.Constraints
+import androidx.work.Data
 import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
-import androidx.work.workDataOf
 import eu.opencloud.android.domain.BaseUseCase
 import eu.opencloud.android.domain.automaticuploads.model.UploadBehavior
 import eu.opencloud.android.domain.transfers.TransferRepository
@@ -73,6 +73,7 @@ class UploadFileInConflictUseCase(
             lastModifiedInSeconds = localFile.lastModified().div(1_000).toString(),
             accountName = params.accountName,
             uploadIdInStorageManager = uploadId,
+            currentRemoteEtag = params.currentRemoteEtag,
         )
     }
 
@@ -105,16 +106,21 @@ class UploadFileInConflictUseCase(
         lastModifiedInSeconds: String,
         uploadIdInStorageManager: Long,
         uploadPath: String,
+        currentRemoteEtag: String?,
     ): UUID {
-        val inputData = workDataOf(
-            UploadFileFromFileSystemWorker.KEY_PARAM_ACCOUNT_NAME to accountName,
-            UploadFileFromFileSystemWorker.KEY_PARAM_BEHAVIOR to UploadBehavior.COPY.name,
-            UploadFileFromFileSystemWorker.KEY_PARAM_LOCAL_PATH to localPath,
-            UploadFileFromFileSystemWorker.KEY_PARAM_LAST_MODIFIED to lastModifiedInSeconds,
-            UploadFileFromFileSystemWorker.KEY_PARAM_UPLOAD_PATH to uploadPath,
-            UploadFileFromFileSystemWorker.KEY_PARAM_UPLOAD_ID to uploadIdInStorageManager,
-            UploadFileFromFileSystemWorker.KEY_PARAM_REMOVE_LOCAL to false
-        )
+        val inputDataBuilder = Data.Builder()
+            .putString(UploadFileFromFileSystemWorker.KEY_PARAM_ACCOUNT_NAME, accountName)
+            .putString(UploadFileFromFileSystemWorker.KEY_PARAM_BEHAVIOR, UploadBehavior.COPY.name)
+            .putString(UploadFileFromFileSystemWorker.KEY_PARAM_LOCAL_PATH, localPath)
+            .putString(UploadFileFromFileSystemWorker.KEY_PARAM_LAST_MODIFIED, lastModifiedInSeconds)
+            .putString(UploadFileFromFileSystemWorker.KEY_PARAM_UPLOAD_PATH, uploadPath)
+            .putLong(UploadFileFromFileSystemWorker.KEY_PARAM_UPLOAD_ID, uploadIdInStorageManager)
+            .putBoolean(UploadFileFromFileSystemWorker.KEY_PARAM_REMOVE_LOCAL, false)
+
+        currentRemoteEtag?.let {
+            inputDataBuilder.putString(UploadFileFromFileSystemWorker.KEY_PARAM_OVERWRITE_ETAG, it)
+        }
+        val inputData = inputDataBuilder.build()
 
         val constraints = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)
@@ -144,5 +150,6 @@ class UploadFileInConflictUseCase(
         val localPath: String,
         val uploadFolderPath: String,
         val spaceId: String?,
+        val currentRemoteEtag: String? = null,
     )
 }

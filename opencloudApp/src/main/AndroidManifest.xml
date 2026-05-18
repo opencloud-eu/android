@@ -45,6 +45,22 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
     <uses-permission android:name="android.permission.REORDER_TASKS" />
 
+    <!-- Android 11+ package visibility: allow discovering apps that handle file open/send -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:mimeType="*/*" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.SEND" />
+            <data android:mimeType="*/*" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.SEND_MULTIPLE" />
+            <data android:mimeType="*/*" />
+        </intent>
+    </queries>
+
     <application
         android:name=".MainApp"
         android:allowBackup="false"
@@ -196,8 +212,6 @@
             android:name=".presentation.security.passcode.PassCodeActivity"
             android:label="@string/passcode_label"
             android:screenOrientation="portrait" />
-        <activity
-            android:name=".presentation.conflicts.ConflictsResolveActivity" />
         <activity
             android:name=".presentation.logging.LogsListActivity"
             android:label="@string/prefs_log_open_logs_list_view"

@@ -49,7 +49,7 @@ import java.util.concurrent.atomic.AtomicBoolean
  */
 class DownloadRemoteFileOperation(
     private val remotePath: String,
-    localFolderPath: String,
+    private val localFolderPath: String,
     private val spaceWebDavUrl: String? = null,
 ) : RemoteOperation<Unit>() {
 
@@ -77,7 +77,24 @@ class DownloadRemoteFileOperation(
 
         // perform the download
         return try {
-            tmpFile.parentFile?.mkdirs()
+            val parent = tmpFile.parentFile
+            if (parent != null && !parent.mkdirs() && !parent.exists()) {
+                Timber.w("Failed to mkdirs for %s, checking for blocking files", parent.absolutePath)
+                val safeRoot = File(localFolderPath)
+                var current = parent
+                while (current != null && !current.exists() && current != safeRoot && current.parentFile != null) {
+                    current = current.parentFile
+                }
+                if (current != null && current != safeRoot && current.isFile) {
+                    throw java.io.IOException(
+                        "Cannot create directory ${parent.absolutePath}: a file exists at ${current.absolutePath} " +
+                                "blocking the path. Please remove the file manually."
+                    )
+                }
+                if (!parent.mkdirs() && !parent.exists()) {
+                    throw java.io.IOException("Could not create parent directory: " + parent.absolutePath)
+                }
+            }
             downloadFile(client, tmpFile).also {
                 Timber.i("Download of $remotePath to $tmpPath - HTTP status code: $status")
             }

@@ -181,8 +181,12 @@ class SettingsVideoUploadsFragment : PreferenceFragmentCompat() {
                     positiveButtonText = getString(R.string.common_yes),
                     positiveButtonListener = { _: DialogInterface?, _: Int ->
                         videosViewModel.disableVideoUploads()
+                        prefEnableVideoUploads?.isChecked = false
                     },
-                    negativeButtonText = getString(R.string.common_no)
+                    negativeButtonText = getString(R.string.common_no),
+                    negativeButtonListener = { _, _ ->
+                        prefEnableVideoUploads?.isChecked = true
+                    }
                 )
                 false
             }

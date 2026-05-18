@@ -35,7 +35,6 @@ import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import eu.opencloud.android.R
 import eu.opencloud.android.data.executeRemoteOperation
-import eu.opencloud.android.data.providers.LocalStorageProvider
 import eu.opencloud.android.domain.automaticuploads.model.UploadBehavior
 import eu.opencloud.android.domain.exceptions.LocalFileNotFoundException
 import eu.opencloud.android.domain.exceptions.NetworkErrorException
@@ -139,8 +138,12 @@ class UploadFileFromContentUriWorker(
         spaceWebDavUrl =
             getWebdavUrlForSpaceUseCase(GetWebDavUrlForSpaceUseCase.Params(accountName = account.name, spaceId = ocTransfer.spaceId))
 
-        val localStorageProvider: LocalStorageProvider by inject()
-        cachePath = localStorageProvider.getTemporalPath(account.name, ocTransfer.spaceId) + uploadPath
+        val cacheBase = appContext.externalCacheDir ?: appContext.cacheDir
+        requireNotNull(cacheBase) { "Both externalCacheDir and cacheDir are null" }
+        val baseTmpDir = File(cacheBase, "upload_tmp")
+        val accountDir = File(baseTmpDir, Uri.encode(account.name, "@"))
+        val spaceDir = if (ocTransfer.spaceId != null) File(accountDir, ocTransfer.spaceId!!) else accountDir
+        cachePath = spaceDir.absolutePath + uploadPath
 
         if (ocTransfer.isContentUri(appContext)) {
             checkDocumentFileExists()
@@ -302,9 +305,7 @@ class UploadFileFromContentUriWorker(
         val hasPendingTusSession = !ocTransfer.tusUploadUrl.isNullOrBlank()
         val shouldTryTus = hasPendingTusSession || (supportsTus && fileSize >= TusUploadHelper.DEFAULT_CHUNK_SIZE)
 
-        var attemptedTus = false
         if (shouldTryTus) {
-            attemptedTus = true
             Timber.d(
                 "Attempting TUS upload (size=%d, threshold=%d, resume=%s)",
                 fileSize,

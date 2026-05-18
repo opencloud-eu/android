@@ -78,7 +78,7 @@ val remoteDataSourceModule = module {
     singleOf(::OCRemoteShareeDataSource) bind RemoteShareeDataSource::class
     singleOf(::OCRemoteSpacesDataSource) bind RemoteSpacesDataSource::class
     singleOf(::OCRemoteWebFingerDataSource) bind RemoteWebFingerDataSource::class
-    single<RemoteUserDataSource> { OCRemoteUserDataSource(get(), androidContext().resources.getDimension(R.dimen.file_avatar_size).toInt()) }
+    singleOf(::OCRemoteUserDataSource) bind RemoteUserDataSource::class
 
     factoryOf(::RemoteCapabilityMapper)
     factoryOf(::RemoteShareMapper)

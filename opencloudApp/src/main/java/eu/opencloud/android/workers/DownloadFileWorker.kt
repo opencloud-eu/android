@@ -22,10 +22,14 @@
 package eu.opencloud.android.workers
 
 import android.accounts.Account
+import android.app.Notification
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ServiceInfo
+import android.net.Uri
 import androidx.work.CoroutineWorker
+import androidx.work.ForegroundInfo
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import at.bitfire.dav4jvm.exception.UnauthorizedException
@@ -42,6 +46,7 @@ import eu.opencloud.android.domain.files.usecases.GetFileByIdUseCase
 import eu.opencloud.android.domain.files.usecases.GetWebDavUrlForSpaceUseCase
 import eu.opencloud.android.domain.files.usecases.SaveDownloadWorkerUUIDUseCase
 import eu.opencloud.android.domain.files.usecases.SaveFileOrFolderUseCase
+import eu.opencloud.android.domain.spaces.usecases.GetSpaceByIdForAccountUseCase
 import eu.opencloud.android.lib.common.OpenCloudAccount
 import eu.opencloud.android.lib.common.OpenCloudClient
 import eu.opencloud.android.lib.common.SingleSessionManager
@@ -58,6 +63,7 @@ import eu.opencloud.android.utils.DOWNLOAD_NOTIFICATION_CHANNEL_ID
 import eu.opencloud.android.utils.DOWNLOAD_NOTIFICATION_ID_DEFAULT
 import eu.opencloud.android.utils.FileStorageUtils
 import eu.opencloud.android.utils.NOTIFICATION_TIMEOUT_STANDARD
+import eu.opencloud.android.utils.NotificationUtils
 import eu.opencloud.android.utils.NotificationUtils.createBasicNotification
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -82,12 +88,18 @@ class DownloadFileWorker(
     private val saveDownloadWorkerUuidUseCase: SaveDownloadWorkerUUIDUseCase by inject()
     private val cleanWorkersUuidUseCase: CleanWorkersUUIDUseCase by inject()
     private val localStorageProvider: LocalStorageProvider by inject()
+    private val getSpaceByIdForAccountUseCase: GetSpaceByIdForAccountUseCase by inject()
 
     lateinit var account: Account
     lateinit var ocFile: OCFile
+    private var spaceName: String? = null
 
     private lateinit var downloadRemoteFileOperation: DownloadRemoteFileOperation
     private var lastPercent = 0
+
+    private var foregroundInitialized = false
+    private var currentForegroundProgress = -1
+    private val foregroundScope = CoroutineScope(Dispatchers.Main)
 
     /**
      * Temporal path for this file to be downloaded.
@@ -97,9 +109,19 @@ class DownloadFileWorker(
 
     /**
      * Temporal path where every file of this account will be downloaded.
+     * Uses the app's external cache directory which is always writable without special permissions
+     * AND is on the same filesystem as /storage/emulated/0/ so that File.renameTo() works
+     * when moving the downloaded file to its final location under OpenCloud/.
      */
     private val temporalFolderPath
-        get() = FileStorageUtils.getTemporalPath(account.name, ocFile.spaceId)
+        get(): String {
+            val cacheBase = appContext.externalCacheDir ?: appContext.cacheDir
+            requireNotNull(cacheBase) { "Both externalCacheDir and cacheDir are null" }
+            val baseTmpDir = File(cacheBase, "download_tmp")
+            val accountDir = File(baseTmpDir, Uri.encode(account.name, "@"))
+            val spaceDir = if (ocFile.spaceId != null) File(accountDir, ocFile.spaceId!!) else accountDir
+            return spaceDir.absolutePath
+        }
 
     /**
      * Final path where this file should be stored.
@@ -109,12 +131,18 @@ class DownloadFileWorker(
      */
     private val finalLocationForFile: String
         get() = ocFile.storagePath.takeUnless { it.isNullOrBlank() }
-            ?: localStorageProvider.getDefaultSavePathFor(accountName = account.name, remotePath = ocFile.remotePath, spaceId = ocFile.spaceId)
+            ?: localStorageProvider.getDefaultSavePathFor(
+                accountName = account.name,
+                remotePath = ocFile.remotePath,
+                spaceId = ocFile.spaceId,
+                spaceName = spaceName
+            )
 
     override suspend fun doWork(): Result {
         if (!areParametersValid()) return Result.failure()
 
         return try {
+            startForeground()
             downloadFileToTemporalFile()
             moveTemporalFileToFinalLocation()
             updateDatabaseWithLatestInfoForThisFile()
@@ -139,6 +167,13 @@ class DownloadFileWorker(
 
         account = AccountUtils.getOpenCloudAccountByName(appContext, accountName) ?: return false
         ocFile = getFileByIdUseCase(GetFileByIdUseCase.Params(fileId)).getDataOrNull() ?: return false
+
+        if (ocFile.spaceId != null) {
+            val space = getSpaceByIdForAccountUseCase(GetSpaceByIdForAccountUseCase.Params(account.name, ocFile.spaceId))
+            if (space != null) {
+                spaceName = space.name
+            }
+        }
 
         return !ocFile.isFolder
     }
@@ -190,9 +225,19 @@ class DownloadFileWorker(
 
         val finalLocation = File(finalLocationForFile)
         finalLocation.parentFile?.mkdirs()
-        val movedToTheFinalLocation = temporalLocation.renameTo(finalLocation)
 
-        if (!movedToTheFinalLocation) {
+        if (temporalLocation.renameTo(finalLocation)) {
+            return
+        }
+
+        Timber.w("renameTo failed from %s to %s, falling back to copy+delete", temporalLocation.absolutePath, finalLocation.absolutePath)
+        try {
+            temporalLocation.copyTo(finalLocation, overwrite = true)
+            if (!temporalLocation.delete()) {
+                Timber.w("Failed to delete temporal file after copy: %s", temporalLocation.absolutePath)
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "Copy+delete fallback also failed from %s to %s", temporalLocation.absolutePath, finalLocation.absolutePath)
             throw LocalStorageNotMovedException()
         }
     }
@@ -211,6 +256,7 @@ class DownloadFileWorker(
             needsToUpdateThumbnail = true
             modificationTimestamp = downloadRemoteFileOperation.modificationTimestamp
             etag = downloadRemoteFileOperation.etag
+            remoteEtag = downloadRemoteFileOperation.etag
             storagePath = finalLocationForFile
             length = finalFile.length()
             // Use the file's actual mtime, not the current time. SynchronizeFileUseCase
@@ -233,8 +279,6 @@ class DownloadFileWorker(
             )
         )
 
-        // To be done. Probably we will move it out from here.
-        //mStorageManager.triggerMediaScan(file.getStoragePath())
     }
 
     /**
@@ -316,7 +360,10 @@ class DownloadFileWorker(
     }
 
     private fun getClientForThisDownload(): OpenCloudClient = SingleSessionManager.getDefaultSingleton()
-        .getClientFor(OpenCloudAccount(AccountUtils.getOpenCloudAccountByName(appContext, account.name), appContext), appContext)
+        .getClientFor(
+            OpenCloudAccount(AccountUtils.getOpenCloudAccountByName(appContext, account.name), appContext),
+            appContext
+        )
 
     override fun onTransferProgress(
         progressRate: Long,
@@ -330,7 +377,8 @@ class DownloadFileWorker(
             downloadRemoteFileOperation.removeDatatransferProgressListener(this)
         }
 
-        val percent: Int = if (totalToTransfer == -1L) -1 else (100.0 * totalTransferredSoFar.toDouble() / totalToTransfer.toDouble()).toInt()
+        val percent: Int = if (totalToTransfer == -1L) -1 else (100.0 * totalTransferredSoFar.toDouble() /
+                totalToTransfer.toDouble()).toInt()
         if (percent == lastPercent) return
 
         // Set current progress. Observers will listen.
@@ -339,7 +387,75 @@ class DownloadFileWorker(
             setProgress(progress)
         }
 
+        scheduleForegroundUpdate(percent)
         lastPercent = percent
+    }
+
+    private suspend fun startForeground() {
+        if (foregroundInitialized) return
+        foregroundInitialized = true
+        currentForegroundProgress = Int.MIN_VALUE
+        try {
+            setForeground(createForegroundInfo(-1))
+        } catch (e: Exception) {
+            Timber.w(e, "Failed to set foreground for download worker")
+        }
+        currentForegroundProgress = -1
+    }
+
+    private fun scheduleForegroundUpdate(progress: Int) {
+        if (!foregroundInitialized) return
+        if (progress == currentForegroundProgress) return
+        currentForegroundProgress = progress
+        foregroundScope.launch {
+            try {
+                setForeground(createForegroundInfo(progress))
+            } catch (e: Exception) {
+                Timber.w(e, "Failed to update foreground notification")
+            }
+        }
+    }
+
+    private fun createForegroundInfo(progress: Int): ForegroundInfo =
+        ForegroundInfo(
+            computeNotificationId(),
+            buildForegroundNotification(progress),
+            ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
+        )
+
+    private fun buildForegroundNotification(progress: Int): Notification {
+        val fileName = ocFile.fileName
+        val builder = NotificationUtils
+            .newNotificationBuilder(appContext, DOWNLOAD_NOTIFICATION_CHANNEL_ID)
+            .setContentTitle(appContext.getString(R.string.downloader_download_in_progress_ticker))
+            .setOngoing(true)
+            .setOnlyAlertOnce(true)
+            .setSubText(fileName)
+
+        if (progress in 0..100) {
+            builder.setContentText(
+                appContext.getString(
+                    R.string.downloader_download_in_progress_content,
+                    progress,
+                    fileName
+                )
+            )
+            builder.setProgress(100, progress, false)
+        } else {
+            builder.setContentText(appContext.getString(R.string.downloader_download_in_progress_ticker))
+            builder.setProgress(0, 0, true)
+        }
+
+        return builder.build()
+    }
+
+    private fun computeNotificationId(): Int {
+        val id = ocFile.id ?: 0L
+        return if (id in Int.MIN_VALUE.toLong()..Int.MAX_VALUE.toLong()) {
+            id.toInt()
+        } else {
+            id.hashCode()
+        }
     }
 
     companion object {
