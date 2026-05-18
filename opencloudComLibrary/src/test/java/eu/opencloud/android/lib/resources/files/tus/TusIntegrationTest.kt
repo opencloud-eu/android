@@ -8,12 +8,14 @@ import eu.opencloud.android.lib.common.OpenCloudAccount
 import eu.opencloud.android.lib.common.OpenCloudClient
 import eu.opencloud.android.lib.common.accounts.AccountUtils
 import eu.opencloud.android.lib.common.authentication.OpenCloudCredentialsFactory
+import eu.opencloud.android.lib.common.network.ChunkFromFileRequestBody
 import eu.opencloud.android.lib.common.operations.RemoteOperationResult
 import eu.opencloud.android.lib.resources.files.tus.CreateTusUploadRemoteOperation.Base64Encoder
 import okhttp3.mockwebserver.Dispatcher
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import okhttp3.mockwebserver.RecordedRequest
+import okio.Buffer
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
@@ -21,6 +23,8 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import java.io.File
+import java.io.RandomAccessFile
+import java.nio.channels.ClosedChannelException
 import java.util.Base64
 
 @RunWith(RobolectricTestRunner::class)
@@ -245,6 +249,32 @@ class TusIntegrationTest {
         // creation-with-upload sends Content-Type and Content-Length for the chunk
         assertEquals("application/offset+octet-stream", postReq.getHeader("Content-Type"))
         assertEquals(firstChunkSize.toString(), postReq.getHeader("Content-Length"))
+        assertTrue("Local file should be deletable after TUS creation-with-upload", localFile.delete())
+    }
+
+    @Test
+    fun chunk_body_propagates_channel_failures() {
+        val localFile = File.createTempFile("tus", ".bin").apply {
+            writeBytes(ByteArray(10) { it.toByte() })
+        }
+        val raf = RandomAccessFile(localFile, "r")
+        val body = ChunkFromFileRequestBody(
+            file = localFile,
+            contentType = null,
+            channel = raf.channel,
+            chunkSize = 5
+        )
+
+        raf.close()
+
+        try {
+            body.writeTo(Buffer())
+            fail("Expected closed channel failure")
+        } catch (expected: ClosedChannelException) {
+            // Expected failure must reach OkHttp so the upload can fail.
+        } finally {
+            localFile.delete()
+        }
     }
 
     @Test
