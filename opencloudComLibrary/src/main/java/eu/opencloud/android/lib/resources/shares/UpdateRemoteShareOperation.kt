@@ -159,7 +159,9 @@ class UpdateRemoteShareOperation
 
         } else if (expirationDateInMillis > INITIAL_EXPIRATION_DATE_IN_MILLIS) {
             // set expiration date
-            val dateFormat = SimpleDateFormat(FORMAT_EXPIRATION_DATE, Locale.getDefault())
+            val dateFormat = SimpleDateFormat(FORMAT_EXPIRATION_DATE, Locale.getDefault()).apply {
+                timeZone = java.util.TimeZone.getTimeZone("UTC")
+            }
             val expirationDate = Calendar.getInstance()
             expirationDate.timeInMillis = expirationDateInMillis
             val formattedExpirationDate = dateFormat.format(expirationDate.time)
@@ -216,7 +218,7 @@ class UpdateRemoteShareOperation
         private const val PARAM_PERMISSIONS = "permissions"
 
         //Arguments - constant values
-        private const val FORMAT_EXPIRATION_DATE = "yyyy-MM-dd"
+        private const val FORMAT_EXPIRATION_DATE = "yyyy-MM-dd'T'HH:mm:ss'Z'"
         private const val INITIAL_EXPIRATION_DATE_IN_MILLIS: Long = 0
     }
 }
