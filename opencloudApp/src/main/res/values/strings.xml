@@ -59,6 +59,14 @@
     <string name="prefs_lock_access_from_document_provider_summary">Lock access from other apps to the files of the accounts in the app via the Android native file explorer.</string>
     <string name="prefs_touches_with_other_visible_windows">Touches with other visible windows</string>
     <string name="prefs_touches_with_other_visible_windows_summary">Allow touches when the view is obscured by another visible window. Enable it to use light filtering apps.</string>
+
+    <string name="prefs_mtls">mTLS client certificate</string>
+    <string name="prefs_mtls_summary">Present a client certificate for mutual TLS authentication</string>
+    <string name="prefs_mtls_select_cert">Select certificate</string>
+    <string name="prefs_mtls_select_cert_summary_none">No certificate selected</string>
+    <string name="prefs_mtls_select_cert_summary">Selected: %s</string>
+    <string name="prefs_mtls_cert_selected">Client certificate selected</string>
+    <string name="prefs_mtls_cert_removed">Client certificate removed</string>
     <string name="confirmation_touches_with_other_windows_title">Are you sure you want to enable this feature?</string>
     <string name="confirmation_touches_with_other_windows_message">Use this feature at your own risk. A malicious application could try to spoof you into unknowingly performing some actions, using other views.</string>
     <string name="prefs_subsection_picture_uploads">Automatic picture uploads</string>

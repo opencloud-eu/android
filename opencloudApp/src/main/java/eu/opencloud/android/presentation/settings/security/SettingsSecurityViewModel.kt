@@ -20,9 +20,11 @@
 
 package eu.opencloud.android.presentation.settings.security
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import eu.opencloud.android.R
 import eu.opencloud.android.data.providers.SharedPreferencesProvider
+import eu.opencloud.android.lib.common.network.ClientCertificateManager
 import eu.opencloud.android.presentation.security.LockEnforcedType
 import eu.opencloud.android.presentation.security.LockEnforcedType.Companion.parseFromInteger
 import eu.opencloud.android.presentation.security.LockTimeout
@@ -63,4 +65,23 @@ class SettingsSecurityViewModel(
             integerKey = R.integer.lock_delay_enforced
         )
     ) != LockTimeout.DISABLED
+
+    fun setMtlsEnabled(context: Context, enabled: Boolean) {
+        ClientCertificateManager.setMtlsEnabled(context, enabled)
+    }
+
+    fun getSelectedAlias(context: Context): String? = ClientCertificateManager.getAlias(context)
+
+    fun setSelectedAlias(context: Context, alias: String) {
+        ClientCertificateManager.setAlias(context, alias)
+    }
+
+    fun removeAlias(context: Context) {
+        ClientCertificateManager.removeAlias(context)
+    }
+
+    companion object {
+        const val PREFERENCE_ENABLE_MTLS = "enable_mtls"
+        const val PREFERENCE_MTLS_SELECT_CERTIFICATE = "mtls_select_certificate"
+    }
 }

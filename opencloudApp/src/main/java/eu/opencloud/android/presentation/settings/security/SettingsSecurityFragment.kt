@@ -24,6 +24,7 @@ import android.app.Activity
 import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
+import android.security.KeyChain
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.preference.CheckBoxPreference
@@ -56,6 +57,8 @@ class SettingsSecurityFragment : PreferenceFragmentCompat() {
     private var prefLockApplication: ListPreference? = null
     private var prefLockAccessDocumentProvider: CheckBoxPreference? = null
     private var prefTouchesWithOtherVisibleWindows: CheckBoxPreference? = null
+    private var prefMtls: CheckBoxPreference? = null
+    private var prefMtlsSelectCert: Preference? = null
 
     private val enablePasscodeLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -222,6 +225,62 @@ class SettingsSecurityFragment : PreferenceFragmentCompat() {
             }
             true
         }
+
+        // mTLS client certificate
+        prefMtls = findPreference(SettingsSecurityViewModel.PREFERENCE_ENABLE_MTLS)
+        prefMtlsSelectCert = findPreference(SettingsSecurityViewModel.PREFERENCE_MTLS_SELECT_CERTIFICATE)
+
+        updateMtlsCertSummary()
+
+        prefMtls?.setOnPreferenceChangeListener { _: Preference?, newValue: Any ->
+            val enabled = newValue as Boolean
+            securityViewModel.setMtlsEnabled(requireContext(), enabled)
+            if (!enabled) {
+                securityViewModel.removeAlias(requireContext())
+                updateMtlsCertSummary()
+                invalidateHttpClients()
+            }
+            true
+        }
+
+        prefMtlsSelectCert?.setOnPreferenceClickListener {
+            launchKeyChainPicker()
+            true
+        }
+    }
+
+    private fun launchKeyChainPicker() {
+        val currentAlias = securityViewModel.getSelectedAlias(requireContext())
+        KeyChain.choosePrivateKeyAlias(
+            requireActivity(),
+            { alias ->
+                activity?.runOnUiThread {
+                    if (alias != null) {
+                        securityViewModel.setSelectedAlias(requireContext(), alias)
+                        showMessageInSnackbar(getString(R.string.prefs_mtls_cert_selected))
+                    } else {
+                        securityViewModel.removeAlias(requireContext())
+                        showMessageInSnackbar(getString(R.string.prefs_mtls_cert_removed))
+                    }
+                    updateMtlsCertSummary()
+                    invalidateHttpClients()
+                }
+            },
+            null, null, null, -1, currentAlias
+        )
+    }
+
+    private fun updateMtlsCertSummary() {
+        val alias = securityViewModel.getSelectedAlias(requireContext())
+        prefMtlsSelectCert?.summary = if (alias != null) {
+            getString(R.string.prefs_mtls_select_cert_summary, alias)
+        } else {
+            getString(R.string.prefs_mtls_select_cert_summary_none)
+        }
+    }
+
+    private fun invalidateHttpClients() {
+        eu.opencloud.android.lib.common.SingleSessionManager.getDefaultSingleton().invalidateAllClients()
     }
 
     private fun enableBiometricAndLockApplication() {
