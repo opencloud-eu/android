@@ -137,6 +137,12 @@ abstract class HttpBaseMethod constructor(url: URL) {
     // Body
     fun getResponseBodyAsString(): String = response.peekBody(Long.MAX_VALUE).string()
 
+    fun getResponseBodyPreviewAsString(): String =
+        getResponseBodyPreviewAsString(MAX_RESPONSE_BODY_PREVIEW_BYTES)
+
+    fun getResponseBodyPreviewAsString(maxBytes: Long): String =
+        response.peekBody(maxBytes).string()
+
     open fun getResponseBodyAsStream(): InputStream? =
         response.body?.byteStream()
 
@@ -180,4 +186,8 @@ abstract class HttpBaseMethod constructor(url: URL) {
     //////////////////////////////
     @Throws(Exception::class)
     protected abstract fun onExecute(okHttpClient: OkHttpClient): Int
+
+    companion object {
+        const val MAX_RESPONSE_BODY_PREVIEW_BYTES = 64L * 1024L
+    }
 }
