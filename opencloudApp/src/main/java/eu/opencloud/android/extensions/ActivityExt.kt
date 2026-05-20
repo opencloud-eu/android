@@ -456,8 +456,10 @@ fun FragmentActivity.sendDownloadedFilesByShareSheet(ocFiles: List<OCFile>) {
 }
 
 fun Activity.openOCFile(ocFile: OCFile) {
+    val finalMimeType = MimetypeIconUtil.getBestMimeTypeForOpen(ocFile.mimeType, ocFile.fileName)
+
     val intentForSavedMimeType = Intent(Intent.ACTION_VIEW).apply {
-        setDataAndType(getExposedFileUriForOCFile(this@openOCFile, ocFile), ocFile.mimeType)
+        setDataAndType(getExposedFileUriForOCFile(this@openOCFile, ocFile), finalMimeType)
         flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
         if (ocFile.hasWritePermission) {
             flags = flags or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
