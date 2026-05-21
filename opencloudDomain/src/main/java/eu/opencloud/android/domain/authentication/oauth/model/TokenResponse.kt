@@ -28,4 +28,22 @@ data class TokenResponse(
     val scope: String?,
     val idToken: String? = null,
     val additionalParameters: Map<String, String>?
-)
+) {
+    override fun toString(): String =
+        "TokenResponse(" +
+                "accessToken=$REDACTED, " +
+                "expiresIn=$expiresIn, " +
+                "refreshToken=${refreshToken.redactedOrNull()}, " +
+                "tokenType=$tokenType, " +
+                "userId=$userId, " +
+                "scope=$scope, " +
+                "idToken=${idToken.redactedOrNull()}, " +
+                "additionalParameters=$additionalParameters" +
+                ")"
+
+    private fun String?.redactedOrNull(): String = if (this == null) "null" else REDACTED
+
+    private companion object {
+        const val REDACTED = "[redacted]"
+    }
+}

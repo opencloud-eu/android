@@ -133,7 +133,7 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        Timber.d("onCreate called with intent data: ${intent.data}, isTaskRoot: $isTaskRoot")
+        Timber.d("onCreate called with intent data present: ${intent.data != null}, isTaskRoot: $isTaskRoot")
 
         if (handleOAuthRedirectOnCreate()) return
 
@@ -747,7 +747,7 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
         intent?.let {
-            Timber.d("onNewIntent received with data: ${it.data}")
+            Timber.d("onNewIntent received with data present: ${it.data != null}")
             if (!::binding.isInitialized) {
                 Timber.w("onNewIntent received before binding initialized, ignoring OAuth response")
                 return
@@ -762,12 +762,12 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
         val state = intent.data?.getQueryParameter("state")
 
         if (state != authenticationViewModel.oidcState) {
-            Timber.e("OAuth: state mismatch (expected=${authenticationViewModel.oidcState}, got=$state). Finishing.")
+            Timber.e("OAuth state mismatch. Finishing.")
             showMessageInSnackbar(message = getString(R.string.auth_oauth_error))
             finish()
         } else {
             if (authorizationCode != null) {
-                Timber.d("Authorization code received [$authorizationCode]. Let's exchange it for access token")
+                Timber.d("Authorization code received. Exchanging it for access token")
                 exchangeAuthorizationCodeForTokens(authorizationCode)
             } else {
                 val authorizationError = intent.data?.getQueryParameter("error")
@@ -851,12 +851,12 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
             when (val uiResult = it.peekContent()) {
                 is UIResult.Loading -> {}
                 is UIResult.Success -> {
-                    Timber.d("Tokens received ${uiResult.data}, trying to login, creating account and adding it to account manager")
+                    Timber.d("Tokens received, trying to login, creating account and adding it to account manager")
                     val tokenResponse = uiResult.data ?: return@observe
 
                     // Extract preferred_username from id_token for login_hint on re-login
                     preferredUsername = extractPreferredUsernameFromIdToken(tokenResponse.idToken)
-                    Timber.d("Preferred username from id_token: $preferredUsername")
+                    Timber.d("Preferred username extracted from id_token: ${preferredUsername != null}")
 
                     // When webfinger provides a client_id without dynamic registration,
                     // store it so AccountAuthenticator can use it for token refresh

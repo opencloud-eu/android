@@ -63,20 +63,20 @@ class TokenRequestRemoteOperation(
             val responseBody = postMethod.getResponseBodyAsString()
 
             return if (status == HTTP_OK && responseBody != null) {
-                Timber.d("Successful response $responseBody")
+                Timber.d("Successful token response received")
 
                 // Parse the response
                 val moshi: Moshi = Moshi.Builder().build()
                 val jsonAdapter: JsonAdapter<TokenResponse> = moshi.adapter(TokenResponse::class.java)
                 val tokenResponse: TokenResponse? = jsonAdapter.fromJson(responseBody)
-                Timber.d("Get tokens completed and parsed to $tokenResponse")
+                Timber.d("Get tokens completed and parsed")
 
                 RemoteOperationResult<TokenResponse>(RemoteOperationResult.ResultCode.OK).apply {
                     data = tokenResponse
                 }
 
             } else {
-                Timber.e("Failed response while getting tokens from the server status code: $status; response message: $responseBody")
+                Timber.e("Failed response while getting tokens from the server status code: $status")
                 RemoteOperationResult<TokenResponse>(postMethod)
             }
 
