@@ -23,6 +23,7 @@ package eu.opencloud.android.presentation.thumbnails
 import android.accounts.Account
 import android.accounts.AccountManager
 import android.net.Uri
+import androidx.annotation.VisibleForTesting
 import coil.ImageLoader
 import coil.disk.DiskCache
 import coil.memory.MemoryCache
@@ -30,7 +31,6 @@ import coil.util.DebugLogger
 import eu.opencloud.android.MainApp.Companion.appContext
 import eu.opencloud.android.data.ClientManager
 import eu.opencloud.android.data.providers.SharedPreferencesProvider
-import java.util.concurrent.ConcurrentHashMap
 import eu.opencloud.android.domain.files.model.OCFile
 import eu.opencloud.android.domain.files.model.OCFileWithSyncInfo
 import eu.opencloud.android.domain.spaces.model.SpaceSpecial
@@ -50,6 +50,7 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import timber.log.Timber
 import java.util.Locale
+import java.util.concurrent.ConcurrentHashMap
 
 object ThumbnailsRequester : KoinComponent {
     private val clientManager: ClientManager by inject()
@@ -57,7 +58,7 @@ object ThumbnailsRequester : KoinComponent {
 
     // https://docs.opencloud.eu/docs/next/dev/server/services/thumbnails/information/#thumbnail-query-string-parameters
     private const val SPACE_SPECIAL_PREVIEW_URI = "%s?scalingup=0&a=1&x=%d&y=%d&c=%s&preview=1"
-    private const val FILE_PREVIEW_URI = "%s/webdav%s?x=%d&y=%d&c=%s&preview=1"
+    private const val FILE_PREVIEW_URI = "%s%s?x=%d&y=%d&c=%s&preview=1"
 
     private const val THUMBNAIL_DISK_CACHE_SIZE: Long = 1024 * 1024 * 100 // 100MB
     private const val AVATAR_HTTP_CACHE_SIZE: Long = 10L * 1024 * 1024 // 10MB
@@ -99,25 +100,43 @@ object ThumbnailsRequester : KoinComponent {
     }
 
     fun getPreviewUriForFile(file: OCFile, account: Account, etag: String? = null, width: Int = 1024, height: Int = 1024): String =
-        getPreviewUri(file.remotePath, etag ?: file.remoteEtag, account, width, height)
+        getPreviewUri(file, null, etag ?: file.remoteEtag, account, width, height)
 
     fun getPreviewUriForFile(fileWithSyncInfo: OCFileWithSyncInfo, account: Account, width: Int = 1024, height: Int = 1024): String =
-        getPreviewUriForFile(fileWithSyncInfo.file, account, null, width, height)
+        getPreviewUri(fileWithSyncInfo.file, fileWithSyncInfo.space?.root?.webDavUrl, fileWithSyncInfo.file.remoteEtag, account, width, height)
 
     fun getPreviewUriForSpaceSpecial(spaceSpecial: SpaceSpecial): String =
         String.format(Locale.US, SPACE_SPECIAL_PREVIEW_URI, spaceSpecial.webDavUrl, 1024, 1024, spaceSpecial.eTag)
 
-    private fun getPreviewUri(remotePath: String?, etag: String?, account: Account, width: Int, height: Int): String {
+    private fun getPreviewUri(file: OCFile, spaceWebDavUrl: String?, etag: String?, account: Account, width: Int, height: Int): String {
         val baseUrl = accountBaseUrls.getOrPut(account.name) {
             val accountManager = AccountManager.get(appContext)
             accountManager.getUserData(account, eu.opencloud.android.lib.common.accounts.AccountUtils.Constants.KEY_OC_BASE_URL)
                 ?.trimEnd('/')
                 .orEmpty()
         }
+        return buildPreviewUri(baseUrl, file.remotePath, file.spaceId, spaceWebDavUrl, etag, width, height)
+    }
+
+    @VisibleForTesting
+    internal fun buildPreviewUri(
+        accountBaseUrl: String,
+        remotePath: String?,
+        spaceId: String?,
+        spaceWebDavUrl: String?,
+        etag: String?,
+        width: Int,
+        height: Int,
+    ): String {
+        val previewBaseUrl = when {
+            !spaceWebDavUrl.isNullOrBlank() -> spaceWebDavUrl.trimEnd('/')
+            !spaceId.isNullOrBlank() -> "${accountBaseUrl.trimEnd('/')}/dav/spaces/${Uri.encode(spaceId, "\$")}"
+            else -> "${accountBaseUrl.trimEnd('/')}/webdav"
+        }
         val path = if (remotePath?.startsWith("/") == true) remotePath else "/$remotePath"
         val encodedPath = Uri.encode(path, "/")
 
-        return String.format(Locale.US, FILE_PREVIEW_URI, baseUrl, encodedPath, width, height, etag.orEmpty())
+        return String.format(Locale.US, FILE_PREVIEW_URI, previewBaseUrl, encodedPath, width, height, etag.orEmpty())
     }
 
     fun getContentAddressedImageLoader(): ImageLoader {
