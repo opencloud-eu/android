@@ -42,58 +42,53 @@
         <TextView
             android:id="@+id/header_pattern"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/standard_margin"
+            android:layout_height="0dp"
             android:text="@string/pass_code_enter_pass_code"
             android:textColor="@android:color/black"
             android:textSize="16sp"
+            android:gravity="bottom"
+            app:layout_constraintVertical_weight="1"
             app:layout_constraintBottom_toTopOf="@id/explanation_pattern"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_chainStyle="packed" />
+            app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
             android:id="@+id/explanation_pattern"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="@dimen/standard_margin"
-            android:gravity="center"
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
             android:text="@string/pattern_configure_your_pattern_explanation"
             android:textAppearance="@android:style/TextAppearance.Small"
             android:textSize="14sp"
+            android:gravity="bottom"
+            app:layout_constraintVertical_weight="1"
             app:layout_constraintBottom_toTopOf="@id/error_pattern"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/header_pattern" />
 
         <TextView
             android:id="@+id/error_pattern"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/standard_margin"
+            android:layout_height="0dp"
             android:textColor="@color/warning"
             android:textSize="16sp"
+            android:gravity="bottom"
+            app:layout_constraintVertical_weight="1"
             app:layout_constraintBottom_toTopOf="@id/patternContainer"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/explanation_pattern" />
 
         <eu.opencloud.android.presentation.security.passcode.SquareFrameLayout
             android:id="@+id/patternContainer"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="@dimen/standard_margin"
-            android:layout_marginVertical="@dimen/standard_margin"
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="@id/rightGuideline"
-            app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintHorizontal_chainStyle="packed"
-            app:layout_constraintStart_toStartOf="@id/leftGuideline"
-            app:layout_constraintTop_toBottomOf="@id/error_pattern">
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/error_pattern"
+            app:layout_constraintVertical_weight="8">
 
             <com.andrognito.patternlockview.PatternLockView
                 android:id="@+id/pattern_lock_view"
@@ -109,20 +104,6 @@
 
             </com.andrognito.patternlockview.PatternLockView>
         </eu.opencloud.android.presentation.security.passcode.SquareFrameLayout>
-
-        <androidx.constraintlayout.widget.Guideline
-            android:id="@+id/leftGuideline"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            app:layout_constraintGuide_percent="0.3" />
-
-        <androidx.constraintlayout.widget.Guideline
-            android:id="@+id/rightGuideline"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            app:layout_constraintGuide_percent="0.7" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
