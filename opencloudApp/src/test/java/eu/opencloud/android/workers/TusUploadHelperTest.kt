@@ -86,7 +86,7 @@ class TusUploadHelperTest {
             tusSupport = tusSupport(),
             progressListener = null,
             progressCallback = { offset, _ -> progress += offset },
-            spaceWebDavUrl = server.url("/remote.php/dav/spaces/personal").toString(),
+            spaceWebDavUrl = server.url("/dav/spaces/personal").toString(),
         )
 
         assertNull(resultEtag)
@@ -94,7 +94,7 @@ class TusUploadHelperTest {
 
         val createRequest = server.takeRequest()
         assertEquals("POST", createRequest.method)
-        assertEquals("/remote.php/dav/spaces/personal/Photos", createRequest.path)
+        assertEquals("/dav/spaces/personal/Photos", createRequest.path)
         assertEquals("0", createRequest.getHeader("Upload-Offset"))
         assertEquals("5", createRequest.getHeader("Upload-Length"))
         assertTrue(createRequest.getHeader("Upload-Metadata")!!.contains("checksum"))
