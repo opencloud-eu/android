@@ -68,6 +68,9 @@ dependencies {
     testImplementation libs.junit4
     testImplementation libs.kotlinx.coroutines.test
     testImplementation libs.mockk
+    testImplementation libs.androidx.test.core
+    testImplementation 'org.robolectric:robolectric:4.15.1'
+    testImplementation 'com.squareup.okhttp3:mockwebserver:4.9.2'
 
     // Instrumented tests
     androidTestImplementation project(":opencloudTestUtil")

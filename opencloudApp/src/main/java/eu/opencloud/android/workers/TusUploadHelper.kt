@@ -424,5 +424,12 @@ class TusUploadHelper(
         private const val MAX_RETRIES = 5
         private const val BASE_RETRY_DELAY_MS = 250L
         private const val MAX_RETRY_DELAY_MS = 2_000L
+
+        fun shouldAttemptTusUpload(
+            fileSize: Long,
+            tusSupport: OCCapability.TusSupport?,
+            tusUploadUrl: String?,
+        ): Boolean =
+            !tusUploadUrl.isNullOrBlank() || (tusSupport != null && fileSize >= DEFAULT_CHUNK_SIZE)
     }
 }
