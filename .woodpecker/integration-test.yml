@@ -1,8 +1,8 @@
 variables:
   - &android_image 'docker.io/mingc/android-build-box:1.29.0'
 
-#depends_on:
-#  - build
+depends_on:
+  - build
 
 when:
   - event: pull_request
@@ -17,7 +17,7 @@ steps:
   - name: wait for emulator
     image: *android_image
     commands:
-      - adb connect 10.8.0.1:5555
+      - adb connect localhost:5555
       - adb devices
 
   - name: start adb server
