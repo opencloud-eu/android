@@ -1,8 +1,8 @@
 variables:
   - &android_image 'docker.io/mingc/android-build-box:1.29.0'
 
-depends_on:
-  - build
+#depends_on:
+#  - build
 
 when:
   - event: pull_request
