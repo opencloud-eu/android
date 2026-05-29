@@ -14,20 +14,25 @@ labels:
   platform: android-emulator
 
 steps:
-  - name: wait for emulator
-    image: *android_image
-    commands:
-      - adb connect localhost:5555
-      - adb devices
+#  - name: wait for emulator
+#    image: *android_image
+#    commands:
+#      - adb connect localhost:5555
+#      - adb devices
 
-  - name: start adb server
-    image: *android_image
-    commands:
-      - curl -L -o adbserver-desktop.jar https://github.com/KasperskyLab/Kaspresso/raw/master/artifacts/adbserver-desktop.jar
-      - java -jar adbserver-desktop.jar &
-    detach: true
+#  - name: start adb server
+#    image: *android_image
+#    commands:
+#      - curl -L -o adbserver-desktop.jar https://github.com/KasperskyLab/Kaspresso/raw/master/artifacts/adbserver-desktop.jar
+#      - java -jar adbserver-desktop.jar &
+#    detach: true
 
   - name: run tests
     image: *android_image
     commands:
+      - adb connect 10.8.0.1::5555
+      - adb devices
+      - curl -L -o adbserver-desktop.jar https://github.com/KasperskyLab/Kaspresso/raw/master/artifacts/adbserver-desktop.jar
+      - java -jar adbserver-desktop.jar &
+      - sleep 3
       - ./gradlew :opencloudApp:connectedOriginalDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=eu.opencloud.android.LoginScreenTest#loginApp
