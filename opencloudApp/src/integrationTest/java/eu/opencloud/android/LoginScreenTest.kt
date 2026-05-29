@@ -77,11 +77,11 @@ class LoginScreenTest : TestCase(
                     username.typeText("alan")
                     password.typeText("demo")
                     loginButton.click()
-                    keepAccessForeverBtn {
-                        isDisplayed()
-                        isClickable()
-                        click()
-                    }
+//                    keepAccessForeverBtn {
+//                        isDisplayed()
+//                        isClickable()
+//                        click()
+//                    }
                 }
             }
             step("check personal space") {

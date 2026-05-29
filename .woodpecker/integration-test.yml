@@ -1,6 +1,5 @@
 variables:
   - &android_image 'docker.io/mingc/android-build-box:1.29.0'
-  - &emulator_image 'docker.io/shmayro/dockerify-android:09-02-26'
 
 depends_on:
   - build
@@ -11,15 +10,14 @@ when:
     branch:
       - ${CI_REPO_DEFAULT_BRANCH}
 
-steps:
-  - name: emulator
-    image: *emulator_image
-    detach: true
+labels:
+  platform: android-emulator
 
+steps:
   - name: wait for emulator
     image: *android_image
     commands:
-      - adb connect emulator:5555
+      - adb connect android-emulator-cuda:5555
       - adb devices
 
   - name: start adb server
