@@ -87,7 +87,9 @@ fun Activity.showMessageInSnackbar(
     message: CharSequence,
     duration: Int = Snackbar.LENGTH_LONG
 ) {
-    Snackbar.make(findViewById(layoutId), message, duration).show()
+    // edge-to-edge
+    val view = if (layoutId == android.R.id.content) window.decorView else findViewById(layoutId)
+    Snackbar.make(view, message, duration).show()
 }
 
 fun Activity.showErrorInToast(

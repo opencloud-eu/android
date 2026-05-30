@@ -418,7 +418,7 @@ class PreviewVideoActivity : FileActivity(), Player.Listener, OnPrepareVideoPlay
                 val fileToSetAsAvailableOffline = ArrayList<OCFile>()
                 fileToSetAsAvailableOffline.add(file)
                 fileOperationsViewModel.performOperation(SetFilesAsAvailableOffline(fileToSetAsAvailableOffline))
-                Snackbar.make(binding.root, R.string.confirmation_set_available_offline, Snackbar.LENGTH_LONG).show()
+                Snackbar.make(window.decorView, R.string.confirmation_set_available_offline, Snackbar.LENGTH_LONG).show()
                 true
             }
 
@@ -426,7 +426,7 @@ class PreviewVideoActivity : FileActivity(), Player.Listener, OnPrepareVideoPlay
                 val fileToUnsetAsAvailableOffline = ArrayList<OCFile>()
                 fileToUnsetAsAvailableOffline.add(file)
                 fileOperationsViewModel.performOperation(UnsetFilesAsAvailableOffline(fileToUnsetAsAvailableOffline))
-                Snackbar.make(binding.root, R.string.confirmation_unset_available_offline, Snackbar.LENGTH_LONG).show()
+                Snackbar.make(window.decorView, R.string.confirmation_unset_available_offline, Snackbar.LENGTH_LONG).show()
                 true
             }
 
