@@ -137,7 +137,9 @@ class CreateRemoteShareOperation(
         }
 
         if (expirationDateInMillis > INIT_EXPIRATION_DATE_IN_MILLIS) {
-            val dateFormat = SimpleDateFormat(FORMAT_EXPIRATION_DATE, Locale.getDefault())
+            val dateFormat = SimpleDateFormat(FORMAT_EXPIRATION_DATE, Locale.getDefault()).apply {
+                timeZone = java.util.TimeZone.getTimeZone("UTC")
+            }
             val expirationDate = Calendar.getInstance()
             expirationDate.timeInMillis = expirationDateInMillis
             val formattedExpirationDate = dateFormat.format(expirationDate.time)
@@ -197,6 +199,9 @@ class CreateRemoteShareOperation(
         private const val PARAM_PERMISSIONS = "permissions"
 
         //Arguments - constant values
-        private const val FORMAT_EXPIRATION_DATE = "yyyy-MM-dd"
+        // ISO-8601 UTC format is required by the backend to correctly parse expiration dates,
+        // especially for private user/group share creations and updates, ensuring compatibility
+        // when these features are eventually exposed in the mobile UI.
+        private const val FORMAT_EXPIRATION_DATE = "yyyy-MM-dd'T'HH:mm:ss'Z'"
     }
 }
