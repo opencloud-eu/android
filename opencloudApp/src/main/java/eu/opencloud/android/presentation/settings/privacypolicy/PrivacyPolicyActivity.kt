@@ -41,6 +41,7 @@ import eu.opencloud.android.extensions.showMessageInSnackbar
 import eu.opencloud.android.ui.activity.enableEdgeToEdgePostSetContentView
 import eu.opencloud.android.ui.activity.enableEdgeToEdgePreSetContentView
 import eu.opencloud.android.utils.PreferenceUtils
+import timber.log.Timber
 
 /**
  * Activity to show the privacy policy to the user
@@ -110,6 +111,7 @@ class PrivacyPolicyActivity : AppCompatActivity() {
                         startActivity(intent)
                         true
                     } catch (e: ActivityNotFoundException) {
+                        Timber.w(e, "No activity found to open URL: %s", url)
                         false
                     }
                 }
