@@ -1,7 +1,7 @@
 /**
  * openCloud Android client application
  *
- * Copyright (C) 2026 opencloud.
+ * Copyright (C) 2026 OpenCloud GmbH.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2,
@@ -19,6 +19,7 @@
 package eu.opencloud.android.presentation.thumbnails
 
 import android.net.Uri
+import eu.opencloud.android.domain.files.model.OCFile
 import io.mockk.every
 import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
@@ -40,6 +41,42 @@ class ThumbnailsRequesterTest {
     @After
     fun tearDown() {
         unmockkStatic(Uri::class)
+    }
+
+    @Test
+    fun `thumbnail cache token prefers explicit etag`() {
+        val file = file(remoteEtag = "remote-etag", etag = "local-etag")
+
+        val token = ThumbnailsRequester.getThumbnailCacheToken(file, explicitEtag = "explicit-etag")
+
+        assertEquals("explicit-etag", token)
+    }
+
+    @Test
+    fun `thumbnail cache token uses remote etag before etag`() {
+        val file = file(remoteEtag = "remote-etag", etag = "local-etag")
+
+        val token = ThumbnailsRequester.getThumbnailCacheToken(file)
+
+        assertEquals("remote-etag", token)
+    }
+
+    @Test
+    fun `thumbnail cache token falls back to etag when remote etag is missing`() {
+        val fileWithNullRemoteEtag = file(remoteEtag = null, etag = "local-etag")
+        val fileWithBlankRemoteEtag = file(remoteEtag = " ", etag = "local-etag")
+
+        assertEquals("local-etag", ThumbnailsRequester.getThumbnailCacheToken(fileWithNullRemoteEtag))
+        assertEquals("local-etag", ThumbnailsRequester.getThumbnailCacheToken(fileWithBlankRemoteEtag))
+    }
+
+    @Test
+    fun `thumbnail cache token is blank without any etag`() {
+        val file = file(remoteEtag = null, etag = "")
+
+        val token = ThumbnailsRequester.getThumbnailCacheToken(file, explicitEtag = " ")
+
+        assertEquals("", token)
     }
 
     @Test
@@ -116,4 +153,15 @@ class ThumbnailsRequesterTest {
 
     private fun encodeSpaces(value: String): String =
         value.replace(" ", "%20")
+
+    private fun file(remoteEtag: String?, etag: String?) =
+        OCFile(
+            owner = "owner",
+            length = 1,
+            modificationTimestamp = 1,
+            remotePath = "/Photos/image.jpg",
+            mimeType = "image/jpeg",
+            remoteEtag = remoteEtag,
+            etag = etag,
+        )
 }
