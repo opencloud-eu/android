@@ -100,13 +100,27 @@ object ThumbnailsRequester : KoinComponent {
     }
 
     fun getPreviewUriForFile(file: OCFile, account: Account, etag: String? = null, width: Int = 1024, height: Int = 1024): String =
-        getPreviewUri(file, null, etag ?: file.remoteEtag, account, width, height)
+        getPreviewUri(file, null, getThumbnailCacheToken(file, etag), account, width, height)
 
     fun getPreviewUriForFile(fileWithSyncInfo: OCFileWithSyncInfo, account: Account, width: Int = 1024, height: Int = 1024): String =
-        getPreviewUri(fileWithSyncInfo.file, fileWithSyncInfo.space?.root?.webDavUrl, fileWithSyncInfo.file.remoteEtag, account, width, height)
+        getPreviewUri(
+            fileWithSyncInfo.file,
+            fileWithSyncInfo.space?.root?.webDavUrl,
+            getThumbnailCacheToken(fileWithSyncInfo.file),
+            account,
+            width,
+            height
+        )
 
     fun getPreviewUriForSpaceSpecial(spaceSpecial: SpaceSpecial): String =
         String.format(Locale.US, SPACE_SPECIAL_PREVIEW_URI, spaceSpecial.webDavUrl, 1024, 1024, spaceSpecial.eTag)
+
+    @VisibleForTesting
+    internal fun getThumbnailCacheToken(file: OCFile, explicitEtag: String? = null): String =
+        firstNotBlank(explicitEtag, file.remoteEtag, file.etag).orEmpty()
+
+    private fun firstNotBlank(vararg values: String?): String? =
+        values.firstOrNull { !it.isNullOrBlank() }
 
     private fun getPreviewUri(file: OCFile, spaceWebDavUrl: String?, etag: String?, account: Account, width: Int, height: Int): String {
         val baseUrl = accountBaseUrls.getOrPut(account.name) {
