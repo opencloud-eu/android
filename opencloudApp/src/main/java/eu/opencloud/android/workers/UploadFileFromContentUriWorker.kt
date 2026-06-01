@@ -45,7 +45,10 @@ import eu.opencloud.android.domain.exceptions.ServerConnectionTimeoutException
 import eu.opencloud.android.domain.exceptions.ServerNotReachableException
 import eu.opencloud.android.domain.exceptions.ServerResponseTimeoutException
 import eu.opencloud.android.domain.exceptions.UnauthorizedException
+import eu.opencloud.android.domain.files.usecases.CleanConflictUseCase
+import eu.opencloud.android.domain.files.usecases.GetFileByRemotePathUseCase
 import eu.opencloud.android.domain.files.usecases.GetWebDavUrlForSpaceUseCase
+import eu.opencloud.android.domain.files.usecases.SaveFileOrFolderUseCase
 import eu.opencloud.android.domain.transfers.TransferRepository
 import eu.opencloud.android.domain.transfers.model.OCTransfer
 import eu.opencloud.android.domain.transfers.model.TransferResult
@@ -59,6 +62,7 @@ import eu.opencloud.android.lib.common.network.OnDatatransferProgressListener
 import eu.opencloud.android.lib.common.operations.RemoteOperationResult.ResultCode
 import eu.opencloud.android.lib.resources.files.CheckPathExistenceRemoteOperation
 import eu.opencloud.android.lib.resources.files.CreateRemoteFolderOperation
+import eu.opencloud.android.lib.resources.files.ReadRemoteFileOperation
 import eu.opencloud.android.lib.resources.files.UploadFileFromFileSystemOperation
 import eu.opencloud.android.presentation.authentication.AccountUtils
 import eu.opencloud.android.utils.NotificationUtils
@@ -107,6 +111,11 @@ class UploadFileFromContentUriWorker(
     private val transferRepository: TransferRepository by inject()
     private val getWebdavUrlForSpaceUseCase: GetWebDavUrlForSpaceUseCase by inject()
     private val getStoredCapabilitiesUseCase: GetStoredCapabilitiesUseCase by inject()
+    private val getFileByRemotePathUseCase: GetFileByRemotePathUseCase by inject()
+    private val saveFileOrFolderUseCase: SaveFileOrFolderUseCase by inject()
+    private val cleanConflictUseCase: CleanConflictUseCase by inject()
+
+    private var finalEtag: String = ""
 
     override suspend fun doWork(): Result = try {
         prepareFile()
@@ -115,7 +124,9 @@ class UploadFileFromContentUriWorker(
         checkParentFolderExistence(clientForThisUpload)
         checkNameCollisionAndGetAnAvailableOneInCase(clientForThisUpload)
         uploadDocument(clientForThisUpload)
+        resolveFinalEtagIfNeeded(clientForThisUpload)
         updateUploadsDatabaseWithResult(null)
+        updateFilesDatabaseWithLatestDetails()
         Result.success()
     }catch (throwable: Throwable) {
         Timber.e(throwable)
@@ -322,7 +333,7 @@ class UploadFileFromContentUriWorker(
                 hasPendingTusSession
             )
             val tusSucceeded = try {
-                tusUploadHelper.upload(
+                val returnedEtag = tusUploadHelper.upload(
                     client = client,
                     transfer = ocTransfer,
                     uploadId = uploadIdInStorageManager,
@@ -336,6 +347,9 @@ class UploadFileFromContentUriWorker(
                     progressCallback = ::updateProgressFromTus,
                     spaceWebDavUrl = spaceWebDavUrl,
                 )
+                if (!returnedEtag.isNullOrBlank()) {
+                    finalEtag = returnedEtag
+                }
                 true
             }catch (throwable: Throwable) {
                 Timber.w(throwable, "TUS upload failed, falling back to single PUT")
@@ -379,7 +393,24 @@ class UploadFileFromContentUriWorker(
 
         val result = executeRemoteOperation { uploadFileOperation.execute(client) }
         if (result == Unit) {
+            finalEtag = uploadFileOperation.etag
             clearTusState()
+        }
+    }
+
+    private fun resolveFinalEtagIfNeeded(client: OpenCloudClient) {
+        if (FileEtagNormalizer.normalize(finalEtag) != null) return
+
+        finalEtag = try {
+            executeRemoteOperation {
+                ReadRemoteFileOperation(
+                    remotePath = uploadPath,
+                    spaceWebDavUrl = spaceWebDavUrl,
+                ).execute(client)
+            }.etag.orEmpty()
+        } catch (e: Throwable) {
+            Timber.w(e, "Could not resolve final ETag for %s after upload", uploadPath)
+            ""
         }
     }
 
@@ -449,6 +480,35 @@ class UploadFileFromContentUriWorker(
         }else {
             TransferStatus.TRANSFER_FAILED
         }
+
+    private fun updateFilesDatabaseWithLatestDetails() {
+        val currentTime = System.currentTimeMillis()
+        val serverEtag = FileEtagNormalizer.normalize(finalEtag).orEmpty()
+        val file = getFileByRemotePathUseCase(
+            GetFileByRemotePathUseCase.Params(
+                account.name,
+                uploadPath,
+                ocTransfer.spaceId,
+            )
+        )
+        file.getDataOrNull()?.let { ocFile ->
+            val fileWithNewDetails = ocFile.copy(
+                storagePath = null,
+                needsToUpdateThumbnail = true,
+                etag = serverEtag,
+                remoteEtag = serverEtag,
+                length = fileSize,
+                modificationTimestamp = lastModified.toLongOrNull()?.times(1000L) ?: currentTime,
+                lastSyncDateForData = currentTime,
+                modifiedAtLastSyncForData = currentTime,
+                etagInConflict = null,
+            )
+            saveFileOrFolderUseCase(SaveFileOrFolderUseCase.Params(fileWithNewDetails))
+            ocFile.id?.let { fileId ->
+                cleanConflictUseCase(CleanConflictUseCase.Params(fileId = fileId))
+            }
+        }
+    }
 
     private fun showNotification(throwable: Throwable) {
         // check credentials error
