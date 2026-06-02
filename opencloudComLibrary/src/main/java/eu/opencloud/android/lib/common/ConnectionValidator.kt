@@ -177,8 +177,11 @@ class ConnectionValidator(
      */
     private fun checkUnauthorizedAccess(client: OpenCloudClient, singleSessionManager: SingleSessionManager, status: Int): Boolean {
         var credentialsWereRefreshed = false
-        val account = client.account
-        val credentials = account.credentials
+        // During initial OAuth login the client has bearer credentials but no Android Account yet
+        // (the Account is persisted only after this call succeeds). Skip refresh — there's nothing
+        // to refresh against — otherwise we'd NPE on account.credentials / savedAccount below.
+        val account: OpenCloudAccount = client.account ?: return false
+        val credentials: OpenCloudCredentials = account.credentials ?: return false
         if (shouldInvalidateAccountCredentials(credentials, account, status)) {
             invalidateAccountCredentials(account, credentials)
 

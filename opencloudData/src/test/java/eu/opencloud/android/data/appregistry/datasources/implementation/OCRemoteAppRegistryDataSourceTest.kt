@@ -22,6 +22,10 @@
 package eu.opencloud.android.data.appregistry.datasources.implementation
 
 import eu.opencloud.android.data.ClientManager
+import eu.opencloud.android.domain.appregistry.model.AppRegistryProvider
+import eu.opencloud.android.lib.resources.appregistry.responses.AppRegistryMimeTypeResponse
+import eu.opencloud.android.lib.resources.appregistry.responses.AppRegistryProviderResponse
+import eu.opencloud.android.lib.resources.appregistry.responses.AppRegistryResponse
 import eu.opencloud.android.lib.resources.appregistry.services.OCAppRegistryService
 import eu.opencloud.android.testutil.OC_ACCOUNT_NAME
 import eu.opencloud.android.testutil.OC_APP_REGISTRY
@@ -65,6 +69,43 @@ class OCRemoteAppRegistryDataSourceTest {
         assertEquals(OC_APP_REGISTRY, result)
 
         verify(exactly = 1) { ocAppRegistryService.getAppRegistry(appUrl) }
+    }
+
+    @Test
+    fun `getAppRegistryForAccount defaults missing provider product name to provider name`() {
+        val response = AppRegistryResponse(
+            value = listOf(
+                AppRegistryMimeTypeResponse(
+                    mimeType = "application/pdf",
+                    ext = "pdf",
+                    appProviders = listOf(
+                        AppRegistryProviderResponse(
+                            name = "OnlyOffice",
+                            productName = null,
+                            icon = "https://some-website.test/onlyoffice-pdf-icon.png",
+                        )
+                    ),
+                    name = "PDF",
+                    description = "PDF document",
+                )
+            )
+        )
+        val getAppRegistryForAccountResult = createRemoteOperationResultMock(
+            data = response, isSuccess = true
+        )
+
+        every { ocAppRegistryService.getAppRegistry(appUrl) } returns getAppRegistryForAccountResult
+
+        val result = ocRemoteAppRegistryDataSource.getAppRegistryForAccount(OC_ACCOUNT_NAME, appUrl)
+
+        assertEquals(
+            AppRegistryProvider(
+                name = "OnlyOffice",
+                productName = "OnlyOffice",
+                icon = "https://some-website.test/onlyoffice-pdf-icon.png",
+            ),
+            result.mimetypes.single().appProviders.single()
+        )
     }
 
     @Test

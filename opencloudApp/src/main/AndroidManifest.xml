@@ -49,7 +49,9 @@
     <queries>
         <intent>
             <action android:name="android.intent.action.VIEW" />
-            <data android:mimeType="*/*" />
+            <data
+                android:mimeType="*/*"
+                android:scheme="content" />
         </intent>
         <intent>
             <action android:name="android.intent.action.SEND" />
@@ -210,8 +212,7 @@
 
         <activity
             android:name=".presentation.security.passcode.PassCodeActivity"
-            android:label="@string/passcode_label"
-            android:screenOrientation="portrait" />
+            android:label="@string/passcode_label" />
         <activity
             android:name=".presentation.logging.LogsListActivity"
             android:label="@string/prefs_log_open_logs_list_view"
@@ -248,7 +249,6 @@
         </activity>
         <activity
             android:name=".presentation.security.pattern.PatternActivity"
-            android:screenOrientation="portrait"
             android:label="@string/pattern_label" />
         <activity android:name=".presentation.security.biometric.BiometricActivity" />
         <!-- Own taskAffinity + singleTask so LoginActivity always runs in its own task.

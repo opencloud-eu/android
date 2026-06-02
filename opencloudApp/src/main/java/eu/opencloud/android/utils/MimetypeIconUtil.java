@@ -28,6 +28,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -60,6 +61,7 @@ public class MimetypeIconUtil {
     /** Mapping: mime type for file extension. */
     private static final Map<String, List<String>> FILE_EXTENSION_TO_MIMETYPE_MAPPING =
             new HashMap<String, List<String>>();
+    public static final String UNKNOWN_MIME_TYPE = "application/octet-stream";
 
     static {
         populateFileExtensionMimeTypeMapping();
@@ -95,9 +97,32 @@ public class MimetypeIconUtil {
     public static String getBestMimeTypeByFilename(String filename) {
         List<String> candidates = determineMimeTypesByFilename(filename);
         if (candidates == null || candidates.size() < 1) {
-            return "application/octet-stream";
+            return UNKNOWN_MIME_TYPE;
         }
         return candidates.get(0);
+    }
+
+    /**
+     * Returns the server MIME type unless it is generic, then falls back to the file extension.
+     *
+     * @param serverMimeType MIME type reported by the server
+     * @param filename       Name of file
+     * @return MIME type to use when opening the file
+     */
+    public static String getBestMimeTypeForOpen(String serverMimeType, String filename) {
+        if (!isGenericMimeType(serverMimeType)) {
+            return serverMimeType;
+        }
+
+        String mimeTypeFromFilename = getBestMimeTypeByFilename(filename);
+        if (isGenericMimeType(mimeTypeFromFilename)) {
+            return UNKNOWN_MIME_TYPE;
+        }
+        return mimeTypeFromFilename;
+    }
+
+    private static boolean isGenericMimeType(String mimeType) {
+        return mimeType == null || mimeType.trim().isEmpty() || UNKNOWN_MIME_TYPE.equals(mimeType) || "*/*".equals(mimeType);
     }
 
     /**
@@ -151,7 +176,8 @@ public class MimetypeIconUtil {
             return mimeTypeList;
         } else {
             // try detecting the mime type via android itself
-            String mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(fileExtension);
+            MimeTypeMap mimeTypeMap = MimeTypeMap.getSingleton();
+            String mimeType = mimeTypeMap != null ? mimeTypeMap.getMimeTypeFromExtension(fileExtension) : null;
             if (mimeType != null) {
                 return Collections.singletonList(mimeType);
             } else {
@@ -167,8 +193,16 @@ public class MimetypeIconUtil {
      * @return the file extension
      */
     private static String getExtension(String filename) {
-        String extension = filename.substring(filename.lastIndexOf(".") + 1).toLowerCase();
-        return extension;
+        if (filename == null || filename.isEmpty()) {
+            return "";
+        }
+
+        int extensionStart = filename.lastIndexOf(".");
+        if (extensionStart < 0 || extensionStart == filename.length() - 1) {
+            return "";
+        }
+
+        return filename.substring(extensionStart + 1).toLowerCase(Locale.ROOT);
     }
 
     /**
@@ -186,7 +220,7 @@ public class MimetypeIconUtil {
         MIMETYPE_TO_ICON_MAPPING.put("application/msexcel", R.drawable.file_xls);
         MIMETYPE_TO_ICON_MAPPING.put("application/mspowerpoint", R.drawable.file_ppt);
         MIMETYPE_TO_ICON_MAPPING.put("application/msword", R.drawable.file_doc);
-        MIMETYPE_TO_ICON_MAPPING.put("application/octet-stream", R.drawable.file);
+        MIMETYPE_TO_ICON_MAPPING.put(UNKNOWN_MIME_TYPE, R.drawable.file);
         MIMETYPE_TO_ICON_MAPPING.put("application/postscript", R.drawable.file_image);
         MIMETYPE_TO_ICON_MAPPING.put("application/pdf", R.drawable.file_pdf);
         MIMETYPE_TO_ICON_MAPPING.put("application/rss+xml", R.drawable.file_code);

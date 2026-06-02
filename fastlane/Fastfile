@@ -1,0 +1,47 @@
+default_platform(:android)
+
+platform :android do
+  desc "Pull latest translations from Transifex"
+  lane :pull_translations do
+    Dir.chdir("..") do
+      sh("tx", "pull", "-a", "-f", "--skip")
+      #sh("tx" "pull" "--force" "--skip" "--all" "-w" "1" "-m" "onlytranslated")
+    end
+    files = Dir.glob("../opencloudApp/src/main/res/values-*/strings.xml")
+    if files.empty?
+      UI.important("No values-*/strings.xml present after tx pull — nothing was downloaded.")
+    else
+      UI.success("#{files.size} translation file(s) on disk:")
+      files.sort.each { |f| UI.message("  #{f}") }
+    end
+  end
+
+  desc "Build the originalRelease AAB (pulls translations first)"
+  lane :build_release do
+    %w[OC_RELEASE_KEYSTORE OC_RELEASE_KEYSTORE_PASSWORD OC_RELEASE_KEY_ALIAS OC_RELEASE_KEY_PASSWORD].each do |var|
+      UI.user_error!("#{var} is not set — release AAB would be unsigned and rejected by Play.") if ENV[var].to_s.empty?
+    end
+    pull_translations
+    gradle(
+      task: "bundle",
+      flavor: "Original",
+      build_type: "Release"
+    )
+    sh("ls", "-l", "../opencloudApp/build/outputs/bundle/originalRelease/opencloudApp-original-release.aab")
+  end
+
+  desc "Pull translations, build, and upload to Play Store. Override track with: fastlane deploy track:beta"
+  lane :deploy do |options|
+    track = options[:track] || "internal"
+    build_release
+    upload_to_play_store(
+      track: track,
+      aab: lane_context[SharedValues::GRADLE_AAB_OUTPUT_PATH],
+      skip_upload_apk: true,
+      skip_upload_metadata: true,
+      skip_upload_changelogs: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true
+    )
+  end
+end

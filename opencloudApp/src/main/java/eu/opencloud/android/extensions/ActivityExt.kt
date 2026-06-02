@@ -86,7 +86,9 @@ fun Activity.showMessageInSnackbar(
     message: CharSequence,
     duration: Int = Snackbar.LENGTH_LONG
 ) {
-    Snackbar.make(findViewById(layoutId), message, duration).show()
+    // edge-to-edge
+    val view = if (layoutId == android.R.id.content) window.decorView else findViewById(layoutId)
+    Snackbar.make(view, message, duration).show()
 }
 
 fun Activity.showErrorInToast(
@@ -455,10 +457,7 @@ fun FragmentActivity.sendDownloadedFilesByShareSheet(ocFiles: List<OCFile>) {
 }
 
 fun Activity.openOCFile(ocFile: OCFile) {
-    var finalMimeType = MimetypeIconUtil.getBestMimeTypeByFilename(ocFile.fileName)
-    if (finalMimeType.isNullOrEmpty() || finalMimeType == "application/octet-stream") {
-        finalMimeType = ocFile.mimeType
-    }
+    val finalMimeType = MimetypeIconUtil.getBestMimeTypeForOpen(ocFile.mimeType, ocFile.fileName)
 
     val intentForSavedMimeType = Intent(Intent.ACTION_VIEW).apply {
         setDataAndType(getExposedFileUriForOCFile(this@openOCFile, ocFile), finalMimeType)

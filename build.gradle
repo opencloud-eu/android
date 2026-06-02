@@ -22,6 +22,7 @@ plugins {
     alias libs.plugins.sonarqube
     alias libs.plugins.ksp apply false
     alias libs.plugins.detekt
+    id 'jacoco'
 }
 
 allprojects {
@@ -39,6 +40,118 @@ subprojects {
     //apply plugin: "org.jlleitschuh.gradle.ktlint"
     //apply plugin: "org.sonarqube"
     apply plugin: "io.gitlab.arturbosch.detekt"
+    apply plugin: "jacoco"
+
+    jacoco {
+        toolVersion = "0.8.12"
+    }
+
+    tasks.withType(Test).configureEach {
+        jacoco {
+            includeNoLocationClasses = true
+            excludes = ["jdk.internal.*"]
+        }
+    }
+
+    plugins.withId("com.android.application") {
+        android {
+            buildTypes {
+                debug {
+                    enableUnitTestCoverage true
+                }
+            }
+        }
+    }
+
+    plugins.withId("com.android.library") {
+        android {
+            buildTypes {
+                debug {
+                    enableUnitTestCoverage true
+                }
+            }
+        }
+    }
+}
+
+def coverageProjects = subprojects.findAll {
+    ["opencloudApp", "opencloudComLibrary", "opencloudData", "opencloudDomain"].contains(it.name)
+}
+
+def coverageExclusions = [
+    '**/R.class',
+    '**/R$*.class',
+    '**/BuildConfig.*',
+    '**/Manifest*.*',
+    '**/*Test*.*',
+    '**/*JsonAdapter.*',
+    '**/*_Impl*.*',
+    '**/*Binding.*',
+    '**/databinding/**',
+]
+
+def coverageClassDirectories = files(coverageProjects.collect { project ->
+    [
+        fileTree(dir: "${project.buildDir}/tmp/kotlin-classes/debug", excludes: coverageExclusions),
+        fileTree(dir: "${project.buildDir}/tmp/kotlin-classes/originalDebug", excludes: coverageExclusions),
+        fileTree(dir: "${project.buildDir}/intermediates/javac/debug/classes", excludes: coverageExclusions),
+        fileTree(dir: "${project.buildDir}/intermediates/javac/originalDebug/classes", excludes: coverageExclusions),
+    ]
+})
+
+def coverageSourceDirectories = files(coverageProjects.collect { project ->
+    [
+        "${project.projectDir}/src/main/java",
+        "${project.projectDir}/src/main/kotlin",
+    ]
+})
+
+def coverageExecutionData = fileTree(rootDir) {
+    include "**/build/outputs/unit_test_code_coverage/**/*.exec"
+    include "**/build/jacoco/*.exec"
+}
+
+tasks.register("jacocoAggregatedReport", JacocoReport) {
+    group = "verification"
+    description = "Generates an aggregated JaCoCo report for JVM unit tests."
+
+    dependsOn(
+        ":opencloudApp:testOriginalDebugUnitTest",
+        ":opencloudComLibrary:testDebugUnitTest",
+        ":opencloudData:testDebugUnitTest",
+        ":opencloudDomain:testDebugUnitTest"
+    )
+
+    reports {
+        xml.required = true
+        html.required = true
+        csv.required = false
+    }
+
+    sourceDirectories.from(coverageSourceDirectories)
+    classDirectories.from(coverageClassDirectories)
+    executionData.from(coverageExecutionData)
+}
+
+tasks.register("jacocoAggregatedCoverageVerification", JacocoCoverageVerification) {
+    group = "verification"
+    description = "Verifies aggregated unit-test line coverage."
+
+    dependsOn("jacocoAggregatedReport")
+
+    sourceDirectories.from(coverageSourceDirectories)
+    classDirectories.from(coverageClassDirectories)
+    executionData.from(coverageExecutionData)
+
+    violationRules {
+        rule {
+            limit {
+                counter = "LINE"
+                value = "COVEREDRATIO"
+                minimum = 0.20
+            }
+        }
+    }
 }
 
 //sonarqube {

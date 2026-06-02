@@ -51,26 +51,24 @@ open class FileRequestBody(
     override fun contentLength(): Long = file.length()
 
     override fun writeTo(sink: BufferedSink) {
-        val source: Source
-        var it: Iterator<OnDatatransferProgressListener>
-        try {
-            source = file.source()
-            var transferred: Long = 0
-            var read: Long
-            while (source.read(sink.buffer, BYTES_TO_READ).also { read = it } != -1L) {
+        // Don't swallow IO errors here — a missing source file used to silently produce
+        // a 0-byte PUT that the server happily stored (issue #78).
+        val source: Source = file.source()
+        var transferred: Long = 0
+        var read: Long
+        source.use { src ->
+            while (src.read(sink.buffer, BYTES_TO_READ).also { read = it } != -1L) {
                 transferred += read
                 sink.flush()
                 synchronized(dataTransferListeners) {
-                    it = dataTransferListeners.iterator()
+                    val it = dataTransferListeners.iterator()
                     while (it.hasNext()) {
                         it.next().onTransferProgress(read, transferred, file.length(), file.absolutePath)
                     }
                 }
             }
-            Timber.d("File with name ${file.name} and size ${file.length()} written in request body")
-        } catch (e: Exception) {
-            Timber.e(e)
         }
+        Timber.d("File with name ${file.name} and size ${file.length()} written in request body")
     }
 
     override fun addDatatransferProgressListener(listener: OnDatatransferProgressListener) {

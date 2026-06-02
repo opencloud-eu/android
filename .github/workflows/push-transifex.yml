@@ -1,0 +1,19 @@
+name: "Push source language to Transifex"
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  push-translations:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: l10n-push-source
+        uses: transifex/cli-action@v2
+        with:
+          token: ${{ secrets.TX_TOKEN }}
+          args: push -s

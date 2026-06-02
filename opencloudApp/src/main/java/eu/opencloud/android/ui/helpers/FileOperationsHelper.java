@@ -31,7 +31,6 @@ import android.accounts.AccountManager;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.net.Uri;
-import android.webkit.MimeTypeMap;
 
 import eu.opencloud.android.R;
 import eu.opencloud.android.domain.files.model.OCFile;
@@ -43,6 +42,7 @@ import eu.opencloud.android.services.OperationsService;
 import eu.opencloud.android.ui.activity.FileActivity;
 import eu.opencloud.android.usecases.synchronization.SynchronizeFileUseCase;
 import eu.opencloud.android.usecases.synchronization.SynchronizeFolderUseCase;
+import eu.opencloud.android.utils.MimetypeIconUtil;
 import eu.opencloud.android.utils.UriUtilsKt;
 import kotlin.Lazy;
 import org.jetbrains.annotations.NotNull;
@@ -74,48 +74,20 @@ public class FileOperationsHelper {
         return intentForSavedMimeType;
     }
 
-    private Intent getIntentForGuessedMimeType(String storagePath, String type, Uri data, boolean hasWritePermission) {
-        Intent intentForGuessedMimeType = null;
-
-        if (storagePath != null && storagePath.lastIndexOf('.') >= 0) {
-            String guessedMimeType = eu.opencloud.android.utils.MimetypeIconUtil.getBestMimeTypeByFilename(storagePath);
-
-            if (guessedMimeType != null && !guessedMimeType.equals(type)) {
-                intentForGuessedMimeType = new Intent(Intent.ACTION_VIEW);
-                intentForGuessedMimeType.setDataAndType(data, guessedMimeType);
-                int flags = Intent.FLAG_GRANT_READ_URI_PERMISSION;
-                if (hasWritePermission) {
-                    flags = flags | Intent.FLAG_GRANT_WRITE_URI_PERMISSION;
-                }
-                intentForGuessedMimeType.setFlags(flags);
-            }
-        }
-        return intentForGuessedMimeType;
-    }
-
     public void openFile(OCFile ocFile) {
         if (ocFile != null) {
+            String finalMimeType = MimetypeIconUtil.getBestMimeTypeForOpen(ocFile.getMimeType(), ocFile.getFileName());
             Intent intentForSavedMimeType = getIntentForSavedMimeType(UriUtilsKt.INSTANCE.getExposedFileUriForOCFile(mFileActivity, ocFile),
-                    ocFile.getMimeType(), ocFile.getHasWritePermission());
+                    finalMimeType, ocFile.getHasWritePermission());
 
-            Intent intentForGuessedMimeType = getIntentForGuessedMimeType(ocFile.getStoragePath(), ocFile.getMimeType(),
-                    UriUtilsKt.INSTANCE.getExposedFileUriForOCFile(mFileActivity, ocFile), ocFile.getHasWritePermission());
-
-            openFileWithIntent(intentForSavedMimeType, intentForGuessedMimeType);
+            openFileWithIntent(intentForSavedMimeType);
 
         } else {
             Timber.e("Trying to open a NULL OCFile");
         }
     }
 
-    private void openFileWithIntent(Intent intentForSavedMimeType, Intent intentForGuessedMimeType) {
-        Intent openFileWithIntent;
-
-        if (intentForGuessedMimeType != null) {
-            openFileWithIntent = intentForGuessedMimeType;
-        } else {
-            openFileWithIntent = intentForSavedMimeType;
-        }
+    private void openFileWithIntent(Intent openFileWithIntent) {
         try {
             mFileActivity.startActivity(Intent.createChooser(openFileWithIntent, mFileActivity.getString(R.string.actionbar_open_with)));
         } catch (ActivityNotFoundException anfe) {

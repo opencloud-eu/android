@@ -1,0 +1,6 @@
+package_name("eu.opencloud.android")
+
+# Credentials are read from environment, NOT a file in the repo:
+#   SUPPLY_JSON_KEY        — absolute path to the service-account JSON (local dev)
+#   SUPPLY_JSON_KEY_DATA   — raw JSON contents (CI; e.g. a GitHub Actions secret)
+# Set whichever one fits your workflow.

@@ -277,7 +277,7 @@ public class FileActivity extends DrawerActivity
                     .setCancelable(false)
                     .show();
         } else {
-            Snackbar.make(findViewById(android.R.id.content), errorMessage, Snackbar.LENGTH_INDEFINITE)
+            Snackbar.make(getWindow().getDecorView(), errorMessage, Snackbar.LENGTH_INDEFINITE)
                     .setAction(R.string.auth_oauth_failure_snackbar_action, v ->
                             requestCredentialsUpdate())
                     .show();
@@ -285,7 +285,7 @@ public class FileActivity extends DrawerActivity
     }
 
     protected void showRequestRegainAccess() {
-        Snackbar.make(findViewById(android.R.id.content), R.string.auth_oauth_failure, Snackbar.LENGTH_INDEFINITE)
+        Snackbar.make(getWindow().getDecorView(), R.string.auth_oauth_failure, Snackbar.LENGTH_INDEFINITE)
                 .setAction(R.string.auth_oauth_failure_snackbar_action, v ->
                         requestCredentialsUpdate())
                 .show();

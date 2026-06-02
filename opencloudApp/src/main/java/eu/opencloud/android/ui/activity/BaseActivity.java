@@ -318,13 +318,7 @@ public abstract class BaseActivity extends AppCompatActivity {
      * @param message Message to show.
      */
     public void showSnackMessage(String message) {
-        final View rootView = findViewById(android.R.id.content);
-
-        if (rootView == null) {
-            // If root view is not available don't let the app brake. show the notification anyway.
-            Toast.makeText(this, message, Toast.LENGTH_LONG).show();
-            return;
-        }
+        final View rootView = getWindow().getDecorView();
         Snackbar.make(rootView, message, Snackbar.LENGTH_LONG).show();
     }
 }

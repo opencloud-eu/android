@@ -1,0 +1,853 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- GLOBAL -->
+    <string name="global_name">Naam</string>
+    <string name="global_date">Datum</string>
+    <string name="global_size">Grootte</string>
+    <string name="actionbar_search">Deze map doorzoeken</string>
+    <string name="actionbar_search_space">Ruimtes doorzoeken</string>
+    <string name="actionbar_sync">Account vernieuwen</string>
+    <string name="actionbar_upload">Uploaden</string>
+    <string name="actionbar_upload_from_apps">Inhoud van andere apps</string>
+    <string name="actionbar_upload_files">Bestanden</string>
+    <string name="actionbar_open_with">Openen met</string>
+    <string name="actionbar_open_with_read_only">Openen met (alleen lezen)</string>
+    <string name="actionbar_mkdir">Nieuwe map</string>
+    <string name="actionbar_settings">Instellingen</string>
+    <string name="actionbar_see_details">Details</string>
+    <string name="actionbar_send_file">Verzenden</string>
+    <string name="actionbar_descending">Aflopend</string>
+    <string name="actionbar_sort_title">Sortering</string>
+    <string name="fab_new_file">Nieuw document</string>
+    <string name="fab_new_shortcut">Nieuwe snelkoppeling</string>
+    <string name="drawer_item_all_files">Alle bestanden</string>
+    <string name="drawer_item_only_available_offline">Offline beschikbaar</string>
+    <string name="drawer_item_shared_by_link_files">Gedeeld via link</string>
+    <string name="drawer_item_settings">Instellingen</string>
+    <string name="drawer_item_uploads_list">Uploads</string>
+    <string name="drawer_close">Sluiten</string>
+    <string name="drawer_open">Openen</string>
+    <string name="drawer_loading_quota">Quota laden</string>
+    <string name="drawer_quota">%1$s van %2$s gebruikt (%3$s %%)</string>
+    <string name="drawer_exceeded_quota">Opslag vol</string>
+    <string name="drawer_nearing_quota">Opslag bijna vol</string>
+    <string name="drawer_critical_quota">Opslag bijna helemaal vol</string>
+    <string name="drawer_unavailable_free_storage">%1$s in gebruik</string>
+    <string name="drawer_unavailable_used_storage">Geen informatie over opslaggebruik beschikbaar</string>
+    <string name="drawer_feedback">GitHub Discussions</string>
+    <string name="drawer_help">Hulp</string>
+    <string name="prefs_category_general">Algemeen</string>
+    <string name="prefs_subsection_logging">Logboeken</string>
+    <string name="prefs_subsection_more">Meer</string>
+    <string name="prefs_subsection_security">Beveiliging</string>
+    <string name="prefs_subsection_whatsnew">Wat is er nieuw in de laatste versie\?</string>
+    <string name="prefs_subsection_security_summary">Stel vergrendelingen in om toegang tot de app te beheren en toestaan van aanrakingen met andere zichtbare vensters</string>
+    <string name="prefs_subsection_logging_summary">Houd logboeken bij die zijn geproduceerd door de uitvoering van de app</string>
+    <string name="prefs_subsection_more_summary">App-info, feedback en overige</string>
+    <string name="prefs_accounts">Accounts</string>
+    <string name="prefs_manage_accounts">Accounts beheren</string>
+    <string name="prefs_passcode">Toegangscode-vergrendeling</string>
+    <string name="prefs_biometric">Biometrische vergrendeling</string>
+    <string name="prefs_biometric_summary">Schakel toegangscode of patroonvergrendeling in om deze optie in te schakelen</string>
+    <string name="prefs_lock_application">Toepassing vergrendelen</string>
+    <string name="prefs_lock_application_entries_immediately">Onmiddellijk</string>
+    <string name="prefs_lock_application_entries_1minute">Na 1 minuut</string>
+    <string name="prefs_lock_application_entries_5minutes">Na 5 minuten</string>
+    <string name="prefs_lock_application_entries_30minutes">Na 30 minuten</string>
+    <string name="prefs_lock_access_from_document_provider">Toegang vergrendelen vanaf documentprovider</string>
+    <string name="prefs_lock_access_from_document_provider_summary">Vergrendel de toegang van andere apps tot de bestanden van de accounts in de app via de Android bestandsverkenner.</string>
+    <string name="prefs_touches_with_other_visible_windows">Raakt andere zichtbare vensters</string>
+    <string name="prefs_touches_with_other_visible_windows_summary">Sta aanrakingen toe als de weergave door een ander zichtbaar venster wordt bedekt. Schakel dit in om apps voor lichtfiltering te kunnen gebruiken.</string>
+    <string name="confirmation_touches_with_other_windows_title">Weet u zeker dat u deze functie wilt inschakelen\?</string>
+    <string name="confirmation_touches_with_other_windows_message">Gebruik deze functie op eigen risico. Een kwaadwillende applicatie kan proberen u te misleiden om onbewust bepaalde acties uit te voeren met behulp van andere weergaven.</string>
+    <string name="prefs_subsection_picture_uploads">Automatische upload van foto\'s</string>
+    <string name="prefs_subsection_picture_uploads_summary">Beheer de locatie en het gedrag van de automatische foto-upload</string>
+    <string name="prefs_subsection_video_uploads">Automatische upload van video\'s</string>
+    <string name="prefs_subsection_video_uploads_summary">Beheer de locatie en het gedrag van de automatische video-upload</string>
+    <string name="prefs_camera_picture_upload">Foto-uploads</string>
+    <string name="prefs_camera_picture_upload_summary">Foto\'s die met de camera zijn gemaakt automatisch uploaden</string>
+    <string name="prefs_camera_picture_upload_path_title">Pad voor het uploaden van foto\'s</string>
+    <string name="prefs_camera_picture_upload_conditions_title">Voorwaarden om uploads uit te voeren</string>
+    <string name="prefs_camera_picture_upload_conditions_summary">Uploads worden gestart wanneer aan alle geselecteerde opties is voldaan</string>
+    <string name="prefs_camera_picture_upload_on_wifi">Foto\'s alleen uploaden via wifi</string>
+    <string name="prefs_camera_picture_upload_on_charging">Foto\'s alleen uploaden bij het opladen</string>
+    <string name="prefs_camera_upload_on_charging_summary">Schakel alleen uploaden via wifi in om deze optie te activeren</string>
+    <string name="prefs_camera_video_upload">Video-uploads</string>
+    <string name="prefs_camera_video_upload_summary">Video\'s die met de camera zijn gemaakt automatisch uploaden</string>
+    <string name="prefs_camera_video_upload_path_title">Pad voor het uploaden van video\'s</string>
+    <string name="prefs_camera_video_upload_on_wifi">Video\'s alleen uploaden via wifi</string>
+    <string name="prefs_camera_video_upload_on_charging">Video\'s alleen uploaden bij het opladen</string>
+    <string name="prefs_automatic_uploads_not_available_users_light">Automatische uploads zijn niet beschikbaar voor Light gebruikers</string>
+    <string name="prefs_subsection_advanced">Geavanceerd</string>
+    <string name="prefs_subsection_notifications">Meldingen beheren</string>
+    <string name="prefs_show_hidden_files">Verborgen bestanden weergeven</string>
+    <string name="prefs_log_open_logs_list_view">Logboekbestanden</string>
+    <string name="prefs_log_no_logs_list_view">Logboekbestanden wissen!</string>
+    <string name="prefs_log_empty_subtitle">Logging inschakelen en logbestanden verschijnen hier.</string>
+    <string name="prefs_log_title">Logboeken inschakelen</string>
+    <string name="prefs_log_summary">Dit wordt gebruikt om problemen te registeren.</string>
+    <string name="prefs_log_title_history">Logboekgeschiedenis</string>
+    <string name="prefs_log_summary_history">Dit toont de logboekregistraties.</string>
+    <string name="prefs_log_delete_history_button">Geschiedenis verwijderen</string>
+    <string name="prefs_help">Hulp</string>
+    <string name="prefs_sync_calendar_contacts">Synchroniseer uw contactpersonen, agenda\'s en taken</string>
+    <string name="prefs_sync_calendar_contacts_summary">DAVx⁵ installeren</string>
+    <string name="prefs_access_document_provider">Toegang tot documentprovider</string>
+    <string name="prefs_access_document_provider_summary">Voorgestelde app om door de bestanden op je apparaat te bladeren via de Android standaard bestandsverkenner</string>
+    <string name="prefs_recommend">Aan een vriend aanbevelen</string>
+    <string name="prefs_feedback">Reacties</string>
+    <string name="prefs_imprint">Handelsmerk</string>
+    <string name="prefs_remember_last_share_location">Onthoud locatie delen</string>
+    <string name="prefs_remember_last_upload_location_summary">Onthoud de locatie van de laatste upload van gedeelde bestanden</string>
+    <string name="prefs_pattern">Patroonvergrendeling</string>
+    <string name="prefs_enable_logging">Logboeken inschakelen</string>
+    <string name="prefs_enable_logging_summary">Indien ingeschakeld, kunnen logboeken de prestaties beïnvloeden en gevoelige informatie bevatten. De logboeken worden echter niet automatisch verzonden naar OpenCloud-servers. Het delen van logboeken met anderen is de exclusieve verantwoordelijkheid van de gebruiker.</string>
+    <string name="prefs_send_feedback">Reacties versturen</string>
+    <string name="prefs_app_version">App-versie</string>
+    <string name="prefs_app_version_summary">%1$s %2$s versie %3$s (%4$s)</string>
+    <string name="pattern_enter_pattern">Voer alstublieft uw patroon in</string>
+    <string name="pattern_configure_pattern">Voer uw patroon in</string>
+    <string name="pattern_remove_pattern">Verwijder uw patroon</string>
+    <string name="pattern_incorrect_pattern">Onjuist patroon</string>
+    <string name="pattern_reenter_pattern">Voer uw patroon opnieuw in.</string>
+    <string name="pattern_not_same_pattern">De patronen zijn niet hetzelfde.</string>
+    <string name="pattern_error_set">Er is een fout opgetreden bij het instellen van de patroonvergrendeling.</string>
+    <string name="pattern_error_remove">Er is een fout opgetreden bij het verwijderen van de patroonvergrendeling.</string>
+    <string name="pattern_already_set">Patroon- en toegangscodevergrendelingen kunnen niet tegelijkertijd worden ingeschakeld. Schakel patroon eerst uit.</string>
+    <string name="passcode_already_set">Patroon- en toegangscodevergrendelingen kunnen niet tegelijkertijd worden ingeschakeld. Schakel eerst de toegangscode uit.</string>
+    <string name="pattern_no_longer_required">Het patroon zal niet meer worden opgevraagd.</string>
+    <string name="pattern_configure_your_pattern_explanation">De patroon wordt elke keer dat de app wordt gestart, opgevraagd.</string>
+    <string name="document_provider_locked">Vergrendeld</string>
+    <string name="illegal_argument_exception_message">Een geldige ACTIE is vereist in de meegegeven intentie om</string>
+
+    <!-- Bottom navigation bar -->
+    <string name="bottom_nav_files">Bestanden</string>
+    <string name="bottom_nav_personal">Persoonlijk</string>
+    <string name="bottom_nav_uploads">Uploads</string>
+    <string name="bottom_nav_offline">Offline</string>
+    <string name="bottom_nav_links">Links</string>
+    <string name="bottom_nav_shares">Shares</string>
+
+    <string name="recommend_subject">Probeer %1$s op uw smartphone!</string>
+    <string name="recommend_text">Ik wil u uitnodigen om %1$s op uw smartphone te gebruiken!\nDownload het hier: %2$s</string>
+
+    <string name="error_reason">omdat</string>
+    <string name="auth_failure_snackbar">Authenticatie mislukt. Meld opnieuw aan om weer toegang te krijgen.</string>
+    <string name="server_not_supported">De serverversie is lager dan 10 en wordt niet ondersteund. Upgrade de server naar een nieuwere versie.</string>
+    <string name="auth_failure_snackbar_action">Account wisselen</string>
+    <string name="auth_oauth_failure">Het toegangstoken is verlopen of ongeldig geworden. Meld opnieuw aan om weer toegang te krijgen.</string>
+    <string name="auth_oauth_failure_snackbar_action">Inloggen</string>
+    <string name="auth_check_server">Server controleren</string>
+    <string name="auth_host_url">Server-adres https://&amp;#8230;</string>
+    <string name="auth_username">Gebruikersnaam</string>
+    <string name="auth_password">Wachtwoord</string>
+    <string name="auth_register">Nieuw bij %1$s\?</string>
+    <string name="sync_string_files">Bestanden</string>
+    <string name="setup_btn_login">Inloggen</string>
+    <string name="uploader_btn_upload_text">Uploaden</string>
+    <string name="uploader_top_message">Kies een uploadmap</string>
+    <string name="choose_upload_space">Kies een uploadruimte</string>
+    <string name="uploader_wrn_no_account_title">Geen account gevonden</string>
+    <string name="uploader_wrn_no_account_text">Er zijn geen %1$s accounts op uw apparaat. Stel eerst een account in.</string>
+    <string name="uploader_wrn_no_account_setup_btn_text">Instellingen</string>
+    <string name="uploader_wrn_no_account_quit_btn_text">Sluiten</string>
+    <string name="uploader_error_title_no_file_to_upload">Geen bestand te uploaden</string>
+    <string name="uploader_error_message_received_piece_of_text">%1$s kan geen tekst als bestand uploaden.</string>
+    <string name="uploader_error_message_no_file_to_upload">Ontvangen gegevens bevatten geen geldig bestand.</string>
+    <string name="uploader_error_title_file_cannot_be_uploaded">Bestand kan niet worden geüploadet</string>
+    <string name="uploader_error_message_read_permission_not_granted">%1$s mag een ontvangen bestand niet lezen.</string>
+    <string name="uploader_error_message_source_file_not_found">Het bestand dat geüpload moet worden, is niet gevonden. Controleer of het bestand bestaat.</string>
+    <string name="uploader_error_message_source_file_not_copied">Er is een fout opgetreden bij het kopiëren van het bestand naar een tijdelijke map. Probeer het opnieuw te verzenden.</string>
+    <string name="file_list_seconds_ago">seconden geleden</string>
+    <string name="file_list_empty_title_all_files">Geen bestanden hier</string>
+    <string name="spaces_list_empty_title">Geen ruimtes</string>
+    <string name="space_label">Ruimte:</string>
+    <string name="file_list_empty_title_available_offline">Geen beschikbare offline bestanden</string>
+    <string name="file_list_empty_title_shared_by_links">Geen gedeelde links</string>
+    <string name="file_list_empty_subtitle_all_files">Upload wat inhoud of synchroniseer met uw apparaten!</string>
+    <string name="light_users_subtitle">Persoonlijke ruimte is niet beschikbaar</string>
+    <string name="shares_list_empty_title">Geen shares</string>
+    <string name="shares_list_empty_subtitle">U werkt niet mee aan de bestanden van anderen.</string>
+    <string name="spaces_list_empty_subtitle">U hebt geen toegang tot een ruimte!</string>
+    <string name="file_list_empty_subtitle_available_offline">Bestanden en mappen die u offline markeert, worden hier weergegeven.</string>
+    <string name="file_list_empty_subtitle_shared_by_links">Bestanden en mappen die u per link deelt, worden hier weergegeven.</string>
+    <string name="file_list_loading">Laden&amp;#8230;</string>
+    <string name="file_list_no_app_for_file_type">Geen app voor dit type bestand</string>
+    <string name="file_list_no_app_for_perform_action">Geen app gevonden voor deze actie</string>
+    <string name="local_file_list_empty">Er zijn geen bestanden in deze map.</string>
+    <string name="local_file_list_empty_just_folders">Er zijn geen mappen in deze map.</string>
+    <string name="local_file_list_search_with_no_matches">Geen overeenkomsten voor deze zoekopdracht</string>
+    <string name="upload_list_empty">Geen uploads beschikbaar.</string>
+    <string name="upload_list_empty_subtitle">Upload iets en het zal hier verschijnen.</string>
+    <string name="file_list_folder">map</string>
+    <string name="file_list_folders">mappen</string>
+    <string name="file_list_file">bestand</string>
+    <string name="file_list_files">bestanden</string>
+    <string name="filedetails_select_file">Tik op een bestand voor aanvullende informatie.</string>
+    <string name="upload_to">Uploaden naar %1$s</string>
+    <string name="pick_document_type">Kies een documenttype om te maken:</string>
+    <string name="upload_files_title">Bestanden</string>
+    <string name="filedetails_size">Grootte:</string>
+    <string name="filedetails_type">Type:</string>
+    <string name="filedetails_created">Aangemaakt:</string>
+    <string name="filedetails_last_sync">Laatste sync:</string>
+    <string name="filedetails_path">Pad:</string>
+    <string name="filedetails_modified">Gewijzigd:</string>
+    <string name="filedetails_download">Downloaden</string>
+    <string name="filedetails_file_image_content_description">Bestandsafbeelding</string>
+    <string name="filedetails_cancel_btn_content_description">Knop Download annuleren</string>
+    <string name="filedetails_sync_file">Synchroniseren</string>
+    <string name="filedetails_renamed_in_upload_msg">Bestand is tijdens uploaden hernoemd naar %1$s</string>
+    <string name="list_layout">Lijstweergave</string>
+    <string name="action_share">Share</string>
+    <string name="login_account_preparing">Account voorbereiden voor eerste gebruik</string>
+    <string name="common_yes">Ja</string>
+    <string name="common_no">Nee</string>
+    <string name="common_remove_upload">Upload verwijderen</string>
+    <string name="common_retry_upload">Upload opnieuw proberen</string>
+    <string name="common_cancel_sync">Synchronisatie annuleren</string>
+    <string name="common_back">Terug</string>
+    <string name="common_save_exit">Opslaan &amp; afsluiten</string>
+    <string name="common_error">Fout</string>
+    <string name="common_loading">Laden&amp;#8230;</string>
+    <string name="common_unknown">onbekend</string>
+    <string name="common_error_unknown">onbekende fout</string>
+    <string name="common_pending">In behandeling</string>
+    <string name="common_important">Belangrijk</string>
+    <string name="change_password">Wachtwoord wijzigen</string>
+    <string name="delete_account">Account verwijderen</string>
+    <string name="create_account">Account aanmaken</string>
+    <string name="upload_chooser_title">Uploaden van</string>
+    <string name="uploader_info_dirname">Mapnaam</string>
+    <string name="uploader_upload_in_progress_ticker">Uploaden&amp;#8230;</string>
+    <string name="uploader_upload_in_progress_content">%1$d%% Uploaden %2$s</string>
+    <string name="uploader_upload_succeeded_ticker">Upload succesvol</string>
+    <string name="uploader_upload_succeeded_content_single">%1$s geüpload</string>
+    <string name="uploader_upload_failed_ticker">Upload is mislukt</string>
+    <string name="uploader_upload_failed_content_single">Upload van %1$s kon niet worden voltooid.</string>
+    <string name="uploader_upload_failed_credentials_error">Uploaden is mislukt, u moet opnieuw inloggen.</string>
+    <string name="uploader_upload_failed_ssl_certificate_not_trusted">Servercertificaat wordt niet vertrouwd.</string>
+    <string name="uploader_upload_text_dialog_title">Voer een naam in voor het nieuwe bestand.</string>
+    <string name="uploader_upload_text_dialog_filename_error_empty">Bestandsnaam kan niet leeg zijn.</string>
+    <string name="uploader_upload_text_dialog_filename_error_length_max">Bestandsnaam mag niet langer zijn dan %d tekens.</string>
+    <string name="uploader_upload_text_filename_hint">Bestandsnaam</string>
+    <string name="uploader_upload_camera_upload_files">Camerabestanden uploaden</string>
+    <string name="uploader_upload_picture_upload_files">%d nieuwe foto\'s worden geüpload.</string>
+    <string name="uploader_upload_video_upload_files">%d nieuwe video\'s worden geüpload.</string>
+    <string name="uploader_upload_camera_upload_source_path_error">Camera-uploads zijn mislukt.</string>
+    <string name="uploader_upload_picture_upload_error">Het pad voor het uploaden van foto\'s is niet meer geldig.</string>
+    <string name="uploader_upload_video_upload_error">Het pad voor het uploaden van video\'s is niet meer geldig.</string>
+    <string name="uploader_upload_available_offline_files">Beschikbare offline bestanden uploaden</string>
+    <string name="uploader_upload_requested_from_wifi_files">Uploaden gevraagd van wifi-bestanden</string>
+    <string name="ssl_certificate_not_trusted">Servercertificaat wordt niet vertrouwd.</string>
+    <string name="uploads_view_title">Uploads</string>
+    <string name="uploads_view_group_current_uploads">Huidig</string>
+    <string name="uploads_view_group_failed_uploads">Mislukt (tik om opnieuw te proberen)</string>
+    <string name="uploads_view_group_finished_uploads">Geüpload</string>
+    <string name="uploads_view_group_queued_uploads">In wachtrij</string>
+    <string name="uploads_view_group_file_count">%d bestanden</string>
+    <string name="uploads_view_group_file_count_single">%d bestand</string>
+    <string name="uploads_view_upload_status_succeeded">Voltooid</string>
+    <string name="uploads_view_upload_status_cancelled">Geannuleerd</string>
+    <string name="uploads_view_upload_status_paused">Gepauzeerd</string>
+    <string name="uploads_view_upload_status_failed_connection_error">Verbindingsfout</string>
+    <string name="uploads_view_upload_status_failed_retry">Upload wordt binnenkort hervat</string>
+    <string name="uploads_view_upload_status_failed_credentials_error">Fout met inloggegevens</string>
+    <string name="uploads_view_upload_status_failed_folder_error">Fout met map</string>
+    <string name="uploads_view_upload_status_failed_file_error">Fout met bestand</string>
+    <string name="uploads_view_upload_status_failed_localfile_error">Lokaal bestand niet gevonden</string>
+    <string name="uploads_view_upload_status_failed_permission_error">Machtigingsfout</string>
+    <string name="uploads_view_upload_status_failed_firewall_error">Verboden vanwege een firewallregel</string>
+    <string name="uploads_view_upload_status_conflict">Conflict</string>
+    <string name="uploads_view_upload_status_service_interrupted">App is afgesloten</string>
+    <string name="uploads_view_upload_status_unknown_fail">Onbekende fout</string>
+    <string name="uploads_view_upload_status_waiting_for_wifi">Wachten op wifi-verbinding</string>
+    <string name="uploads_view_upload_status_queued">In wachtrij</string>
+    <string name="uploads_view_later_waiting_to_upload">Wachten op upload</string>
+    <string name="uploads_view_unsupported_media_type">Mediatype niet ondersteund</string>
+    <string name="uploader_upload_enqueued_ticker">Upload van %1$s is in de wachtrij geplaatst.</string>
+    <string name="uploader_upload_canceled_ticker">Upload geannuleerd</string>
+    <string name="downloader_download_canceled_ticker">Download geannuleerd</string>
+    <string name="downloader_download_enqueued_ticker">Download van %1$s is in de wachtrij geplaatst.</string>
+    <string name="downloader_download_in_progress_ticker">Downloaden&amp;#8230;</string>
+    <string name="downloader_download_in_progress_content">%1$d%% Downloaden %2$s</string>
+    <string name="downloader_download_succeeded_ticker">Download succesvol</string>
+    <string name="downloader_download_succeeded_content">%1$s gedownload</string>
+    <string name="downloader_download_failed_ticker">Download is mislukt</string>
+    <string name="downloader_preview_failed_ticker">Weergeven van bestand is mislukt</string>
+    <string name="downloader_download_failed_content">Downoad van %1$s kon niet worden voltooid.</string>
+    <string name="downloader_not_downloaded_yet">Nog niet gedownload</string>
+    <string name="downloader_download_failed_credentials_error">Downloaden is mislukt, u moet opnieuw inloggen.</string>
+    <string name="downloader_download_forbidden_permissions">om dit bestand te downloaden</string>
+    <string name="common_choose_account">Kies account</string>
+    <string name="sync_fail_ticker">Synchronisatie is mislukt</string>
+    <string name="sync_fail_ticker_unauthorized">Synchronisatie is mislukt, u moet opnieuw inloggen.</string>
+    <string name="sync_fail_content">Synchronisatie van %1$s kon niet worden voltooid.</string>
+    <string name="sync_fail_content_unauthorized">Ongeldig wachtwoord voor %1$s</string>
+    <string name="sync_conflicts_in_favourites_ticker">Conflicten aangetroffen</string>
+    <string name="sync_conflicts_in_favourites_content">%1$d in-sync-gehouden bestanden konden niet worden gesynchroniseerd</string>
+    <string name="sync_fail_in_favourites_ticker">In-sync-gehouden bestanden zijn mislukt</string>
+    <string name="sync_fail_in_favourites_content">Inhoud van %1$d bestanden konden niet worden gesynchroniseerd (%2$d conflicten)</string>
+    <string name="sync_current_folder_was_removed">Map %1$s bestaat niet meer.</string>
+
+    <string name="pass_code_enter_pass_code">Voer alsjeblieft uw toegangscode in.</string>
+    <string name="pass_code_configure_your_pass_code">Voer uw toegangscode in.</string>
+    <string name="pass_code_configure_your_pass_code_migration">Voer een nieuwe %1$d-cijferige toegangscode in.</string>
+    <string name="pass_code_configure_your_pass_code_explanation">De toegangscode wordt elke keer dat de app wordt gestart, opgevraagd.</string>
+    <string name="pass_code_reenter_your_pass_code">Voer uw toegangscode opnieuw in.</string>
+    <string name="pass_code_remove_your_pass_code">Verwijder uw toegangscode.</string>
+    <string name="pass_code_mismatch">De toegangscodes zijn niet hetzelfde.</string>
+    <string name="pass_code_wrong">Onjuiste toegangscode</string>
+    <string name="pass_code_error_set">Er is een fout opgetreden bij het instellen van de toegangscodevergrendeling.</string>
+    <string name="pass_code_error_remove">Er is een fout opgetreden bij het verwijderen van de toegangscodevergrendeling.</string>
+    <string name="numberkeyboard_backspace_button_content_description">Knop Backspace</string>
+    <string name="numberkeyboard_biometric_button_content_description">Knop Biometrie</string>
+
+    <string name="numberkeyboard_zero">0</string>
+    <string name="numberkeyboard_one">1</string>
+    <string name="numberkeyboard_two">2</string>
+    <string name="numberkeyboard_three">3</string>
+    <string name="numberkeyboard_four">4</string>
+    <string name="numberkeyboard_five">5</string>
+    <string name="numberkeyboard_six">6</string>
+    <string name="numberkeyboard_seven">7</string>
+    <string name="numberkeyboard_eight">8</string>
+    <string name="numberkeyboard_nine">9</string>
+
+    <string name="lock_time_try_again">Probeer opnieuw over %1$s</string>
+
+    <string name="biometric_not_enrolled">Registreer minstens één biometrisch kenmerk om deze functie te gebruiken.</string>
+    <string name="biometric_prompt_title">Biometrische aanmelding</string>
+    <string name="biometric_prompt_subtitle">Log in met uw biometrische referentie.</string>
+    <string name="biometric_dialog_title">Wilt u aanvullende biometrische beveiliging activeren\?</string>
+    <string name="biometric_not_available">Biometrische ontgrendeling is niet beschikbaar op dit systeem</string>
+
+    <string name="media_notif_ticker">%1$s muziekspeler</string>
+    <string name="media_state_playing">%1$s (afspelen)</string>
+    <string name="media_state_loading">%1$s (laden)</string>
+    <string name="media_event_done">%1$s afspelen voltooid</string>
+    <string name="media_err_nothing_to_play">Geen mediabestand gevonden</string>
+    <string name="media_err_no_account">Geen account aangeboden</string>
+    <string name="media_err_not_in_opencloud">Bestand niet in een geldig account</string>
+    <string name="media_err_unsupported">Medicodec niet ondersteund</string>
+    <string name="media_err_io">Mediabestand kon niet worden gelezen</string>
+    <string name="media_err_malformed">Mediabestand niet correct gecodeerd</string>
+    <string name="media_err_timeout">Time-out bij het afspelen</string>
+    <string name="media_err_invalid_progressive_playback">Mediabestand kon niet worden gestreamd</string>
+    <string name="media_err_unknown">Mediabestand kan niet worden afgespeeld met de standaardmediaplayer</string>
+    <string name="media_err_security_ex">Beveiligingsfout bij afspelen van %1$s</string>
+    <string name="media_err_io_ex">Invoerfout bij afspelen van %1$s</string>
+    <string name="media_err_unexpected">Onverwachte fout bij afspelen van %1$s</string>
+    <string name="media_rewind_description">Knop Terug</string>
+    <string name="media_play_pause_description">Knop Afspelen/Pauzeren</string>
+    <string name="media_forward_description">Knop Vooruit</string>
+    <string name="upload_from_camera_title">Foto van camera</string>
+
+    <string name="auth_getting_authorization">Autorisatie krijgen&amp;#8230;</string>
+    <string name="auth_trying_to_login">Proberen in te loggen&amp;#8230;</string>
+    <string name="auth_no_net_conn_title">Geen netwerkverbinding</string>
+    <string name="auth_nossl_plain_ok_title">Beveiligde verbinding niet beschikbaar.</string>
+    <string name="auth_connection_established">Verbinding tot stand gebracht</string>
+    <string name="auth_testing_connection">Verbinding testen</string>
+    <string name="auth_not_configured_title">Verkeerd geconfigureerde server</string>
+    <string name="auth_account_not_new">Er bestaat al een account voor dezelfde gebruiker en server op dit apparaat.</string>
+    <string name="auth_account_not_the_same">De ingevoerde gebruiker komt niet overeen met de gebruiker van dit account.</string>
+    <string name="auth_unknown_error_title">Er is een onbekende fout opgetreden!</string>
+    <string name="auth_incorrect_path_title">Server-instantie niet aangetroffen</string>
+    <string name="auth_incorrect_address_title">Verkeerd serveradresformaat</string>
+    <string name="auth_ssl_general_error_title">SSL-initialisatie is mislukt</string>
+    <string name="auth_bad_oc_version_title">Server-versie is niet herkend</string>
+    <string name="auth_wrong_connection_title">Geen verbinding gerealiseerd</string>
+    <string name="auth_secure_connection">Beveiligde verbinding gerealiseerd</string>
+    <string name="auth_unauthorized">Verkeerde gebruikersnaam of wachtwoord</string>
+    <string name="auth_oauth_error">Autorisatie is mislukt</string>
+    <string name="auth_oauth_error_access_denied">Toegang geweigerd door autorisatieserver</string>
+    <string name="auth_wtf_reenter_URL">Onverwachte toestand; voer opnieuw het serveradres in</string>
+    <string name="auth_expired_oauth_token_toast">Uw autorisatie is verlopen. U moet opnieuw autoriseren</string>
+    <string name="auth_expired_basic_auth_toast">Voer het huidige wachtwoord in</string>
+    <string name="auth_connecting_auth_server">Verbinding maken met authenticatieserver…</string>
+    <string name="auth_unsupported_auth_method">De server ondersteunt deze authenticatiemethode niet</string>
+    <string name="auth_fail_get_user_name">De server retourneert geen correcte gebruikers-ID. Neem contact op met een beheerder.</string>
+    <string name="auth_can_not_auth_against_server">Kan niet authenticeren bij deze server</string>
+    <string name="auth_account_does_not_exist">Account bestaat nog niet op dit apparaat</string>
+
+    <string name="set_available_offline">Instellen als Offline beschikbaar</string>
+    <string name="unset_available_offline">Instellien als Niet meer Offline beschikbaar</string>
+    <string name="confirmation_set_available_offline">Het bestand werd correct ingesteld als Offline beschikbaar</string>
+    <string name="confirmation_unset_available_offline">Het bestand werd correct ingesteld als Niet meer Offline beschikbaar</string>
+    <string name="common_rename">Hernoemen</string>
+    <string name="common_remove">Verwijderen</string>
+    <string name="confirmation_remove_file_alert">Wilt u %1$s echt verwijderen\?</string>
+    <string name="confirmation_remove_folder_alert">Wilt u %1$s en zijn inhoud echt verwijderen\?</string>
+    <string name="confirmation_remove_local">Alleen lokaal</string>
+    <string name="confirmation_remove_account_alert">Wilt u het account %1$s echt verwijderen\?</string>
+    <string name="confirmation_remove_account_alert_camera_uploads">Aan dit account zijn camera-uploads gekoppeld. Als u het account verwijdert, worden de camera-uploads uitgeschakeld. Wilt u het account %1$s echt verwijderen\?</string>
+    <string name="confirmation_remove_public_share_title">Link verwijderen</string>
+    <string name="confirmation_remove_private_share_title">Privé-share verwijderen</string>
+    <string name="confirmation_remove_share_message">Wilt u het gedeelde %1$s echt verwijderen\?</string>
+    <string name="remove_success_msg">Verwijdering succesvol</string>
+    <string name="remove_fail_msg">Verwijdering is mislukt</string>
+    <string name="rename_dialog_title">Voer een nieuwe naam in</string>
+    <string name="available_offline_inherited_msg">Een map met dit bestand is offline beschikbaar.</string>
+    <string name="rename_local_fail_msg">Lokale kopie kon niet worden hernoemd; probeer een andere naam</string>
+    <string name="rename_server_fail_msg">Hernoemen kon niet worden voltooid</string>
+    <string name="file_already_exists">Bestand bestaat al</string>
+    <string name="folder_already_exists">Map bestaat al</string>
+    <string name="file_already_exists_description">Bestand met naam %1$s bestaat al.</string>
+    <string name="folder_already_exists_description">Map met naam %1$s bestaat al.</string>
+    <string name="sync_file_fail_msg">Extern bestand kon niet worden gecontroleerd</string>
+    <string name="sync_file_nothing_to_do_msg">Bestandsinhoud al gesynchroniseerd</string>
+    <string name="sync_file_not_found_msg">Bestand niet gevonden</string>
+    <string name="new_remote_version_found_msg">Er is een nieuwe versie gevonden op de server. Downloaden…</string>
+    <string name="download_enqueued_msg">Download in wachtrij</string>
+    <string name="upload_enqueued_msg">Upload in wachtrij</string>
+    <string name="create_dir_fail_msg">Map kon niet worden aangemaakt</string>
+    <string name="create_file_fail_msg">Bestand kon niet worden aangemaakt</string>
+    <string name="filename_forbidden_characters">Verboden tekens: / \\</string>
+    <string name="filename_forbidden_characters_from_server">Bestandsnaam bevat minstens één ongeldig teken</string>
+    <string name="filename_empty">Bestandsnaam kan niet leeg zijn</string>
+    <string name="filename_too_long">Bestandsnaam mag niet zo lang zijn</string>
+    <string name="wait_a_moment">Wacht even</string>
+    <string name="wait_checking_credentials">Opgeslagen inloggegevens controleren</string>
+    <string name="filedisplay_unexpected_bad_get_content">Onverwacht probleem; selecteer het bestand in een andere app</string>
+    <string name="filedisplay_no_file_selected">Geen bestand geselecteerd</string>
+    <string name="activity_chooser_title">Link versturen naar</string>
+    <string name="wait_for_tmp_copy_from_private_storage">Bestand kopiëren uit privéopslag</string>
+
+    <string name="oauth_check_onoff">Inloggen met oAuth2</string>
+    <string name="oauth_login_connection">Verbinding maken met OAuth2-server...</string>
+
+    <string name="ssl_connection_not_secure">Onbeveiligde verbinding, http-verkeer is niet toegestaan.</string>
+    <string name="ssl_validator_header">De identiteit van de server kon niet worden geverifieerd.</string>
+    <string name="ssl_validator_reason_cert_not_trusted">- Het servercertificaat wordt niet vertrouwd.</string>
+    <string name="ssl_validator_reason_cert_expired">- Het servercertificaat is verlopen.</string>
+    <string name="ssl_validator_reason_cert_not_yet_valid">- De geldigheid van het servercertificaat ligt in de toekomst.</string>
+    <string name="ssl_validator_reason_hostname_not_verified">- De URL komt niet overeen met de hostnaam in het certificaat</string>
+    <string name="ssl_validator_question">Wilt u dit certificaat toch vertrouwen\?</string>
+    <string name="ssl_validator_not_saved">Het certificaat kon niet worden opgeslagen.</string>
+    <string name="ssl_validator_btn_details_see">Details</string>
+    <string name="ssl_validator_btn_details_hide">Verbergen</string>
+    <string name="ssl_validator_label_subject">Uitgegeven aan:</string>
+    <string name="ssl_validator_label_issuer">Uitgegeven door:</string>
+    <string name="ssl_validator_label_CN">Algemene naam:</string>
+    <string name="ssl_validator_label_O">Organisatie:</string>
+    <string name="ssl_validator_label_OU">Organisatie-eenheid:</string>
+    <string name="ssl_validator_label_C">Land:</string>
+    <string name="ssl_validator_label_ST">Staat:</string>
+    <string name="ssl_validator_label_L">Locatie:</string>
+    <string name="ssl_validator_label_validity">Geldigheid:</string>
+    <string name="ssl_validator_label_validity_from">Van:</string>
+    <string name="ssl_validator_label_validity_to">Aan:</string>
+    <string name="ssl_validator_label_signature">Handtekening:</string>
+    <string name="ssl_validator_label_signature_algorithm">Algoritme:</string>
+    <string name="digest_algorithm_not_available">Dit digest-algoritme is niet beschikbaar op uw telefoon.</string>
+    <string name="ssl_validator_label_certificate_fingerprint">Vingerafdruk:</string>
+    <string name="certificate_load_problem">Er is een probleem met het laden van het certificaat.</string>
+    <string name="ssl_validator_null_cert">Het certificaat kon niet getoond worden.</string>
+    <string name="ssl_validator_no_info_about_error">- Geen informatie over de fout</string>
+
+    <string name="placeholder_sentence">Dit is een tijdelijke aanduiding.</string>
+    <string name="placeholder_filename">tijdelijke_aanduiding.txt</string>
+    <string name="placeholder_filetype">PNG-afbeelding</string>
+    <string name="placeholder_filesize">389 KB</string>
+    <string name="placeholder_timestamp">2012/05/18 12:23 PM</string>
+    <string name="placeholder_media_time">12:23:45</string>
+
+    <string name="confirmation_disable_camera_uploads_title">Bevestigen</string>
+    <string name="confirmation_disable_pictures_upload_message">Weet u zeker dat u deze functie wilt uitschakelen\? Nog niet verzonden foto\'s worden niet meer geüpload.</string>
+    <string name="confirmation_disable_videos_upload_message">Weet u zeker dat u deze functie wilt uitschakelen\? Nog niet verzonden video\'s worden niet meer geüpload.</string>
+    <string name="proper_pics_folder_warning_camera_upload">Zorg ervoor dat de geselecteerde map de plaats is waar de camera app de gemaakte foto\'s opslaat. Anders kan de functie uw foto\'s niet detecteren. Houd er rekening mee dat foto\'s binnen minimaal 15 minuten na het maken ervan worden geüpload.</string>
+    <string name="proper_videos_folder_warning_camera_upload">Zorg ervoor dat de geselecteerde map de plaats is waar de camera app de opgenomen video\'s opslaat. Anders kan de functie uw video\'s niet detecteren. Houd er rekening mee dat video\'s binnen minimaal 15 minuten na het opnemen worden geüpload.</string>
+    <string name="conflict_title">Bestand in conflict</string>
+    <string name="conflict_description">Er is een conflict in bestand%1$s, tik om het op te lossen.</string>
+    <string name="conflict_message">Welke bestanden wilt u bewaren\? Als u beide versies selecteert, wordt aan het lokale bestand een nummer aan de naam toegevoegd.</string>
+    <string name="conflict_keep_both">Beide behouden</string>
+    <string name="conflict_use_local_version">lokale versie</string>
+    <string name="conflict_use_server_version">server-versie</string>
+    <string name="error_conflict">Er is een fout opgetreden in de doelmap.</string>
+    <string name="conflict_replace">Vervangen</string>
+
+    <string name="preview_image_description">Afbeeldingsvoorbeeld</string>
+    <string name="preview_image_error_unknown_format">Deze afbeelding kan niet getoond worden.</string>
+
+    <string name="error__upload__local_file_not_copied">%1$s kon niet worden gekopieerd naar lokale map %2$s.</string>
+
+    <string name="get_shares_error">Het was niet mogelijk om de shares van de server op te halen</string>
+    <string name="get_sharees_error">Het was niet mogelijk om gebruikers en groepen van de server op te halen</string>
+    <string name="get_capabilities_error">Het was niet mogelijk om de mogelijkheden van de server op te halen</string>
+    <string name="share_link_no_support_share_api">Sorry, delen is niet ingeschakeld op de server. Neem contact op met de beheerder.</string>
+    <string name="share_link_file_error">Het was niet mogelijk om dit bestand of deze map te delen</string>
+    <string name="unshare_link_file_error">Het was niet mogelijk om het delen van dit bestand of deze map op te heffen</string>
+    <string name="update_link_file_error">Het was niet mogelijk om dit bestand of deze map bij te werken</string>
+    <string name="share_link_password_title">Voer een wachtwoord in</string>
+    <string name="share_link_empty_password">U moet een wachtwoord invoeren.</string>
+
+    <string name="activity_chooser_send_file_title">Verzenden</string>
+
+    <string name="copy_link">Link kopiëren</string>
+    <string name="clipboard_text_copied">Gekopieerd naar klembord</string>
+    <string name="clipboard_no_text_to_copy">Geen tekst ontvangen om naar klembord te kopiëren</string>
+    <string name="clipboard_uxexpected_error">Onverwachte fout bij het kopiëren naar klembord</string>
+    <string name="clipboard_label">Tekst gekopieerd van %1$s</string>
+
+    <string name="error_cant_bind_to_operations_service">Kritieke fout: kan geen bewerkingen uitvoeren</string>
+
+    <string name="network_error_socket_exception">Er is een fout opgetreden bij het verbinden met de server.</string>
+    <string name="network_error_socket_timeout_exception">Het duurde te lang voordat de server reageerde.</string>
+    <string name="network_error_connect_timeout_exception">Het duurde te lang voordat de server verbinding maakte.</string>
+    <string name="network_host_not_available">Server kon niet worden bereikt.</string>
+    <string name="network_error_message">Er is een fout opgetreden in het netwerk.</string>
+    <string name="resource_locked_error_message">Hulpbron is vergrendeld</string>
+
+    <string name="forbidden_permissions">U hebt geen toestemming %s</string>
+
+    <string name="forbidden_permissions_rename">om dit bestand te hernoemen</string>
+    <string name="forbidden_permissions_delete">om dit bestand te verwijderen</string>
+    <string name="share_link_forbidden_permissions">om dit bestand te delen</string>
+    <string name="unshare_link_forbidden_permissions">om het delen van dit bestand op te heffen</string>
+    <string name="update_link_forbidden_permissions">om dit delen bij te werken</string>
+    <string name="forbidden_permissions_create">om het bestand aan te maken</string>
+    <string name="uploader_upload_forbidden_permissions">om deze map te uploaden</string>
+    <string name="uploader_upload_forbidden">Upload niet toegestaan</string>
+    <string name="downloader_download_file_not_found">Het bestand is niet meer beschikbaar op de server.</string>
+
+    <string name="prefs_category_accounts">Accounts</string>
+    <string name="prefs_add_account">Account toevoegen</string>
+    <string name="drawer_manage_accounts">Accounts beheren</string>
+    <string name="manage_accounts_quota">%1$s van %2$s</string>
+    <string name="used_quota_title_manage_accounts">Gebruikt:</string>
+    <string name="auth_redirect_non_secure_connection_title">Beveiligde verbinding wordt omgeleid via een onbeveiligde route.</string>
+
+    <string name="actionbar_logger">Logboeken</string>
+    <string name="log_send_history_button">Geschiedenis versturen</string>
+    <string name="log_send_no_mail_app">Geen app voor het verzenden van gevonden logboeken. Installeer een mail-app.</string>
+    <string name="log_send_mail_subject">%1$s Android app-logboeken</string>
+    <string name="log_progress_dialog_text">Gegevens laden&amp;#8230;</string>
+
+    <string name="actionbar_select_all">Alles selecteren</string>
+    <string name="actionbar_select_inverse">Selectie omkeren</string>
+
+    <string name="actionbar_move">Verplaatsen</string>
+    <string name="file_list_empty_moving">Hier is niets. U kunt een map toevoegen!</string>
+    <string name="folder_picker_choose_button_text">Kiezen</string>
+    <string name="folder_picker_move_here_button_text">Hier verplaatsen</string>
+    <string name="folder_picker_copy_here_button_text">Hier kopiëren</string>
+    <string name="folder_picker_no_permissions_message_text">U hebt geen toestemming om hier inhoud toe te voegen!</string>
+
+    <string name="move_file_not_found">Kan niet verplaatsen. Controleer of het bestand bestaat.</string>
+    <string name="move_file_invalid_into_descendent">Het is niet mogelijk om een map te verplaatsen naar een onderliggende map.</string>
+    <string name="move_file_invalid_overwrite">Het bestand bestaat al in de doelmap.</string>
+    <string name="move_file_error">Er is een fout opgetreden bij het verplaatsen van dit bestand of deze map.</string>
+    <string name="forbidden_permissions_move">om dit bestand te verplaatsen</string>
+
+    <string name="copy_file_not_found">Kan niet kopiëren. Controleer of het bestand bestaat.</string>
+    <string name="copy_file_invalid_into_descendent">Het is niet mogelijk om een map te kopiëren naar een onderliggende map.</string>
+    <string name="copy_file_invalid_overwrite">Het bestand bestaat al in de doelmap.</string>
+    <string name="copy_file_error">Er is een fout opgetreden bij het kopiëren van dit bestand of deze map.</string>
+    <string name="forbidden_permissions_copy">om dit bestand te kopiëren</string>
+
+    <string name="prefs_category_camera_upload">Camera-uploads</string>
+
+    <string name="sync_folder_failed_content">Synchronisatie van map %1$s kon niet worden voltooid.</string>
+
+    <string name="shared_subject_header">gedeeld</string>
+    <string name="with_you_subject_header">met u</string>
+
+    <string name="subject_user_shared_with_you">%1$s heeft \"%2$s\" met u gedeeld</string>
+    <string name="subject_shared_with_you">\"%1$s\" is met u gedeeld</string>
+
+    <string name="auth_refresh_button">Verbinding vernieuwen</string>
+    <string name="auth_host_address">Server-adres</string>
+    <string name="common_error_out_memory">Niet genoeg geheugen</string>
+
+    <string name="username">Gebruikersnaam</string>
+
+    <string name="file_list__footer__folder">1 map</string>
+    <string name="file_list__footer__folders">%1$d mappen</string>
+    <string name="file_list__footer__file">1 bestand</string>
+    <string name="file_list__footer__file_and_folder">1 bestand, 1 map</string>
+    <string name="file_list__footer__file_and_folders">1 bestand, %1$d mappen</string>
+    <string name="file_list__footer__files">%1$d bestanden</string>
+    <string name="file_list__footer__files_and_folder">%1$d bestanden, 1 map</string>
+    <string name="file_list__footer__files_and_folders">%1$d bestanden, %2$d mappen</string>
+    <string name="prefs_picture_upload_account">Account om foto\'s te uploaden</string>
+    <string name="prefs_video_upload_account">Account om video\'s te uploaden</string>
+    <string name="prefs_camera_upload_source_path_title">Camera-map (%1$s)</string>
+    <string name="prefs_camera_upload_source_path_title_required">vereist</string>
+    <string name="prefs_camera_upload_behaviour_dialog_title">Origineel bestand wordt</string>
+    <string name="prefs_camera_upload_behaviour_title">Origineel bestand wordt</string>
+    <string name="prefs_camera_upload_last_sync_title">Laatste synchronisatie</string>
+    <string name="notifications_permission_denied">U kunt uw voorkeuren bijwerken in Instellingen</string>
+    <string name="upload_copy_files">Bestand kopiëren</string>
+    <string name="upload_move_files">Bestand verplaatsen</string>
+
+    <string name="pref_behaviour_entries_keep_file">bewaard in originele map</string>
+    <string name="pref_behaviour_entries_remove_original_file">verwijderd uit originele map</string>
+
+    <string name="share_dialog_title">Share</string>
+    <string name="share_file">%1$s delen</string>
+    <string name="share_with_user_section_title">Gebruikers en groepen</string>
+    <string name="share_no_users">Nog geen gegevens gedeeld met gebruikers</string>
+    <string name="share_incompatible_version">Om te kunnen delen met andere gebruikers, moet de server minimaal versie 8.2 zijn</string>
+    <string name="share_add_user_or_group">Gebruiker of groep toevoegen</string>
+    <string name="share_via_link_section_title">Openbare links</string>
+    <string name="share_via_link_create_title">Linkshare aanmaken</string>
+    <string name="share_via_link_edit_title">Linkshare bewerken</string>
+    <string name="share_via_link_name_label">Linknaam</string>
+    <string name="share_cancel_public_link_button">Annuleren</string>
+    <string name="share_confirm_public_link_button">Opslaan</string>
+    <string name="share_via_link_expiration_date_label">Vervaldatum</string>
+    <string name="share_via_link_password_label">Wachtwoord</string>
+    <string name="share_via_link_password_title">Beveiligd</string>
+    <string name="share_via_link_generate_password_button">Genereren</string>
+    <string name="share_via_link_copy_password_button">Kopiëren</string>
+    <string name="share_via_link_edit_permission_read_only_label">Downloaden/Weergeven</string>
+    <string name="share_via_link_edit_permission_read_and_write_label">Downloaden/Weergeven/Uploaden</string>
+    <string name="share_via_link_edit_permission_upload_only_label">Alleen uploaden (Bestand afleveren)</string>
+    <string name="share_get_public_link_button">Link verkrijgen</string>
+    <string name="share_with_title">Delen met</string>
+    <string name="share_with_edit_title">Delen met %1$s</string>
+
+    <string name="share_search">Zoeken</string>
+
+    <string name="search_users_and_groups_hint">Gebruikers en groepen zoeken</string>
+    <string name="share_group_clarification">%1$s (groep)</string>
+    <string name="share_remote_clarification">%1$s (extern)</string>
+    <string name="share_known_remote_clarification">%1$s ( op %2$s )</string>
+
+    <string name="share_sharee_unavailable">Sorry, de serverversie staat delen met gebruikers binnen clients niet toe.\nNeem contact op met de beheerder</string>
+    <string name="share_privilege_can_share">kan delen</string>
+    <string name="share_privilege_can_edit">kan bewerken</string>
+    <string name="share_privilege_can_edit_create">aanmaken</string>
+    <string name="share_privilege_can_edit_change">wijzigen</string>
+    <string name="share_privilege_can_edit_delete">verwijderen</string>
+    <string name="edit_share_unshare">Delen beëindigen</string>
+    <string name="edit_share_done">klaar</string>
+
+    <string name="action_upload_retry">Opnieuw</string>
+    <string name="action_upload_clear">Wissen</string>
+
+    <string name="local_file_not_found_toast">Het bestand is niet gevonden in het lokale bestandssysteem</string>
+    <string name="confirmation_remove_files_alert">Wilt u deze %s items echt verwijderen\?</string>
+    <string name="confirmation_remove_folders_alert">Wilt u de geselecteerde items en hun inhoud echt verwijderen\?</string>
+    <string name="failed_upload_quota_exceeded_text">Niet genoeg ruimte in het account</string>
+    <string name="auth_forbidden">Verboden authenticatie</string>
+
+    <string name="actionbar_privacy_policy">Privacybeleid</string>
+    <string name="prefs_privacy_policy">Privacybeleid</string>
+    <string name="privacy_policy_error">Er is een fout opgetreden:</string>
+    <string name="service_unavailable">Server is niet beschikbaar.</string>
+
+    <string name="streaming_certificate_error">Streaming kan niet worden geïnitialiseerd omdat uw servercertificaat niet wordt vertrouwd. Het bestand wordt automatisch gedownload.</string>
+    <string name="streaming_unrecognized_input">Dit videoformaat wordt niet ondersteund.</string>
+    <string name="streaming_file_not_found_error">Dit videobestand is niet langer beschikbaar op de server.</string>
+    <string name="streaming_crossed_redirection">Streaming is niet toegestaan via gekruiste omleidingen.</string>
+    <string name="previewing_video_common_error">Deze video kan niet worden gereproduceerd.</string>
+
+    <string name="previewing_video_not_supported">Videovoorvertoning wordt niet ondersteund in uw Android-versie. Het bestand wordt automatisch gedownload.</string>
+    <string name="streaming_position_not_available">\"Positie niet beschikbaar\"</string>
+    <string name="error_no_network_connection">Apparaat is niet verbonden met een netwerk.</string>
+    <string name="share_no_public_links">Nog geen openbare links aangemaakt.</string>
+    <string name="share_no_link_in_this_share">Dit delen heeft geen link.</string>
+    <string name="share_warning_about_forwarding_public_links">Iedereen met de link heeft toegang tot het bestand/de map.</string>
+    <string name="share_via_link_default_password">*****</string>
+    <string name="share_via_link_password_enforced_label">Wachtwoord *</string>
+    <string name="share_via_link_expiration_date_enforced_label">Vervaldatum *</string>
+    <string name="share_via_link_expiration_date_explanation_label">De openbare link vervalt uiterlijk %1$d dagen nadat deze is aangemaakt.</string>
+    <string name="share_via_link_default_name_template">%1$s link</string>
+    <string name="share_via_link_empty_password">Het wachtwoord is leeg.</string>
+    <string name="private_link_info">Privé-link: Alleen mensen die toegang hebben tot het bestand/de map kunnen het gebruiken. Gebruik het als een permanente link voor uzelf of om anderen te wijzen op bestanden binnen shares.</string>
+    <string name="file_private_link_error">Privélink is niet beschikbaar voor dit bestand.</string>
+    <string name="download_notification_channel_name">Downloads</string>
+    <string name="download_notification_channel_description">Zie de bestandsnaam en voortgang van het downloaden.</string>
+    <string name="upload_notification_channel_name">Uploads</string>
+    <string name="upload_notification_channel_description">Zie de bestandsnaam en voortgang van het uploaden.</string>
+    <string name="media_service_notification_channel_name">Muziekspeler</string>
+    <string name="media_service_notification_channel_description">Zie muziekspeler</string>
+    <string name="file_sync_notification_channel_name">Bestandssynchronisatie</string>
+    <string name="file_sync_notification_channel_description">Zie resultaat van bestandssynchronisatie</string>
+    <string name="file_sync_conflict_notification_channel_name">Bestandsconflicten</string>
+    <string name="file_sync_conflict_notification_channel_description">Zie bestandsconflicten wanneer deze zich voordoen.</string>
+    <string name="clicks_to_be_developer">Nog maar %1$d klikken om ontwikkelaarsmenu\'s in te schakelen</string>
+
+    <string name="rate_dialog_title">%1$s-app waarderen!</string>
+    <string name="rate_dialog_description">Als u deze app graag gebruikt, kunt u dan even de tijd nemen om deze te beoordelen\? Uw reactie is erg belangrijk voor ons. </string>
+    <string name="button_no_thanks_name">NEE, BEDANKT</string>
+    <string name="button_later_name">LATER</string>
+    <string name="button_rate_now_name">NU WAARDEREN</string>
+    <plurals name="items_selected_count">
+        <item quantity="one">%d geselecteerd</item>
+        <item quantity="other">%d geselecteerd</item>
+    </plurals>
+
+    <!-- Welcome to oC intro features -->
+    <string name="welcome_feature_skip_button">Overslaan</string>
+    <string name="welcome_feature_1_title">Al uw gesynchroniseerde bestanden beheren</string>
+    <string name="welcome_feature_1_text">U kunt kopiëren, verplaatsen, verwijderen</string>
+    <string name="welcome_feature_2_title">Bestanden en mappen delen</string>
+    <string name="welcome_feature_2_text">U kunt privé of openbaar delen</string>
+    <string name="welcome_feature_3_title">Multi-account</string>
+    <string name="welcome_feature_3_text">Maak verbinding met al uw OpenCloud-servers</string>
+    <string name="welcome_feature_4_title">Camera-uploads</string>
+    <string name="welcome_feature_4_text">Uw afbeeldingen/video\'s automatisch geüploadet</string>
+    <string name="welcome_feature_5_title">Video-streaming</string>
+    <string name="welcome_feature_5_text">Speel uw video\'s af zonder ze te downloaden</string>
+    <string name="no_browser_installed_alert">Geen browser geïnstalleerd. Installeer een browser om een veilige login mogelijk te maken.</string>
+    <string name="common_not_found">het niet gevonden werd</string>
+
+    <string name="supports_oauth2_error">Het was niet mogelijk om te weten of OAuth2 wordt ondersteund.</string>
+    <string name="get_base_url_error">Het was niet mogelijk om de URL van de serverbasis te kennen.</string>
+    <string name="prefs_http_logs">HTTP-verzoeken en -reacties registreren</string>
+    <string name="prefs_logs_summary">Logboeken kunnen gevoelige informatie bevatten. Het delen van logboeken met anderen is de exclusieve verantwoordelijkheid van de gebruiker</string>
+
+    <string name="synchronizing_account">Account synchroniseren</string>
+    <string name="spaces_sync_failed">Ruimtes konden niet worden vernieuwd</string>
+
+    <!-- Scoped storage migration wizard -->
+    <string name="scoped_storage_wizard_explanation">%1$s gegevens gevonden over uw externe opslag. Het wordt verplaatst naar de veilige opslag op uw apparaat. De overige bestanden worden na de migratie uit jouw externe opslag verwijderd om duplicaten en kwetsbaarheid te voorkomen.</string>
+    <string name="scoped_storage_wizard_intro">De app is bijgewerkt. Deze app-update migreert de bestanden naar een veiligere locatie op dit apparaat. Deze eenmalige datamigratie is vereist en kan tot een minuut of langer duren.</string>
+    <string name="scoped_storage_wizard_intro_button">Laten we beginnen</string>
+    <string name="scoped_storage_wizard_not_enough_space_warning">&amp;#9888;️ De vrije ruimte is momenteel beperkt op dit apparaat. Sommige bestanden zijn mogelijk niet gemigreerd. Controleer of alle gedownloade bestanden gedownload blijven nadat het proces is voltooid.</string>
+    <string name="scoped_storage_wizard_migrate_and_clean_button">Migreer nu</string>
+    <string name="scoped_storage_wizard_migration_completed">Migratie succesvol afgerond. Uw bestanden zijn nu veiliger dan ooit.</string>
+    <string name="scoped_storage_wizard_migration_completed_access_files_button">Toegang tot uw bestanden</string>
+    <string name="scoped_storage_wizard_migration_in_progress">Bestanden migreren. Zet het apparaat niet uit.</string>
+    <string name="scoped_storage_wizard_migration_in_progress_button">Aan het werk… Even geduld.</string>
+    <string name="scoped_storage_wizard_title">Meer veiligheid voor uw bestanden</string>
+
+    <!-- Security Enforced -->
+    <string name="security_enforced_title">Selecteer een optie om de app te vergrendelen:</string>
+    <string name="security_enforced_first_option">Toegangscode-vergrendeling</string>
+    <string name="security_enforced_second_option">Patroonvergrendeling</string>
+
+    <string name="folder_upload_some_content_or_sync_devices">Upload wat inhoud of synchroniseer met uw apparaten!</string>
+
+    <!-- Webfinger -->
+    <string name="global_proceed">Doorgaan</string>
+    <string name="error_webfinger_username_empty">Gebruikersnaam leeg</string>
+
+    <!-- Release Notes -->
+    <string name="release_notes_header">Nieuw in %1$s</string>
+    <string name="release_notes_footer">Bedankt voor het gebruik van %1$s.\n&amp;#10084;</string>
+    <string name="release_notes_proceed">Doorgaan</string>
+    <string name="release_notes_icon">Pictogram Release note</string>
+    <string name="release_notes_bugfixes_title">Kleine bugfixes</string>
+    <string name="release_notes_bugfixes_subtitle">Een aantal bugs zijn opgelost om de ervaring in de app te verbeteren</string>
+    <string name="release_notes_4_5_0_title_feedback_in_previews">Feedback bij het (aan/uit)zetten van av. offline in alle voorbeeldweergaven</string>
+    <string name="release_notes_4_5_0_subtitle_feedback_in_previews">Feedback toegevoegd bij het (aan/uit)zetten van av. offline in alle previews en het bijgewerkte optiemenu, afhankelijk van de bestandsstatus</string>
+    <string name="release_notes_4_5_0_title_quota_improvements">Verbeteringen in de weergave van opslagbezetting</string>
+    <string name="release_notes_4_5_0_subtitle_quota_improvements">Opslagbezetting wordt regelmatig vernieuwd in bestands- en vernieuwingsbewerkingen en is beschikbaar in de accountmanagerweergave, naast het lademenu</string>
+    <string name="release_notes_4_5_0_title_light_users">Light gebruikers</string>
+    <string name="release_notes_4_5_0_subtitle_light_users">Light gebruikers (zonder persoonlijke ruimte) worden nu ondersteund in de app</string>
+    <string name="release_notes_4_5_1_title_strange_behaviour_apps_provider">Fix voor het aanmaken van bestanden via app-providers</string>
+    <string name="release_notes_4_5_1_subtitle_strange_behaviour_apps_provider">Bestanden worden nu correct geopend wanneer ze worden gemaakt met behulp van app-providers</string>
+    <string name="release_notes_title">OpenCloud-client</string>
+    <string name="release_notes_initial_release">Welkom bij de eerste release</string>
+
+
+    <!-- Open in web -->
+    <string name="ic_action_open_in_web">Openen in web</string>
+    <string name="ic_action_open_with_web">Openen in %1$s (web)</string>
+    <string name="open_in_web_error_generic">Kon niet openen in web</string>
+    <string name="open_in_web_error_not_supported">Er zijn geen apps die dit bestandstype ondersteunen.</string>
+    <string name="open_in_web_error_too_early">Het opgevraagde bestand is nog niet beschikbaar, probeer het later nog eens.</string>
+
+    <!-- accounts warning -->
+    <string name="server_accounts_warning_title">Accounts waarschuwing</string>
+    <string name="server_accounts_warning_message">Verwijder het account en log opnieuw in om de functi ruimtes te krijgen.</string>
+    <string name="server_accounts_warning_checkbox_message">Niet meer laten zien</string>
+    <string name="server_accounts_warning_button">Begrepen</string>
+
+    <string name="tab_label_ascii">Tekst</string>
+
+    <string name="apply_to_all_conflicts">Toepassen op alle %1$s conflicten</string>
+    <string name="log_file_downloaded">Logbestand gedownload</string>
+    <string name="go_to_download_folder">Ga naar Downloads</string>
+    <string name="log_file_downloaded_description">Het logbestand %1$s is correct gedownload in de map Downloads.</string>
+
+    <!-- DeepLinks -->
+    <string name="invalid_deep_link_format">Ongeldig linkformaat</string>
+    <string name="deep_link_user_no_access">De gebruiker heeft geen toegang tot het bestand</string>
+    <string name="deep_link_loading">Bestand openen vanaf link</string>
+
+    <string name="fab_refresh_text">Verversen</string>
+    <string name="fab_refresh_sync_in_progress">Synchronisatie is al aan de gang</string>
+
+    <string name="password_policy_min_characters">Tenminste %1$d tekens</string>
+    <string name="password_policy_max_characters">Machinaal %1$d tekens</string>
+    <string name="password_policy_min_digits">Tenminste %1$d cijfers</string>
+    <string name="password_policy_lowercase_characters">Tenminste %1$d kleine letters</string>
+    <string name="password_policy_uppercase_characters">Tenminste %1$d hoofdletters</string>
+    <string name="password_policy_intro">Voer een wachtwoord in dat voldoet aan de volgende criteria:\n</string>
+    <string name="password_policy_min_special_character">Tenminste %1$d van de speciale tekens: \"%2$s\"</string>
+    <string name="password_policy_error_password_banned">Dit wachtwoord wordt vaak gebruikt. Kies voor de veiligheid een moeilijker te raden wachtwoord.</string>
+
+    <string name="prefs_delete_local_files_entries_never">Nooit</string>
+    <string name="prefs_delete_local_files_entries_1hour">1 uur</string>
+    <string name="prefs_delete_local_files_entries_12hours">12 uur</string>
+    <string name="prefs_delete_local_files_entries_1day">1 dag</string>
+    <string name="prefs_delete_local_files_entries_30days">30 dagen</string>
+    <string name="prefs_delete_local_files">Lokale kopieën verwijderen</string>
+    <string name="prefs_delete_local_files_summary">Verwijder automatisch gedownloade bestanden die niet offline beschikbaar zijn, wanneer de tijd sinds hun laatste gebruik de geselecteerde tijd overschrijdt.\nGeselecteerde tijd: %1$s</string>
+
+    <string name="insecure_http_url_title_dialog">Onveilige HTTP-URL</string>
+    <string name="insecure_http_url_message_dialog">De opgegeven URL gebruikt HTTP in plaats van het gecodeerde HTTPS-protocol. Als u zo doorgaat, wordt de communicatie niet versleuteld.</string>
+    <string name="insecure_http_url_continue_button">Doorgaan</string>
+
+    <string name="clean_data_account_message">Alle gedownloade bestanden die niet offline beschikbaar zijn, worden opgeschoond voor het account %1$s</string>
+    <string name="clean_data_account_title">Lokale opslag verwijderen</string>
+    <string name="clean_data_account_button_yes">Gegevens wissen</string>
+
+    <string name="content_description_menu">Menu</string>
+    <string name="content_description_manage_accounts">Accounts beheren</string>
+    <string name="content_description_search">Zoeken</string>
+    <string name="content_description_type_view">Type van weergave</string>
+    <string name="content_description_image_previewed">Weergegeven afbeelding</string>
+    <string name="content_description_add_public_link">Openbare link toevoegen</string>
+    <string name="content_description_get_private_link">Privé-link ophalen</string>
+    <string name="content_description_get_public_link">Openbare link ophalen</string>
+    <string name="content_description_delete_public_link">Openbare link verwijderen</string>
+    <string name="content_description_get_edit_public_link">Openbare link bewerken</string>
+    <string name="content_description_remove_account">Account verwijderen</string>
+    <string name="content_description_add_new_content">Nieuwe inhoud toevoegen</string>
+    <string name="content_description_add_new_content_expanded">Nieuwe content toevoegen uitgebreid</string>
+    <string name="content_description_clean_account_storage">Accountopslag wissen</string>
+    <string name="content_description_logo">Logo</string>
+    <string name="content_description_add_share">Share toevoegen</string>
+    <string name="content_description_edit_share">Share bewerken</string>
+    <string name="content_description_delete_share">Schare verwijderen</string>
+    <string name="content_description_file_operations">%1$s bewerkingen</string>
+    <string name="content_description_sort_by_name_ascending">Sorteren op %1$s oplopend</string>
+    <string name="content_description_sort_by_name_descending">Sorteren op %1$s aflopend</string>
+    <string name="content_description_create_new_folder">Nieuwe map aanmaken</string>
+
+    <string name="create_shortcut_dialog_title">Snelkoppeling aanmaken</string>
+    <string name="create_shortcut_dialog_url">URL</string>
+    <string name="create_shortcut_dialog_url_information">De URL moet beginnen met https:// of http://, zodat deze in de browser kan worden geopend</string>
+    <string name="create_shortcut_dialog_url_error_no_blanks">De URL kan geen lege plekken bevatten</string>
+    <string name="create_shortcut_dialog_url_extension">.url</string>
+    <string name="open_shortcut_description">Deze snelkoppeling verwijst naar:</string>
+    <string name="open_shortcut_title">Link openen</string>
+
+    <string name="feedback_dialog_get_in_contact_description"><![CDATA[ Bespreek in onze <a href=\"%1$s\"><b>GitHub repo</b></a>]]></string>
+
+    <string name="link_role_accessibility">Link</string>
+    <string name="button_role_accessibility">Knop</string>
+
+    <string name="folder_picker_label">Mapkiezer</string>
+    <string name="passcode_label">Toegangscode</string>
+    <string name="pattern_label">Patroon</string>
+    <string name="receive_external_files_label">Externe bestanden ontvangen</string>
+    <string name="video_preview_label">Videovoorvertoning</string>
+    <string name="release_notes_label">Versiemededelingen</string>
+    <string name="image_preview_label">Afbeeldingsvoorbeeld</string>
+    <string name="login_label">Inloggen</string>
+    <string name="whats_new_label">Wat is er nieuw</string>
+    <string name="audio_preview_label">Audiovoorvertoning</string>
+    <string name="details_label">Details</string>
+    <string name="text_preview_label">Tekstvoorvertoning</string>
+    <string name="release_notes_title_enhanced_bottom_nav_bar">Extra tekstlabels op de onderste balk</string>
+    <string name="release_notes_subtitle_bottom_nav_bar">Er zijn tekstlabels toegevoegd en de standaard actieve indicator wordt gebruikt om aan te geven welke sectie op de onderste balk is geselecteerd</string>
+
+</resources>

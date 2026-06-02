@@ -169,9 +169,9 @@ class LogInterceptor : Interceptor {
         var auxMillis = millis
         val hours = TimeUnit.MILLISECONDS.toHours(millis)
         auxMillis -= TimeUnit.HOURS.toMillis(hours)
-        val minutes = TimeUnit.MILLISECONDS.toMinutes(millis)
+        val minutes = TimeUnit.MILLISECONDS.toMinutes(auxMillis)
         auxMillis -= TimeUnit.MINUTES.toMillis(minutes)
-        val seconds = TimeUnit.MILLISECONDS.toSeconds(millis)
+        val seconds = TimeUnit.MILLISECONDS.toSeconds(auxMillis)
         auxMillis -= TimeUnit.SECONDS.toMillis(seconds)
         return String.format(DURATION_FORMAT, hours, minutes, seconds, auxMillis)
     }
