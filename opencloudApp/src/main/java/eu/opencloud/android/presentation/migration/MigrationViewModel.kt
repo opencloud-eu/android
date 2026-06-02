@@ -58,7 +58,7 @@ class MigrationViewModel(
     private val _migrationState = MediatorLiveData<Event<MigrationState>>()
     val migrationState: LiveData<Event<MigrationState>> = _migrationState
 
-    private val legacyStorageDirectoryPath = LegacyStorageProvider(rootFolder).getRootFolderPath()
+    private val legacyStorageDirectoryPath = LegacyStorageProvider(rootFolder.lowercase()).getRootFolderPath()
 
     init {
         _migrationState.postValue(Event(MigrationState.MigrationIntroState))

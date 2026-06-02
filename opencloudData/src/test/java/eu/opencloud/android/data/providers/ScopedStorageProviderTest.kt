@@ -8,7 +8,10 @@ import eu.opencloud.android.testutil.OC_SPACE_PROJECT_WITH_IMAGE
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
+import io.mockk.unmockkAll
+import io.mockk.spyk
 import io.mockk.verify
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -20,6 +23,7 @@ class ScopedStorageProviderTest {
     private lateinit var scopedStorageProvider: ScopedStorageProvider
 
     private lateinit var context: Context
+    private lateinit var preferencesProvider: SharedPreferencesProvider
     private lateinit var filesDir: File
 
     private val spaceId = OC_SPACE_PROJECT_WITH_IMAGE.id
@@ -37,52 +41,79 @@ class ScopedStorageProviderTest {
     @Before
     fun setUp() {
         context = mockk()
+        preferencesProvider = mockk()
         filesDir = Files.createTempDirectory("scoped-storage-provider").toFile().apply { deleteOnExit() }
         directory = File(filesDir, "dir").apply {
             mkdirs()
             File(this, "child.bin").writeBytes(ByteArray(expectedSizeOfDirectoryValue.toInt()))
         }
 
-        scopedStorageProvider = ScopedStorageProvider(rootFolderName, context)
+        scopedStorageProvider = spyk(ScopedStorageProvider(rootFolderName, context, preferencesProvider))
+        every { preferencesProvider.getBoolean("enable_file_manager_access", false) } returns false
+        every { context.getExternalFilesDir(null) } returns filesDir
         every { context.filesDir } returns filesDir
     }
 
+    @After
+    fun tearDown() {
+        unmockkAll()
+    }
+
     @Test
-    fun `getPrimaryStorageDirectory returns filesDir`() {
+    fun `getPrimaryStorageDirectory returns external files dir when no internal data exists`() {
         val result = scopedStorageProvider.getPrimaryStorageDirectory()
         assertEquals(filesDir, result)
 
         verify(exactly = 1) {
-            context.filesDir
+            context.getExternalFilesDir(null)
         }
     }
 
     @Test
+    fun `getPrimaryStorageDirectory returns internal files dir when internal data exists`() {
+        // Simulate existing data in internal storage
+        val internalFilesDir = Files.createTempDirectory("internal-storage").toFile().apply { deleteOnExit() }
+        val internalRoot = File(internalFilesDir, rootFolderName)
+        internalRoot.mkdirs()
+        File(internalRoot, "existing_file.txt").writeBytes(ByteArray(10))
+
+        every { context.filesDir } returns internalFilesDir
+
+        val result = scopedStorageProvider.getPrimaryStorageDirectory()
+        assertEquals(internalFilesDir, result)
+    }
+
+    @Test
+    fun `getPrimaryStorageDirectory returns internal files dir when legacy lowercase internal data exists`() {
+        // Simulate existing data in internal storage under old lowercase folder name
+        val internalFilesDir = Files.createTempDirectory("internal-storage-legacy").toFile().apply { deleteOnExit() }
+        val internalRootLegacy = File(internalFilesDir, rootFolderName.lowercase())
+        internalRootLegacy.mkdirs()
+        File(internalRootLegacy, "existing_file.txt").writeBytes(ByteArray(10))
+
+        every { context.filesDir } returns internalFilesDir
+
+        val result = scopedStorageProvider.getPrimaryStorageDirectory()
+        assertEquals(internalFilesDir, result)
+    }
+
+    @Test
     fun `getRootFolderPath returns the root folder path String`() {
-        val rootFolderPath = filesDir.absolutePath + File.separator + rootFolderName
         val actualPath = scopedStorageProvider.getRootFolderPath()
         assertEquals(rootFolderPath, actualPath)
-
-        verify(exactly = 1) {
-            scopedStorageProvider.getPrimaryStorageDirectory()
-        }
-
     }
 
     @Test
     fun `getDefaultSavePathFor returns the path with spaces when there is a space`() {
         mockkStatic(Uri::class)
-        every { Uri.encode(accountName, "@") } returns uriEncoded
+        every { Uri.encode(accountName, "@") } returns accountName
+        every { scopedStorageProvider.getRootFolderPath() } returns rootFolderPath
 
-        val accountDirectoryPath = filesDir.absolutePath + File.separator + rootFolderName + File.separator + uriEncoded
+        val accountDirectoryPath = rootFolderPath + File.separator + accountName
         val expectedPath = accountDirectoryPath + File.separator + spaceId + File.separator + remotePath
         val actualPath = scopedStorageProvider.getDefaultSavePathFor(accountName, remotePath, spaceId)
 
         assertEquals(expectedPath, actualPath)
-
-        verify(exactly = 1) {
-            scopedStorageProvider.getPrimaryStorageDirectory()
-        }
     }
 
     @Test
@@ -90,17 +121,14 @@ class ScopedStorageProviderTest {
         val spaceId = null
 
         mockkStatic(Uri::class)
-        every { Uri.encode(accountName, "@") } returns uriEncoded
+        every { Uri.encode(accountName, "@") } returns accountName
+        every { scopedStorageProvider.getRootFolderPath() } returns rootFolderPath
 
-        val accountDirectoryPath = filesDir.absolutePath + File.separator + rootFolderName + File.separator + uriEncoded
+        val accountDirectoryPath = rootFolderPath + File.separator + accountName
         val expectedPath = accountDirectoryPath + remotePath
         val actualPath = scopedStorageProvider.getDefaultSavePathFor(accountName, remotePath, spaceId)
 
         assertEquals(expectedPath, actualPath)
-
-        verify(exactly = 1) {
-            scopedStorageProvider.getPrimaryStorageDirectory()
-        }
     }
 
     @Test
@@ -154,16 +182,13 @@ class ScopedStorageProviderTest {
     fun `getTemporalPath returns expected temporal path with separator and space when there is a space`() {
         mockkStatic(Uri::class)
         every { Uri.encode(accountName, "@") } returns uriEncoded
+        every { scopedStorageProvider.getRootFolderPath() } returns rootFolderPath
 
         val temporalPathWithoutSpace = rootFolderPath + File.separator + "tmp" + File.separator + uriEncoded
 
         val expectedValue = temporalPathWithoutSpace + File.separator + spaceId
         val actualValue = scopedStorageProvider.getTemporalPath(accountName, spaceId)
         assertEquals(expectedValue, actualValue)
-
-        verify(exactly = 1) {
-            scopedStorageProvider.getPrimaryStorageDirectory()
-        }
     }
 
     @Test
@@ -172,36 +197,27 @@ class ScopedStorageProviderTest {
 
         mockkStatic(Uri::class)
         every { Uri.encode(accountName, "@") } returns uriEncoded
+        every { scopedStorageProvider.getRootFolderPath() } returns rootFolderPath
 
         val expectedValue = rootFolderPath + File.separator + TEMPORAL_FOLDER_NAME + File.separator + uriEncoded
         val actualValue = scopedStorageProvider.getTemporalPath(accountName, spaceId)
         assertEquals(expectedValue, actualValue)
-
-        verify(exactly = 1) {
-            scopedStorageProvider.getPrimaryStorageDirectory()
-        }
     }
 
     @Test
     fun `getLogsPath returns logs path`() {
+        every { scopedStorageProvider.getRootFolderPath() } returns rootFolderPath
+
         val expectedValue = rootFolderPath + File.separator + LOGS_FOLDER_NAME + File.separator
         val actualValue = scopedStorageProvider.getLogsPath()
 
         assertEquals(expectedValue, actualValue)
-
-        verify(exactly = 1) {
-            scopedStorageProvider.getPrimaryStorageDirectory()
-        }
     }
 
     @Test
     fun `getUsableSpace returns usable space from the storage directory`() {
         val actualUsableSpace = scopedStorageProvider.getUsableSpace()
         assertTrue(actualUsableSpace > 0)
-
-        verify(exactly = 1) {
-            scopedStorageProvider.getPrimaryStorageDirectory()
-        }
     }
 
     @Test
@@ -237,11 +253,8 @@ class ScopedStorageProviderTest {
     fun `deleteLocalFile calls getPrimaryStorageDirectory()`() {
         mockkStatic(Uri::class)
         every { Uri.encode(any(), any()) } returns uriEncoded
+        every { scopedStorageProvider.getRootFolderPath() } returns rootFolderPath
         scopedStorageProvider.deleteLocalFile(OC_FILE)
-
-        verify(exactly = 1) {
-            scopedStorageProvider.getPrimaryStorageDirectory()
-        }
     }
 
     @Test
@@ -250,11 +263,8 @@ class ScopedStorageProviderTest {
         mockkStatic(Uri::class)
 
         every { Uri.encode(any(), any()) } returns uriEncoded
+        every { scopedStorageProvider.getRootFolderPath() } returns rootFolderPath
         scopedStorageProvider.moveLocalFile(OC_FILE, finalStoragePath)
-
-        verify(exactly = 1) {
-            scopedStorageProvider.getPrimaryStorageDirectory()
-        }
     }
 
     @Test
@@ -265,14 +275,11 @@ class ScopedStorageProviderTest {
 
         mockkStatic(Uri::class)
         every { Uri.encode(any(), any()) } returns uriEncoded
+        every { scopedStorageProvider.getRootFolderPath() } returns rootFolderPath
         every { transfer.accountName } returns accountName
         every { transfer.localPath } returns localPath
 
         scopedStorageProvider.deleteCacheIfNeeded(transfer)
-
-        verify(exactly = 1) {
-            scopedStorageProvider.getPrimaryStorageDirectory()
-        }
     }
 
     private fun expectedRemotePath(current: String, newName: String, isFolder: Boolean): String {

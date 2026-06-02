@@ -147,7 +147,12 @@ public class CopyAndUploadContentUrisTask extends AsyncTask<Object, Void, Result
                 currentUri = uris[i];
                 currentRemotePath = uploadPath + UriUtils.getDisplayNameForUri(currentUri, mAppContext);
 
-                fullTempPath = FileStorageUtils.getTemporalPath(account.name, spaceId) + currentRemotePath;
+                File cacheBase = mAppContext.getExternalCacheDir() != null ? mAppContext.getExternalCacheDir() : mAppContext.getCacheDir();
+                File baseTmpDir = new File(cacheBase, "upload_tmp");
+                String accountSanitized = Uri.encode(account.name, "@");
+                File accountDir = new File(baseTmpDir, accountSanitized);
+                File spaceDir = spaceId != null ? new File(accountDir, spaceId) : accountDir;
+                fullTempPath = spaceDir.getAbsolutePath() + currentRemotePath;
                 inputStream = leakedContentResolver.openInputStream(currentUri);
                 File cacheFile = new File(fullTempPath);
                 File tempDir = cacheFile.getParentFile();

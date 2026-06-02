@@ -11,4 +11,3 @@ keep_translations      = false
 type                   = ANDROID
 minimum_perc           = 20
 resource_name          = android
-

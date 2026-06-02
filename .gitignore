@@ -35,6 +35,9 @@ lint-*ml
 # Prevent exidental commits of build folders
 opencloudApp/release
 
+# Log files
+logcat.txt
+
 # fastlane stuff (some)
 fastlane/README.md
 fastlane/report.xml

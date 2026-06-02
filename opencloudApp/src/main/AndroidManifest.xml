@@ -45,6 +45,7 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
     <uses-permission android:name="android.permission.REORDER_TASKS" />
 
+    <!-- Android 11+ package visibility: allow discovering apps that handle file open/send -->
     <queries>
         <intent>
             <action android:name="android.intent.action.VIEW" />
@@ -212,8 +213,6 @@
         <activity
             android:name=".presentation.security.passcode.PassCodeActivity"
             android:label="@string/passcode_label" />
-        <activity
-            android:name=".presentation.conflicts.ConflictsResolveActivity" />
         <activity
             android:name=".presentation.logging.LogsListActivity"
             android:label="@string/prefs_log_open_logs_list_view"

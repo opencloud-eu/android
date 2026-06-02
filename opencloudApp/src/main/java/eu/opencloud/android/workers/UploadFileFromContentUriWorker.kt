@@ -141,7 +141,7 @@ class UploadFileFromContentUriWorker(
         val localStorageProvider: LocalStorageProvider by inject()
         // Prepend uploadId to the cache filename so two transfers targeting the same
         // uploadPath (e.g. same filename in two different SAF source folders) can't collide
-        // on the same cache file and PUT each other's bytes (issue #78). Flat layout — no
+        // on the same cache file and PUT each other's bytes (issue #78). Flat layout - no
         // nested subdirs to clean up, original filename and extension preserved for debugging.
         val flatCacheName = "${uploadIdInStorageManager}_" + File(uploadPath).name
         cachePath = localStorageProvider.getTemporalPath(account.name, ocTransfer.spaceId) +
