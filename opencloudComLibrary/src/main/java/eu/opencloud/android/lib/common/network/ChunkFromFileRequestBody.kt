@@ -88,6 +88,7 @@ class ChunkFromFileRequestBody(
             }
         } catch (exception: Exception) {
             Timber.e(exception, "Transferred " + alreadyTransferred + " bytes from a total of " + file.length())
+            throw exception
         }
     }
 
