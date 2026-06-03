@@ -45,6 +45,23 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
     <uses-permission android:name="android.permission.REORDER_TASKS" />
 
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data
+                android:mimeType="*/*"
+                android:scheme="content" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.SEND" />
+            <data android:mimeType="*/*" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.SEND_MULTIPLE" />
+            <data android:mimeType="*/*" />
+        </intent>
+    </queries>
+
     <application
         android:name=".MainApp"
         android:allowBackup="false"
@@ -194,8 +211,7 @@
 
         <activity
             android:name=".presentation.security.passcode.PassCodeActivity"
-            android:label="@string/passcode_label"
-            android:screenOrientation="portrait" />
+            android:label="@string/passcode_label" />
         <activity
             android:name=".presentation.conflicts.ConflictsResolveActivity" />
         <activity
@@ -234,7 +250,6 @@
         </activity>
         <activity
             android:name=".presentation.security.pattern.PatternActivity"
-            android:screenOrientation="portrait"
             android:label="@string/pattern_label" />
         <activity android:name=".presentation.security.biometric.BiometricActivity" />
         <!-- Own taskAffinity + singleTask so LoginActivity always runs in its own task.

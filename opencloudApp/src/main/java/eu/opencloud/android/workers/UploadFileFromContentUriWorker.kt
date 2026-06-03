@@ -50,7 +50,6 @@ import eu.opencloud.android.domain.transfers.TransferRepository
 import eu.opencloud.android.domain.transfers.model.OCTransfer
 import eu.opencloud.android.domain.transfers.model.TransferResult
 import eu.opencloud.android.domain.transfers.model.TransferStatus
-import eu.opencloud.android.extensions.isContentUri
 import eu.opencloud.android.extensions.parseError
 import eu.opencloud.android.domain.capabilities.usecases.GetStoredCapabilitiesUseCase
 import eu.opencloud.android.lib.common.OpenCloudAccount
@@ -140,9 +139,20 @@ class UploadFileFromContentUriWorker(
             getWebdavUrlForSpaceUseCase(GetWebDavUrlForSpaceUseCase.Params(accountName = account.name, spaceId = ocTransfer.spaceId))
 
         val localStorageProvider: LocalStorageProvider by inject()
-        cachePath = localStorageProvider.getTemporalPath(account.name, ocTransfer.spaceId) + uploadPath
+        // Prepend uploadId to the cache filename so two transfers targeting the same
+        // uploadPath (e.g. same filename in two different SAF source folders) can't collide
+        // on the same cache file and PUT each other's bytes (issue #78). Flat layout — no
+        // nested subdirs to clean up, original filename and extension preserved for debugging.
+        val flatCacheName = "${uploadIdInStorageManager}_" + File(uploadPath).name
+        cachePath = localStorageProvider.getTemporalPath(account.name, ocTransfer.spaceId) +
+                File.separator + flatCacheName
 
-        if (ocTransfer.isContentUri(appContext)) {
+        // Re-copy if the cache file is missing or empty. A previous run may have copied it
+        // and then had it removed (e.g. by removeCacheFile() at the end of a successful run
+        // that the OS killed before bookkeeping). Only the contentUri from worker params is
+        // authoritative.
+        val cacheFile = File(cachePath)
+        if (!cacheFile.exists() || cacheFile.length() == 0L) {
             checkDocumentFileExists()
             checkPermissionsToReadDocumentAreGranted()
             copyFileToLocalStorage()
@@ -297,14 +307,14 @@ class UploadFileFromContentUriWorker(
             )
         )
         val tusSupport = capabilitiesForAccount?.filesTusSupport
-        val supportsTus = tusSupport != null
-
         val hasPendingTusSession = !ocTransfer.tusUploadUrl.isNullOrBlank()
-        val shouldTryTus = hasPendingTusSession || (supportsTus && fileSize >= TusUploadHelper.DEFAULT_CHUNK_SIZE)
+        val shouldTryTus = TusUploadHelper.shouldAttemptTusUpload(
+            fileSize = fileSize,
+            tusSupport = tusSupport,
+            tusUploadUrl = ocTransfer.tusUploadUrl,
+        )
 
-        var attemptedTus = false
         if (shouldTryTus) {
-            attemptedTus = true
             Timber.d(
                 "Attempting TUS upload (size=%d, threshold=%d, resume=%s)",
                 fileSize,
@@ -345,7 +355,7 @@ class UploadFileFromContentUriWorker(
                 "Skipping TUS: file too small or unsupported (size=%d, threshold=%d, supportsTus=%s)",
                 fileSize,
                 TusUploadHelper.DEFAULT_CHUNK_SIZE,
-                supportsTus
+                tusSupport != null
             )
         }
 

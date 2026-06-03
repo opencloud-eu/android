@@ -1,0 +1,853 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- GLOBAL -->
+    <string name="global_name">Name</string>
+    <string name="global_date">Datum</string>
+    <string name="global_size">Größe</string>
+    <string name="actionbar_search">Diesen Ordner durchsuchen</string>
+    <string name="actionbar_search_space">Spaces durchsuchen</string>
+    <string name="actionbar_sync">Konto aktualisieren</string>
+    <string name="actionbar_upload">Hochladen</string>
+    <string name="actionbar_upload_from_apps">Inhalte aus anderen Apps</string>
+    <string name="actionbar_upload_files">Dateien</string>
+    <string name="actionbar_open_with">Öffnen mit</string>
+    <string name="actionbar_open_with_read_only">Öffnen mit (schreibgeschützt)</string>
+    <string name="actionbar_mkdir">Neuer Ordner</string>
+    <string name="actionbar_settings">Einstellungen</string>
+    <string name="actionbar_see_details">Details</string>
+    <string name="actionbar_send_file">Senden</string>
+    <string name="actionbar_descending">Absteigend</string>
+    <string name="actionbar_sort_title">Sortieren nach</string>
+    <string name="fab_new_file">Neues Dokument</string>
+    <string name="fab_new_shortcut">Neue Verknüpfung</string>
+    <string name="drawer_item_all_files">Alle Dateien</string>
+    <string name="drawer_item_only_available_offline">Offline verfügbar</string>
+    <string name="drawer_item_shared_by_link_files">Per Link geteilt</string>
+    <string name="drawer_item_settings">Einstellungen</string>
+    <string name="drawer_item_uploads_list">Uploads</string>
+    <string name="drawer_close">Schließen</string>
+    <string name="drawer_open">Öffnen</string>
+    <string name="drawer_loading_quota">Quota wird geladen</string>
+    <string name="drawer_quota">%1$s von %2$s verwendet (%3$s %%)</string>
+    <string name="drawer_exceeded_quota">Speicher voll</string>
+    <string name="drawer_nearing_quota">Speicher sehr voll</string>
+    <string name="drawer_critical_quota">Speicher fast komplett voll</string>
+    <string name="drawer_unavailable_free_storage">%1$s verwendet</string>
+    <string name="drawer_unavailable_used_storage">Keine Informationen zur Speichernutzung verfügbar</string>
+    <string name="drawer_feedback">GitHub-Diskussionen</string>
+    <string name="drawer_help">Hilfe</string>
+    <string name="prefs_category_general">Allgemein</string>
+    <string name="prefs_subsection_logging">Protokollierung</string>
+    <string name="prefs_subsection_more">Mehr</string>
+    <string name="prefs_subsection_security">Sicherheit</string>
+    <string name="prefs_subsection_whatsnew">Was ist neu in der neuesten Version\? </string>
+    <string name="prefs_subsection_security_summary">Richten Sie Sperren für den Zugriff auf die App ein und erlauben Sie Interaktionen mit anderen sichtbaren Fenstern.</string>
+    <string name="prefs_subsection_logging_summary">Behalten Sie die Protokolle im Blick, die bei der Ausführung der App erzeugt werden.</string>
+    <string name="prefs_subsection_more_summary">App-Infos, Feedback und Sonstiges</string>
+    <string name="prefs_accounts">Konten</string>
+    <string name="prefs_manage_accounts">Konto verwalten</string>
+    <string name="prefs_passcode">Code-Sperre</string>
+    <string name="prefs_biometric">Biometrische Sperre</string>
+    <string name="prefs_biometric_summary">Aktivieren Sie einen Code- oder eine Muster-Sperre, um diese Option zu aktivieren.</string>
+    <string name="prefs_lock_application">App sperren</string>
+    <string name="prefs_lock_application_entries_immediately">Sofort</string>
+    <string name="prefs_lock_application_entries_1minute">Nach 1 Minute</string>
+    <string name="prefs_lock_application_entries_5minutes">Nach 5 Minuten</string>
+    <string name="prefs_lock_application_entries_30minutes">Nach 30 Minuten</string>
+    <string name="prefs_lock_access_from_document_provider">Zugriff vom Dokumentanbieter sperren</string>
+    <string name="prefs_lock_access_from_document_provider_summary">Sperren Sie den Zugriff anderer Apps auf die Dateien der Konten innerhalb der App über den nativen Android-Dateimanager.</string>
+    <string name="prefs_touches_with_other_visible_windows">Berührungen mit anderen sichtbaren Fenstern</string>
+    <string name="prefs_touches_with_other_visible_windows_summary">Ermöglicht Berührungen, wenn die Ansicht durch ein anderes sichtbares Fenster verdeckt ist. Aktivieren Sie diese Option, um Apps zur Lichtfilterung zu nutzen.</string>
+    <string name="confirmation_touches_with_other_windows_title">Sind Sie sicher, dass Sie diese Funktion aktivieren möchten\?</string>
+    <string name="confirmation_touches_with_other_windows_message">Verwenden Sie diese Funktion auf eigenes Risiko. Eine bösartige Anwendung könnte versuchen, Sie durch die Verwendung anderer Ansichten dazu zu verleiten, unwissentlich bestimmte Aktionen auszuführen.</string>
+    <string name="prefs_subsection_picture_uploads">Automatische Bild-Uploads</string>
+    <string name="prefs_subsection_picture_uploads_summary">Verwalten Sie den Speicherort und das Verhalten der automatisch hochgeladenen Bilder.</string>
+    <string name="prefs_subsection_video_uploads">Automatische Video-Uploads</string>
+    <string name="prefs_subsection_video_uploads_summary">Verwalten Sie den Speicherort und das Verhalten der automatisch hochgeladenen Videos.</string>
+    <string name="prefs_camera_picture_upload">Bild-Uploads</string>
+    <string name="prefs_camera_picture_upload_summary">Mit der Kamera aufgenommene Bilder automatisch hochladen</string>
+    <string name="prefs_camera_picture_upload_path_title">Upload-Pfad für Bilder</string>
+    <string name="prefs_camera_picture_upload_conditions_title">Bedingungen für die Ausführung von Uploads</string>
+    <string name="prefs_camera_picture_upload_conditions_summary">Die Uploads werden ausgelöst, sobald alle ausgewählten Bedingungen erfüllt sind.</string>
+    <string name="prefs_camera_picture_upload_on_wifi">Bilder nur über WLAN hochladen</string>
+    <string name="prefs_camera_picture_upload_on_charging">Bilder nur am Ladegerät hochladen</string>
+    <string name="prefs_camera_upload_on_charging_summary">Aktivieren Sie „Nur WLAN-Uploads“, um diese Option zu aktivieren.</string>
+    <string name="prefs_camera_video_upload">Video-Uploads</string>
+    <string name="prefs_camera_video_upload_summary">Mit der Kamera aufgenommene Videos automatisch hochladen</string>
+    <string name="prefs_camera_video_upload_path_title">Upload-Pfad für Videos</string>
+    <string name="prefs_camera_video_upload_on_wifi">Videos nur über WLAN hochladen</string>
+    <string name="prefs_camera_video_upload_on_charging">Videos nur am Ladegerät hochladen</string>
+    <string name="prefs_automatic_uploads_not_available_users_light">Automatische Uploads sind für Light-Benutzer nicht verfügbar.</string>
+    <string name="prefs_subsection_advanced">Erweitert</string>
+    <string name="prefs_subsection_notifications">Benachrichtigungen verwalten</string>
+    <string name="prefs_show_hidden_files">Versteckte Dateien anzeigen</string>
+    <string name="prefs_log_open_logs_list_view">Protokolldateien</string>
+    <string name="prefs_log_no_logs_list_view">Leerer Protokollordner</string>
+    <string name="prefs_log_empty_subtitle">Aktivieren Sie die Protokollierung, und die Protokolldateien werden hier angezeigt.</string>
+    <string name="prefs_log_title">Protokollierung aktivieren</string>
+    <string name="prefs_log_summary">Dies wird verwendet, um Probleme zu protokollieren.</string>
+    <string name="prefs_log_title_history">Protokollverlauf</string>
+    <string name="prefs_log_summary_history">Dies zeigt die aufgezeichneten Protokolle.</string>
+    <string name="prefs_log_delete_history_button">Verlauf löschen</string>
+    <string name="prefs_help">Hilfe</string>
+    <string name="prefs_sync_calendar_contacts">Synchronisieren Sie Ihre Kontakte, Kalender und Aufgaben</string>
+    <string name="prefs_sync_calendar_contacts_summary">DAVx⁵ installieren</string>
+    <string name="prefs_access_document_provider">Zugriff auf den Dokumentanbieter</string>
+    <string name="prefs_access_document_provider_summary">Empfohlene App, um die Dateien auf Ihrem Gerät über den nativen Android-Dateimanager zu durchsuchen.</string>
+    <string name="prefs_recommend">Einem Freund empfehlen</string>
+    <string name="prefs_feedback">Feedback</string>
+    <string name="prefs_imprint">Impressum</string>
+    <string name="prefs_remember_last_share_location">Freigabeort merken</string>
+    <string name="prefs_remember_last_upload_location_summary">Letzten Speicherort für Freigaben merken</string>
+    <string name="prefs_pattern">Mustersperre</string>
+    <string name="prefs_enable_logging">Protokollierung aktivieren</string>
+    <string name="prefs_enable_logging_summary">Wenn aktiviert, können Protokolle die Leistung beeinträchtigen und sensible Informationen enthalten. Die Protokolle werden jedoch nicht automatisch an OpenCloud-Server übermittelt. Das Teilen von Protokollen mit anderen liegt in der alleinigen Verantwortung des Benutzers.</string>
+    <string name="prefs_send_feedback">Feedback senden</string>
+    <string name="prefs_app_version">App-Version</string>
+    <string name="prefs_app_version_summary">%1$s %2$s Version %3$s (%4$s)</string>
+    <string name="pattern_enter_pattern">Bitte geben Sie Ihr Muster ein</string>
+    <string name="pattern_configure_pattern">Muster eingeben</string>
+    <string name="pattern_remove_pattern">Muster entfernen</string>
+    <string name="pattern_incorrect_pattern">Falsches Muster</string>
+    <string name="pattern_reenter_pattern">Bitte geben Sie das Muster erneut ein.</string>
+    <string name="pattern_not_same_pattern">Die Muster stimmen nicht überein.</string>
+    <string name="pattern_error_set">Beim Setzen der Mustersperre trat ein Fehler auf.</string>
+    <string name="pattern_error_remove">Beim Entfernen der Mustersperre trat ein Fehler auf.</string>
+    <string name="pattern_already_set">Muster- und Code-Sperre können nicht gleichzeitig aktiv sein. Bitte deaktivieren zuerst die Mustersperre.</string>
+    <string name="passcode_already_set">Muster- und Codes-Sperre können nicht gleichzeitig aktiv sein. Bitte deaktivieren zuerst die Code-Sperre.</string>
+    <string name="pattern_no_longer_required">Das Muster wird nicht mehr abgefragt.</string>
+    <string name="pattern_configure_your_pattern_explanation">Das Muster wird bei jedem Start der App abgefragt.</string>
+    <string name="document_provider_locked">Gesperrt</string>
+    <string name="illegal_argument_exception_message">Eine gültige ACTION ist erforderlich im übergebenen Intent an</string>
+
+    <!-- Bottom navigation bar -->
+    <string name="bottom_nav_files">Dateien</string>
+    <string name="bottom_nav_personal">Persönlich</string>
+    <string name="bottom_nav_uploads">Uploads</string>
+    <string name="bottom_nav_offline">Offline</string>
+    <string name="bottom_nav_links">Links</string>
+    <string name="bottom_nav_shares">Freigaben</string>
+
+    <string name="recommend_subject">Probieren Sie %1$s auf Ihrem Smartphone aus!</string>
+    <string name="recommend_text">Ich möchte Sie dazu einladen, %1$s auf Ihrem Smartphone zu nutzen.\nHier herunterladen: %2$s</string>
+
+    <string name="error_reason">weil</string>
+    <string name="auth_failure_snackbar">Die Authentifizierung ist fehlgeschlagen. Melden Sie sich erneut an, um wieder Zugriff zu erhalten.</string>
+    <string name="server_not_supported">Ihre Serverversion ist niedriger als 10 und wird daher nicht unterstützt. Bitte aktualisieren Sie Ihren Server auf eine neuere Version.</string>
+    <string name="auth_failure_snackbar_action">Konto wechseln</string>
+    <string name="auth_oauth_failure">Das Zugriffstoken ist abgelaufen oder ungültig geworden. Melden Sie sich erneut an, um wieder Zugriff zu erhalten.</string>
+    <string name="auth_oauth_failure_snackbar_action">Anmelden</string>
+    <string name="auth_check_server">Server überprüfen</string>
+    <string name="auth_host_url">Serveradresse https://&amp;#8230;</string>
+    <string name="auth_username">Benutzername</string>
+    <string name="auth_password">Passwort</string>
+    <string name="auth_register">Neu bei %1$s\?</string>
+    <string name="sync_string_files">Dateien</string>
+    <string name="setup_btn_login">Anmelden</string>
+    <string name="uploader_btn_upload_text">Hochladen</string>
+    <string name="uploader_top_message">Upload-Ordner auswählen</string>
+    <string name="choose_upload_space">Upload-Space auswählen</string>
+    <string name="uploader_wrn_no_account_title">Kein Konto gefunden</string>
+    <string name="uploader_wrn_no_account_text">Auf Ihrem Gerät befinden sich keine %1$s-Konten. Bitte richten Sie zuerst ein Konto ein.</string>
+    <string name="uploader_wrn_no_account_setup_btn_text">Einrichtung</string>
+    <string name="uploader_wrn_no_account_quit_btn_text">Beenden</string>
+    <string name="uploader_error_title_no_file_to_upload">Keine Datei zum Hochladen</string>
+    <string name="uploader_error_message_received_piece_of_text">%1$s kann keinen Text als Datei hochladen.</string>
+    <string name="uploader_error_message_no_file_to_upload">Empfangene Daten enthalten keine gültige Datei.</string>
+    <string name="uploader_error_title_file_cannot_be_uploaded">Datei kann nicht hochgeladen werden</string>
+    <string name="uploader_error_message_read_permission_not_granted">%1$s darf keine empfangenen Dateien lesen.</string>
+    <string name="uploader_error_message_source_file_not_found">Die hochzuladende Datei wurde an ihrem Speicherort nicht gefunden. Bitte überprüfen Sie, ob die Datei existiert.</string>
+    <string name="uploader_error_message_source_file_not_copied">Beim Kopieren der Datei in einen temporären Ordner ist ein Fehler aufgetreten. Bitte versuchen Sie, die Datei erneut zu senden.</string>
+    <string name="file_list_seconds_ago">Sekunden vergangen</string>
+    <string name="file_list_empty_title_all_files">Keine Dateien hier</string>
+    <string name="spaces_list_empty_title">Keine Spaces</string>
+    <string name="space_label">Space:</string>
+    <string name="file_list_empty_title_available_offline">Keine verfügbaren Offline-Dateien</string>
+    <string name="file_list_empty_title_shared_by_links">Keine geteilten Links</string>
+    <string name="file_list_empty_subtitle_all_files">Laden Sie Inhalte hoch oder synchronisieren Sie mit Ihren Geräten.</string>
+    <string name="light_users_subtitle">Persönlicher Space ist nicht verfügbar</string>
+    <string name="shares_list_empty_title">Keine Freigaben</string>
+    <string name="shares_list_empty_subtitle">Sie arbeiten nicht gemeinsam an den Ressourcen anderer Personen.</string>
+    <string name="spaces_list_empty_subtitle">Sie haben aktuell keinen Zugriff auf einen Space!</string>
+    <string name="file_list_empty_subtitle_available_offline">Dateien und Ordner, die Sie als offline verfügbar markieren, werden hier angezeigt.</string>
+    <string name="file_list_empty_subtitle_shared_by_links">Dateien und Ordner, die Sie per Link teilen, werden hier angezeigt.</string>
+    <string name="file_list_loading">&amp;#8230; wird geladen</string>
+    <string name="file_list_no_app_for_file_type">Keine App für diesen Dateityp gefunden</string>
+    <string name="file_list_no_app_for_perform_action">Keine App für diese Aktion gefunden</string>
+    <string name="local_file_list_empty">Es befinden sich keine Dateien in diesem Ordner.</string>
+    <string name="local_file_list_empty_just_folders">Es befinden sich keine Ordner in diesem Ordner.</string>
+    <string name="local_file_list_search_with_no_matches">Keine Treffer für diese Suche</string>
+    <string name="upload_list_empty">Keine Uploads verfügbar.</string>
+    <string name="upload_list_empty_subtitle">Laden Sie etwas hoch und es wird hier erscheinen.</string>
+    <string name="file_list_folder">Ordner</string>
+    <string name="file_list_folders">Ordner</string>
+    <string name="file_list_file">Datei</string>
+    <string name="file_list_files">Dateien</string>
+    <string name="filedetails_select_file">Tippen Sie auf eine Datei, um weitere Informationen anzuzeigen.</string>
+    <string name="upload_to">Hochladen zu %1$s</string>
+    <string name="pick_document_type">Dokumenttyp auswählen:</string>
+    <string name="upload_files_title">Dateien</string>
+    <string name="filedetails_size">Größe:</string>
+    <string name="filedetails_type">Typ:</string>
+    <string name="filedetails_created">Erstellt:</string>
+    <string name="filedetails_last_sync">Letzte Synchronisierung:</string>
+    <string name="filedetails_path">Pfad:</string>
+    <string name="filedetails_modified">Bearbeitet:</string>
+    <string name="filedetails_download">Herunterladen</string>
+    <string name="filedetails_file_image_content_description">Dateibild</string>
+    <string name="filedetails_cancel_btn_content_description">Schaltfläche zum Abbrechen des Herunterladens</string>
+    <string name="filedetails_sync_file">Synchronisieren</string>
+    <string name="filedetails_renamed_in_upload_msg">Datei wurde beim Hochladen zu %1$s umbenannt.</string>
+    <string name="list_layout">Listenansicht</string>
+    <string name="action_share">Teilen</string>
+    <string name="login_account_preparing">Vorbereitung des Kontos für den ersten Start</string>
+    <string name="common_yes">Ja</string>
+    <string name="common_no">Nein</string>
+    <string name="common_remove_upload">Upload entfernen</string>
+    <string name="common_retry_upload">Hochladen erneut versuchen</string>
+    <string name="common_cancel_sync">Synchronisierung abbrechen</string>
+    <string name="common_back">Zurück</string>
+    <string name="common_save_exit">Speichern &amp; Verlassen</string>
+    <string name="common_error">Fehler</string>
+    <string name="common_loading">&amp;#8230; wird geladen</string>
+    <string name="common_unknown">unbekannt</string>
+    <string name="common_error_unknown">unbekannter Fehler</string>
+    <string name="common_pending">Ausstehend</string>
+    <string name="common_important">Wichtig</string>
+    <string name="change_password">Passwort ändern</string>
+    <string name="delete_account">Konto entfernen</string>
+    <string name="create_account">Konto erstellen</string>
+    <string name="upload_chooser_title">Hochladen von</string>
+    <string name="uploader_info_dirname">Ordnername</string>
+    <string name="uploader_upload_in_progress_ticker">&amp;#8230; wird hochgeladen</string>
+    <string name="uploader_upload_in_progress_content">%1$d%%%2$s wird hochgeladen     </string>
+    <string name="uploader_upload_succeeded_ticker">Hochladen erfolgreich</string>
+    <string name="uploader_upload_succeeded_content_single">%1$s hochgeladen</string>
+    <string name="uploader_upload_failed_ticker">Hochladen fehlgeschlagen</string>
+    <string name="uploader_upload_failed_content_single">Das Hochladen von %1$s konnte nicht abgeschlossen werden.</string>
+    <string name="uploader_upload_failed_credentials_error">Hochladen fehlgeschlagen; Sie müssen sich erneut anmelden.</string>
+    <string name="uploader_upload_failed_ssl_certificate_not_trusted">Das Serverzertifikat ist nicht vertrauenswürdig.</string>
+    <string name="uploader_upload_text_dialog_title">Geben Sie einen Namen für die neue Datei ein.</string>
+    <string name="uploader_upload_text_dialog_filename_error_empty">Der Dateiname darf nicht leer sein.</string>
+    <string name="uploader_upload_text_dialog_filename_error_length_max">Der Dateiname darf nicht länger als %d Zeichen sein.</string>
+    <string name="uploader_upload_text_filename_hint">Dateiname</string>
+    <string name="uploader_upload_camera_upload_files">Hochladen von Dateien aus dem Kamera-Upload</string>
+    <string name="uploader_upload_picture_upload_files">%d neue Bilder werden hochgeladen.</string>
+    <string name="uploader_upload_video_upload_files">%d neue Videos werden hochgeladen.</string>
+    <string name="uploader_upload_camera_upload_source_path_error">Kamera-Uploads fehlgeschlagen.</string>
+    <string name="uploader_upload_picture_upload_error">Der Quellpfad für Bild-Uploads ist nicht mehr gültig.</string>
+    <string name="uploader_upload_video_upload_error">Der Quellpfad für Video-Uploads ist nicht mehr gültig.</string>
+    <string name="uploader_upload_available_offline_files">Hochladen verfügbarer Offline-Dateien</string>
+    <string name="uploader_upload_requested_from_wifi_files">Upload von WLAN-Dateien angefordert</string>
+    <string name="ssl_certificate_not_trusted">Das Serverzertifikat ist nicht vertrauenswürdig.</string>
+    <string name="uploads_view_title">Uploads</string>
+    <string name="uploads_view_group_current_uploads">Aktuell</string>
+    <string name="uploads_view_group_failed_uploads">Fehlgeschlagen (zum Wiederholen tippen)</string>
+    <string name="uploads_view_group_finished_uploads">Hochgeladen</string>
+    <string name="uploads_view_group_queued_uploads">In die Warteschlange eingereiht</string>
+    <string name="uploads_view_group_file_count">%d Dateien</string>
+    <string name="uploads_view_group_file_count_single">%d Datei</string>
+    <string name="uploads_view_upload_status_succeeded">Abgeschlossen</string>
+    <string name="uploads_view_upload_status_cancelled">Abgebrochen</string>
+    <string name="uploads_view_upload_status_paused">Pausiert</string>
+    <string name="uploads_view_upload_status_failed_connection_error">Verbindungsfehler</string>
+    <string name="uploads_view_upload_status_failed_retry">Hochladen wird in Kürze erneut versucht</string>
+    <string name="uploads_view_upload_status_failed_credentials_error">Fehler bei den Zugangsdaten</string>
+    <string name="uploads_view_upload_status_failed_folder_error">Ordnerfehler</string>
+    <string name="uploads_view_upload_status_failed_file_error">Dateifehler</string>
+    <string name="uploads_view_upload_status_failed_localfile_error">Lokale Datei nicht gefunden</string>
+    <string name="uploads_view_upload_status_failed_permission_error">Berechtigungsfehler</string>
+    <string name="uploads_view_upload_status_failed_firewall_error">Verboten aufgrund einer Regel der Firewall</string>
+    <string name="uploads_view_upload_status_conflict">Konflikt</string>
+    <string name="uploads_view_upload_status_service_interrupted">App wurde beendet</string>
+    <string name="uploads_view_upload_status_unknown_fail">Unbekannter Fehler</string>
+    <string name="uploads_view_upload_status_waiting_for_wifi">Auf WLAN-Verbindung warten</string>
+    <string name="uploads_view_upload_status_queued">In die Warteschlange eingereiht</string>
+    <string name="uploads_view_later_waiting_to_upload">Aufs Hochladen warten</string>
+    <string name="uploads_view_unsupported_media_type">Nicht unterstützter Medientyp</string>
+    <string name="uploader_upload_enqueued_ticker">Der Upload von %1$s wurde in die Warteschlange eingereiht.</string>
+    <string name="uploader_upload_canceled_ticker">Hochladen abgebrochen</string>
+    <string name="downloader_download_canceled_ticker">Herunterladen abgebrochen</string>
+    <string name="downloader_download_enqueued_ticker">Der Download von %1$s wurde in die Warteschlange eingereiht.</string>
+    <string name="downloader_download_in_progress_ticker">&amp;#8230; wird heruntergeladen</string>
+    <string name="downloader_download_in_progress_content">%1$d%% %2$s wird heruntergeladen</string>
+    <string name="downloader_download_succeeded_ticker">Herunterladen erfolgreich</string>
+    <string name="downloader_download_succeeded_content">%1$s heruntergeladen</string>
+    <string name="downloader_download_failed_ticker">Fehler beim Herunterladen</string>
+    <string name="downloader_preview_failed_ticker">Die Datei kann nicht angezeigt werden</string>
+    <string name="downloader_download_failed_content">Herunterladen von %1$s konnte nicht abgeschlossen werden</string>
+    <string name="downloader_not_downloaded_yet">Noch nicht heruntergeladen</string>
+    <string name="downloader_download_failed_credentials_error">Herunterladen fehlgeschlagen; Sie müssen sich erneut anmelden.</string>
+    <string name="downloader_download_forbidden_permissions">um diese Datei herunterzuladen</string>
+    <string name="common_choose_account">Konto auswählen</string>
+    <string name="sync_fail_ticker">Synchronisierung fehlgeschlagen</string>
+    <string name="sync_fail_ticker_unauthorized">Synchronisierung fehlgeschlagen; Sie müssen sich erneut anmelden.</string>
+    <string name="sync_fail_content">Synchronisierung von %1$s konnte nicht abgeschlossen werden.</string>
+    <string name="sync_fail_content_unauthorized">Ungültiges Passwort für %1$s</string>
+    <string name="sync_conflicts_in_favourites_ticker">Konflikte gefunden</string>
+    <string name="sync_conflicts_in_favourites_content">%1$d synchronisiert zu haltende Dateien konnten nicht synchronisiert werden.</string>
+    <string name="sync_fail_in_favourites_ticker">Synchronisiert halten von Dateien fehlgeschlagen</string>
+    <string name="sync_fail_in_favourites_content">Die Inhalte von %1$d Dateien konnten nicht synchronisiert werden (%2$d Konflikte).</string>
+    <string name="sync_current_folder_was_removed">Der Ordner %1$s existiert nicht mehr.</string>
+
+    <string name="pass_code_enter_pass_code">Bitte geben Sie Ihren Zugangscode ein.</string>
+    <string name="pass_code_configure_your_pass_code">Geben Sie Ihren Zugangscode ein.</string>
+    <string name="pass_code_configure_your_pass_code_migration">Geben Sie einen neuen %1$d-stelligen Zugangscode ein.</string>
+    <string name="pass_code_configure_your_pass_code_explanation">Der Zugangscode wird bei jedem Start der App abgefragt.</string>
+    <string name="pass_code_reenter_your_pass_code">Bitte geben Sie Ihren Zugangscode erneut ein.</string>
+    <string name="pass_code_remove_your_pass_code">Entfernen Sie Ihren Zugangscode.</string>
+    <string name="pass_code_mismatch">Die Zugangscodes stimmen nicht überein.</string>
+    <string name="pass_code_wrong">Falscher Zugangscode</string>
+    <string name="pass_code_error_set">Beim Setzen der Code-Sperre trat ein Fehler auf.</string>
+    <string name="pass_code_error_remove">Beim Entfernen der Code-Sperre trat ein Fehler auf.</string>
+    <string name="numberkeyboard_backspace_button_content_description">Rücktaste</string>
+    <string name="numberkeyboard_biometric_button_content_description">Biometrische Schaltfläche</string>
+
+    <string name="numberkeyboard_zero">0</string>
+    <string name="numberkeyboard_one">1</string>
+    <string name="numberkeyboard_two">2</string>
+    <string name="numberkeyboard_three">3</string>
+    <string name="numberkeyboard_four">4</string>
+    <string name="numberkeyboard_five">5</string>
+    <string name="numberkeyboard_six">6</string>
+    <string name="numberkeyboard_seven">7</string>
+    <string name="numberkeyboard_eight">8</string>
+    <string name="numberkeyboard_nine">9</string>
+
+    <string name="lock_time_try_again">Bitte versuchen Sie es erneut in %1$s</string>
+
+    <string name="biometric_not_enrolled">Registrieren Sie mindestens eine biometrische Eigenschaft, um diese Funktion zu nutzen.</string>
+    <string name="biometric_prompt_title">Biometrische Anmeldung</string>
+    <string name="biometric_prompt_subtitle">Melden Sie sich mit Ihren biometrischen Zugangsdaten an.</string>
+    <string name="biometric_dialog_title">Möchten Sie zusätzlich die biometrische Sicherheit aktivieren\?</string>
+    <string name="biometric_not_available">Die biometrische Entsperrung ist nicht verfügbar, da das System sie nicht bereitstellen kann.</string>
+
+    <string name="media_notif_ticker">%1$s Music-Player</string>
+    <string name="media_state_playing">%1$s (Wiedergabe)</string>
+    <string name="media_state_loading">%1$s (Laden)</string>
+    <string name="media_event_done">%1$s Wiedergabe beendet</string>
+    <string name="media_err_nothing_to_play">Keine Mediendatei gefunden</string>
+    <string name="media_err_no_account">Kein Konto angegeben</string>
+    <string name="media_err_not_in_opencloud">Datei nicht in einem gültigen Konto</string>
+    <string name="media_err_unsupported">Nicht unterstützter Medien-Codec</string>
+    <string name="media_err_io">Mediendatei konnte nicht gelesen werden</string>
+    <string name="media_err_malformed">Mediendatei nicht korrekt kodiert</string>
+    <string name="media_err_timeout">Zeitüberschreitung beim Versuch der Wiedergabe</string>
+    <string name="media_err_invalid_progressive_playback">Mediendatei kann nicht gestreamt werden</string>
+    <string name="media_err_unknown">Die Mediendatei kann mit dem Standard-Mediaplayer nicht abgespielt werden</string>
+    <string name="media_err_security_ex">Sicherheitsfehler beim Versuch der Wiedergabe von %1$s</string>
+    <string name="media_err_io_ex">Eingabefehler beim Versuch der Wiedergabe von %1$s</string>
+    <string name="media_err_unexpected">Unerwarteter Fehler beim Versuch der Wiedergabe von %1$s</string>
+    <string name="media_rewind_description">Rückspultaste</string>
+    <string name="media_play_pause_description">Wiedergabe- oder Pausetaste</string>
+    <string name="media_forward_description">Vorspultaste</string>
+    <string name="upload_from_camera_title">Bild von der Kamera</string>
+
+    <string name="auth_getting_authorization">Autorisierung wird abgerufen &amp;#8230;</string>
+    <string name="auth_trying_to_login">Anmeldeversuch &amp;#8230;</string>
+    <string name="auth_no_net_conn_title">Keine Netzwerkverbindung</string>
+    <string name="auth_nossl_plain_ok_title">Sichere Verbindung nicht verfügbar.</string>
+    <string name="auth_connection_established">Verbindung hergestellt</string>
+    <string name="auth_testing_connection">Verbindung wird getestet</string>
+    <string name="auth_not_configured_title">Fehlerhafte Einrichtung des Servers</string>
+    <string name="auth_account_not_new">Auf dem Gerät existiert bereits ein Konto für dieselbe Person und denselben Server.</string>
+    <string name="auth_account_not_the_same">Die eingegebene Person gehört nicht zu diesem Konto.</string>
+    <string name="auth_unknown_error_title">Ein unbekannter Fehler ist aufgetreten.</string>
+    <string name="auth_incorrect_path_title">Serverinstanz nicht gefunden</string>
+    <string name="auth_incorrect_address_title">Ungültiges Serveradressformat</string>
+    <string name="auth_ssl_general_error_title">SSL-Initialisierung fehlgeschlagen</string>
+    <string name="auth_bad_oc_version_title">Unbekannte Serverversion</string>
+    <string name="auth_wrong_connection_title">Verbindung konnte nicht hergestellt werden</string>
+    <string name="auth_secure_connection">Sichere Verbindung hergestellt</string>
+    <string name="auth_unauthorized">Falscher Anmeldename oder falsches Passwort</string>
+    <string name="auth_oauth_error">Autorisierung fehlgeschlagen</string>
+    <string name="auth_oauth_error_access_denied">Zugriff vom Autorisierungsserver verweigert</string>
+    <string name="auth_wtf_reenter_URL">Unerwarteter Status; bitte geben Sie die Serveradresse erneut ein</string>
+    <string name="auth_expired_oauth_token_toast">Ihre Autorisierung ist abgelaufen. Bitte autorisieren Sie sich erneut.</string>
+    <string name="auth_expired_basic_auth_toast">Bitte geben Sie das aktuelle Passwort ein</string>
+    <string name="auth_connecting_auth_server">Mit dem Authentifizierungsserver verbinden…</string>
+    <string name="auth_unsupported_auth_method">Der Server unterstützt diese Authentifizierungsmethode nicht.</string>
+    <string name="auth_fail_get_user_name">Ihr Server gibt keine korrekte Benutzer-ID zurück. Bitte wenden Sie sich an einen Administrator.</string>
+    <string name="auth_can_not_auth_against_server">Die Authentifizierung bei diesem Server ist nicht möglich.</string>
+    <string name="auth_account_does_not_exist">Das Konto existiert auf diesem Gerät noch nicht.</string>
+
+    <string name="set_available_offline">Als offline verfügbar festlegen</string>
+    <string name="unset_available_offline">Als nicht offline verfügbar festlegen</string>
+    <string name="confirmation_set_available_offline">Die Datei wurde korrekt für die Offline-Verfügbarkeit eingerichtet.</string>
+    <string name="confirmation_unset_available_offline">Die Datei wurde korrekt als nicht mehr offline verfügbar markiert.</string>
+    <string name="common_rename">Umbenennen</string>
+    <string name="common_remove">Entfernen</string>
+    <string name="confirmation_remove_file_alert">Möchten Sie %1$s wirklich entfernen\?</string>
+    <string name="confirmation_remove_folder_alert">Möchten Sie %1$sund dessen Inhalt wirklich entfernen\?</string>
+    <string name="confirmation_remove_local">Nur lokal</string>
+    <string name="confirmation_remove_account_alert">Möchten Sie das Konto %1$s wirklich entfernen\?</string>
+    <string name="confirmation_remove_account_alert_camera_uploads">Mit diesem Konto sind Kamera-Uploads verknüpft; das Entfernen des Kontos deaktiviert die Kamera-Uploads. Möchten Sie das Konto %1$s wirklich entfernen\?</string>
+    <string name="confirmation_remove_public_share_title">Link entfernen</string>
+    <string name="confirmation_remove_private_share_title">Private Freigabe entfernen</string>
+    <string name="confirmation_remove_share_message">Wollen Sie wirklich die Freigabe %1$s entfernen\?</string>
+    <string name="remove_success_msg">Entfernen erfolgreich</string>
+    <string name="remove_fail_msg">Entfernen fehlgeschlagen</string>
+    <string name="rename_dialog_title">Einen neuen Namen eingeben</string>
+    <string name="available_offline_inherited_msg">Ein Ordner, der diese Datei enthält, ist offline vorhanden.</string>
+    <string name="rename_local_fail_msg">Lokal Kopie konnte nicht umbenannt werden; versuchen Sie einen anderen Namen</string>
+    <string name="rename_server_fail_msg">Die Umbenennung konnte nicht abgeschlossen werden.</string>
+    <string name="file_already_exists">Die Datei existiert bereits.</string>
+    <string name="folder_already_exists">Der Ordner existiert bereits.</string>
+    <string name="file_already_exists_description">Eine Datei mit dem Namen %1$s existiert bereits.</string>
+    <string name="folder_already_exists_description">Ein Ordner mit dem Namen %1$s existiert bereits.</string>
+    <string name="sync_file_fail_msg">Externe Datei konnte nicht überprüft werden</string>
+    <string name="sync_file_nothing_to_do_msg">Dateiinhalte sind bereits synchronisiert</string>
+    <string name="sync_file_not_found_msg">Datei nicht gefunden</string>
+    <string name="new_remote_version_found_msg">Eine neue Version wurde auf dem Server gefunden. Wird heruntergeladen…</string>
+    <string name="download_enqueued_msg">Download eingereiht</string>
+    <string name="upload_enqueued_msg">Upload eingereiht</string>
+    <string name="create_dir_fail_msg">Ordner konnte nicht angelegt werden</string>
+    <string name="create_file_fail_msg">Datei konnte nicht erstellt werden</string>
+    <string name="filename_forbidden_characters">Verbotene Zeichen: / \\</string>
+    <string name="filename_forbidden_characters_from_server">Der Dateiname enthält mindestens ein ungültiges Zeichen</string>
+    <string name="filename_empty">Der Dateiname darf nicht leer sein</string>
+    <string name="filename_too_long">Der Dateiname darf nicht so lang sein</string>
+    <string name="wait_a_moment">Bitte einen Moment warten</string>
+    <string name="wait_checking_credentials">Gespeicherte Anmeldedaten prüfen</string>
+    <string name="filedisplay_unexpected_bad_get_content">Unerwartetes Problem; bitte wählen Sie die Datei in einer anderen App aus</string>
+    <string name="filedisplay_no_file_selected">Keine Datei wurde ausgewählt</string>
+    <string name="activity_chooser_title">Link senden an</string>
+    <string name="wait_for_tmp_copy_from_private_storage">Datei wird aus dem privaten Speicher kopiert</string>
+
+    <string name="oauth_check_onoff">Anmelden mit OAuth2</string>
+    <string name="oauth_login_connection">Verbindung zum OAuth2-Server wird hergestellt…</string>
+
+    <string name="ssl_connection_not_secure">Die Verbindung ist unsicher; HTTP-Verkehr ist nicht erlaubt.</string>
+    <string name="ssl_validator_header">Die Serveridentität konnte nicht überprüft werden.</string>
+    <string name="ssl_validator_reason_cert_not_trusted">– Das Serverzertifikat ist nicht vertrauenswürdig.</string>
+    <string name="ssl_validator_reason_cert_expired">– Das Serverzertifikat ist abgelaufen.</string>
+    <string name="ssl_validator_reason_cert_not_yet_valid">– Die Gültigkeitsdauer des Serverzertifikats liegt in der Zukunft.</string>
+    <string name="ssl_validator_reason_hostname_not_verified">– Die URL stimmt nicht mit dem Hostnamen im Zertifikat überein.</string>
+    <string name="ssl_validator_question">Möchten Sie dem Zertifikat trotzdem vertrauen\?</string>
+    <string name="ssl_validator_not_saved">Das Zertifikat konnte nicht gespeichert werden.</string>
+    <string name="ssl_validator_btn_details_see">Details</string>
+    <string name="ssl_validator_btn_details_hide">Ausblenden</string>
+    <string name="ssl_validator_label_subject">Ausgestellt für:</string>
+    <string name="ssl_validator_label_issuer">Ausgestellt von:</string>
+    <string name="ssl_validator_label_CN">Allgemeiner Name:</string>
+    <string name="ssl_validator_label_O">Organisation:</string>
+    <string name="ssl_validator_label_OU">Organisationseinheit:</string>
+    <string name="ssl_validator_label_C">Land:</string>
+    <string name="ssl_validator_label_ST">Staat:</string>
+    <string name="ssl_validator_label_L">Ort:</string>
+    <string name="ssl_validator_label_validity">Gültigkeit:</string>
+    <string name="ssl_validator_label_validity_from">Von:</string>
+    <string name="ssl_validator_label_validity_to">An:</string>
+    <string name="ssl_validator_label_signature">Signatur:</string>
+    <string name="ssl_validator_label_signature_algorithm">Algorithmus:</string>
+    <string name="digest_algorithm_not_available">Dieser Digest-Algorithmus ist auf Ihrem Telefon nicht verfügbar.</string>
+    <string name="ssl_validator_label_certificate_fingerprint">Fingerabdruck:</string>
+    <string name="certificate_load_problem">Beim Laden des Zertifikats ist ein Problem aufgetreten.</string>
+    <string name="ssl_validator_null_cert">Das Zertifikat konnte nicht angezeigt werden.</string>
+    <string name="ssl_validator_no_info_about_error">- Keine Informationen über den Fehler</string>
+
+    <string name="placeholder_sentence">Dies ist ein Platzhalter.</string>
+    <string name="placeholder_filename">platzhalter.txt</string>
+    <string name="placeholder_filetype">PNG-Bild</string>
+    <string name="placeholder_filesize">389 KB</string>
+    <string name="placeholder_timestamp">18.05.2012 12:23</string>
+    <string name="placeholder_media_time">12:23:45</string>
+
+    <string name="confirmation_disable_camera_uploads_title">Bestätigen</string>
+    <string name="confirmation_disable_pictures_upload_message">Sind Sie sicher, dass Sie diese Funktion deaktivieren möchten\? Die ausstehenden Bilder werden nicht hochgeladen.</string>
+    <string name="confirmation_disable_videos_upload_message">Sind Sie sicher, dass Sie diese Funktion deaktivieren möchten\? Die ausstehenden Videos werden nicht hochgeladen.</string>
+    <string name="proper_pics_folder_warning_camera_upload">Bitte stellen Sie sicher, dass der ausgewählte Ordner genau derjenige ist, in dem die von Ihnen verwendete Kamera die aufgenommenen Bilder speichert. Andernfalls kann die Funktion Ihre Bilder nicht erkennen. Bitte beachten Sie, dass die Bilder frühestens 15 Minuten nach ihrer Aufnahme hochgeladen werden.</string>
+    <string name="proper_videos_folder_warning_camera_upload">Bitte stellen Sie sicher, dass der ausgewählte Ordner genau derjenige ist, in dem die von Ihnen verwendete Kamera die aufgezeichneten Videos speichert. Andernfalls kann die Funktion Ihre Videos nicht erkennen. Bitte beachten Sie, dass die Videos frühestens 15 Minuten nach der Aufzeichnung hochgeladen werden.</string>
+    <string name="conflict_title">Datei im Konflikt</string>
+    <string name="conflict_description">Es liegt ein Konflikt in der Datei %1$s vor. Tippen Sie, um ihn zu lösen.</string>
+    <string name="conflict_message">Welche Dateien möchten Sie behalten\? Wenn Sie beide Versionen auswählen, wird dem Namen der lokalen Datei eine Nummer hinzugefügt.</string>
+    <string name="conflict_keep_both">Beide behalten</string>
+    <string name="conflict_use_local_version">Lokale Version</string>
+    <string name="conflict_use_server_version">Server-Version</string>
+    <string name="error_conflict">Ein Fehler trat im Zielordner auf.</string>
+    <string name="conflict_replace">Ersetzen</string>
+
+    <string name="preview_image_description">Bildvorschau</string>
+    <string name="preview_image_error_unknown_format">Diese Bild kann nicht angezeigt werden.</string>
+
+    <string name="error__upload__local_file_not_copied">%1$s konnte nicht in den lokalen Ordner %2$s kopiert werden.</string>
+
+    <string name="get_shares_error">Es war nicht möglich, die Freigaben vom Server abzurufen.</string>
+    <string name="get_sharees_error">Es war nicht möglich, Benutzer und Gruppen vom Server abzurufen.</string>
+    <string name="get_capabilities_error">Es war nicht möglich, die Funktionen vom Server abzurufen.</string>
+    <string name="share_link_no_support_share_api">Entschuldigung, das Teilen ist auf Ihrem Server nicht aktiviert. Bitte wenden Sie sich an Ihren Administrator.</string>
+    <string name="share_link_file_error">Diese Datei oder dieser Ordner konnte nicht freigegeben werden.</string>
+    <string name="unshare_link_file_error">Die Freigabe für diese Datei oder diesen Ordner konnte nicht aufgehoben werden.</string>
+    <string name="update_link_file_error">Die Freigabe für diese Datei oder diesen Ordner konnte nicht aufgehoben werden.</string>
+    <string name="share_link_password_title">Passwort eingeben</string>
+    <string name="share_link_empty_password">Sie müssen ein Passwort eingeben.</string>
+
+    <string name="activity_chooser_send_file_title">Senden</string>
+
+    <string name="copy_link">Link kopieren</string>
+    <string name="clipboard_text_copied">In die Zwischenablage kopiert</string>
+    <string name="clipboard_no_text_to_copy">Kein Text empfangen, um ihn in die Zwischenablage zu kopieren.</string>
+    <string name="clipboard_uxexpected_error">Unerwarteter Fehler beim Kopieren in die Zwischenablage</string>
+    <string name="clipboard_label">Text kopiert von %1$s</string>
+
+    <string name="error_cant_bind_to_operations_service">Kritischer Fehler: Operationen können nicht ausgeführt werden.</string>
+
+    <string name="network_error_socket_exception">Ein Fehler trat beim Verbinden mit dem Server auf.</string>
+    <string name="network_error_socket_timeout_exception">Der Server brauchte zu lange, um zu antworten.</string>
+    <string name="network_error_connect_timeout_exception">Das Verbinden mit Server dauerte zu lange.</string>
+    <string name="network_host_not_available">Der Server konnte nicht erreicht werden.</string>
+    <string name="network_error_message">Ein Fehler ist im Netzwerk aufgetreten.</string>
+    <string name="resource_locked_error_message">Die Ressource ist gesperrt</string>
+
+    <string name="forbidden_permissions">Sie haben keine Berechtigung, %s</string>
+
+    <string name="forbidden_permissions_rename">diese Datei umzubenennen.</string>
+    <string name="forbidden_permissions_delete">diese Datei zu löschen.</string>
+    <string name="share_link_forbidden_permissions">diese Datei freizugeben.</string>
+    <string name="unshare_link_forbidden_permissions">die Freigabe dieser Datei aufzuheben.</string>
+    <string name="update_link_forbidden_permissions">diese Freigabe zu ändern.</string>
+    <string name="forbidden_permissions_create">diese Datei zu erstellen.</string>
+    <string name="uploader_upload_forbidden_permissions">etwas in diesen Ordner hochzuladen.</string>
+    <string name="uploader_upload_forbidden">Das Hochladen ist nicht erlaubt.</string>
+    <string name="downloader_download_file_not_found">Die Datei ist nicht mehr auf dem Server verfügbar.</string>
+
+    <string name="prefs_category_accounts">Konten</string>
+    <string name="prefs_add_account">Konto hinzufügen</string>
+    <string name="drawer_manage_accounts">Konten verwalten</string>
+    <string name="manage_accounts_quota">%1$s von %2$s</string>
+    <string name="used_quota_title_manage_accounts">Verwendet:</string>
+    <string name="auth_redirect_non_secure_connection_title">Die sichere Verbindung wird über eine ungesicherte Route umgeleitet.</string>
+
+    <string name="actionbar_logger">Protokolle</string>
+    <string name="log_send_history_button">Verlauf senden</string>
+    <string name="log_send_no_mail_app">Keine App zum Versenden von Protokollen gefunden. Bitte installieren Sie eine E-Mail-App.</string>
+    <string name="log_send_mail_subject">%1$s Android-App-Protokolle</string>
+    <string name="log_progress_dialog_text">data&amp;#8230; wird geladen</string>
+
+    <string name="actionbar_select_all">Alle auswählen</string>
+    <string name="actionbar_select_inverse">Auswahl umkehren</string>
+
+    <string name="actionbar_move">Verschieben</string>
+    <string name="file_list_empty_moving">Hier ist nichts. Sie können einen Ordner hinzufügen.</string>
+    <string name="folder_picker_choose_button_text">Auswählen</string>
+    <string name="folder_picker_move_here_button_text">Hierher verschieben</string>
+    <string name="folder_picker_copy_here_button_text">Hierher kopieren</string>
+    <string name="folder_picker_no_permissions_message_text">Sie haben keine Berechtigung, hier Inhalte hinzuzufügen.</string>
+
+    <string name="move_file_not_found">Verschieben nicht möglich. Bitte überprüfen Sie, ob die Datei existiert.</string>
+    <string name="move_file_invalid_into_descendent">Es ist nicht möglich, einen Ordner in einen untergeordneten zu verschieben.</string>
+    <string name="move_file_invalid_overwrite">Die Datei existiert bereits im Zielordner.</string>
+    <string name="move_file_error">Beim Versuch, diese Datei oder diesen Ordner zu verschieben, ist ein Fehler aufgetreten.</string>
+    <string name="forbidden_permissions_move">diese Datei zu verschieben</string>
+
+    <string name="copy_file_not_found">Kopieren nicht möglich. Bitte überprüfen Sie, ob die Datei existiert.</string>
+    <string name="copy_file_invalid_into_descendent">Es ist nicht möglich, einen Ordner in einen untergeordneten zu kopieren.</string>
+    <string name="copy_file_invalid_overwrite">Die Datei existiert bereits im Zielordner.</string>
+    <string name="copy_file_error">Beim Versuch, diese Datei oder diesen Ordner zu kopieren, ist ein Fehler aufgetreten.</string>
+    <string name="forbidden_permissions_copy">diese Datei zu kopieren</string>
+
+    <string name="prefs_category_camera_upload">Kamera-Uploads</string>
+
+    <string name="sync_folder_failed_content">Die Synchronisierung von %1$s Ordnern konnte nicht abgeschlossen werden.</string>
+
+    <string name="shared_subject_header">geteilt</string>
+    <string name="with_you_subject_header">mit Ihnen</string>
+
+    <string name="subject_user_shared_with_you">%1$s hat „%2$s“ mit Ihnen geteilt</string>
+    <string name="subject_shared_with_you">„%1$s“ wurde mit Ihnen geteilt</string>
+
+    <string name="auth_refresh_button">Verbindung aktualisieren</string>
+    <string name="auth_host_address">Serveradresse</string>
+    <string name="common_error_out_memory">Nicht genügend Speicher</string>
+
+    <string name="username">Benutzername</string>
+
+    <string name="file_list__footer__folder">1 Ordner</string>
+    <string name="file_list__footer__folders">%1$d Ordner</string>
+    <string name="file_list__footer__file">1 Datei</string>
+    <string name="file_list__footer__file_and_folder">1 Datei, 1 Ordner</string>
+    <string name="file_list__footer__file_and_folders">1 Datei, %1$d Ordner</string>
+    <string name="file_list__footer__files">%1$d Dateien</string>
+    <string name="file_list__footer__files_and_folder">%1$d Dateien, 1 Ordner</string>
+    <string name="file_list__footer__files_and_folders">%1$d Dateien, %2$d Ordner</string>
+    <string name="prefs_picture_upload_account">Konto zum Hochladen von Bildern</string>
+    <string name="prefs_video_upload_account">Konto zum Hochladen von Videos</string>
+    <string name="prefs_camera_upload_source_path_title">Kamera-Ordner (%1$s)</string>
+    <string name="prefs_camera_upload_source_path_title_required">erforderlich</string>
+    <string name="prefs_camera_upload_behaviour_dialog_title">Die Originaldatei wird</string>
+    <string name="prefs_camera_upload_behaviour_title">Die Originaldatei wird</string>
+    <string name="prefs_camera_upload_last_sync_title">Letzte Synchronisierung</string>
+    <string name="notifications_permission_denied">Sie können Ihre Einstellungen unter „Einstellungen“ aktualisieren.</string>
+    <string name="upload_copy_files">Datei kopieren</string>
+    <string name="upload_move_files">Datei verschieben</string>
+
+    <string name="pref_behaviour_entries_keep_file">im Originalordner behalten</string>
+    <string name="pref_behaviour_entries_remove_original_file">aus dem ursprünglichen Ordner entfernt</string>
+
+    <string name="share_dialog_title">Teilen</string>
+    <string name="share_file">%1$s teilen</string>
+    <string name="share_with_user_section_title">Personen und Gruppen</string>
+    <string name="share_no_users">Noch keine Daten mit Personen geteilt.</string>
+    <string name="share_incompatible_version">Um Inhalte mit anderen Benutzern zu teilen, muss Ihr Server mindestens bei Version 8.2 sein.</string>
+    <string name="share_add_user_or_group">Person oder Gruppe hinzufügen</string>
+    <string name="share_via_link_section_title">Öffentliche Links</string>
+    <string name="share_via_link_create_title">Link-Freigabe erstellen</string>
+    <string name="share_via_link_edit_title">Link-Freigabe bearbeiten</string>
+    <string name="share_via_link_name_label">Link-Name</string>
+    <string name="share_cancel_public_link_button">Abbrechen</string>
+    <string name="share_confirm_public_link_button">Speichern</string>
+    <string name="share_via_link_expiration_date_label">Ablaufdatum</string>
+    <string name="share_via_link_password_label">Passwort</string>
+    <string name="share_via_link_password_title">Gesichert</string>
+    <string name="share_via_link_generate_password_button">Erzeugen</string>
+    <string name="share_via_link_copy_password_button">Kopieren</string>
+    <string name="share_via_link_edit_permission_read_only_label">Herunterladen / Anzeigen</string>
+    <string name="share_via_link_edit_permission_read_and_write_label">Herunterladen / Ansehen / Hochladen</string>
+    <string name="share_via_link_edit_permission_upload_only_label">Nur Upload (Dateiablage)</string>
+    <string name="share_get_public_link_button">Link erhalten</string>
+    <string name="share_with_title">Teilen mit</string>
+    <string name="share_with_edit_title">Mit %1$s teilen</string>
+
+    <string name="share_search">Suche</string>
+
+    <string name="search_users_and_groups_hint">Nach Personen und Gruppen suchen</string>
+    <string name="share_group_clarification">%1$s (Gruppe)</string>
+    <string name="share_remote_clarification">%1$s (extern)</string>
+    <string name="share_known_remote_clarification">%1$s ( auf %2$s )</string>
+
+    <string name="share_sharee_unavailable">Entschuldigung, Ihre Serverversion erlaubt keine Freigaben für Benutzer innerhalb von Clients.\nBitte wenden Sie sich an Ihren Administrator.</string>
+    <string name="share_privilege_can_share">darf freigeben</string>
+    <string name="share_privilege_can_edit">darf bearbeiten</string>
+    <string name="share_privilege_can_edit_create">erstellen</string>
+    <string name="share_privilege_can_edit_change">ändern</string>
+    <string name="share_privilege_can_edit_delete">löschen</string>
+    <string name="edit_share_unshare">Freigabe beenden</string>
+    <string name="edit_share_done">fertig</string>
+
+    <string name="action_upload_retry">Wiederholen</string>
+    <string name="action_upload_clear">Leeren</string>
+
+    <string name="local_file_not_found_toast">Die Datei wurde im lokalen Dateisystem nicht gefunden.</string>
+    <string name="confirmation_remove_files_alert">Möchten Sie diese %s Elemente wirklich entfernen\?</string>
+    <string name="confirmation_remove_folders_alert">Möchten Sie die ausgewählten Elemente und deren Inhalte wirklich entfernen\?</string>
+    <string name="failed_upload_quota_exceeded_text">Nicht genügend Speicherplatz im Konto</string>
+    <string name="auth_forbidden">Verbotene Authentifizierung</string>
+
+    <string name="actionbar_privacy_policy">Datenschutzrichtlinie</string>
+    <string name="prefs_privacy_policy">Datenschutzrichtlinie</string>
+    <string name="privacy_policy_error">Ein Fehler ist aufgetreten:</string>
+    <string name="service_unavailable">Der Server ist nicht verfügbar.</string>
+
+    <string name="streaming_certificate_error">Das Streaming kann nicht initialisiert werden, da Ihr Serverzertifikat nicht vertrauenswürdig ist. Der Dateidownload startet automatisch.</string>
+    <string name="streaming_unrecognized_input">Das Videoformat wird nicht unterstützt.</string>
+    <string name="streaming_file_not_found_error">Das Video ist nicht mehr auf dem Server verfügbar.</string>
+    <string name="streaming_crossed_redirection">Streaming ist über verschachtelte Weiterleitungen nicht gestattet.</string>
+    <string name="previewing_video_common_error">Dieses Video kann nicht wiedergegeben werden.</string>
+
+    <string name="previewing_video_not_supported">Die Videovorschau wird in Ihrer Android-Version nicht unterstützt. Der Dateidownload startet automatisch.</string>
+    <string name="streaming_position_not_available">\"Position nicht verfügbar\"</string>
+    <string name="error_no_network_connection">Das Gerät ist nicht mit einem Netzwerk verbunden.</string>
+    <string name="share_no_public_links">Keine öffentlichen Links bisher erstellt.</string>
+    <string name="share_no_link_in_this_share">Diese Freigabe hat keinen Link.</string>
+    <string name="share_warning_about_forwarding_public_links">Jeder mit einem Link hat Zugriff auf die Datei / den Ordner.</string>
+    <string name="share_via_link_default_password">*****</string>
+    <string name="share_via_link_password_enforced_label">Passwort *</string>
+    <string name="share_via_link_expiration_date_enforced_label"> Ablaufdatum *</string>
+    <string name="share_via_link_expiration_date_explanation_label">Der öffentliche Link läuft spätestens %1$dTage nach seiner Erstellung ab.</string>
+    <string name="share_via_link_default_name_template">%1$s Link</string>
+    <string name="share_via_link_empty_password">Das Passwort ist leer.</string>
+    <string name="private_link_info">Privater Link: Nur Personen, die Zugriff auf die Datei oder den Ordner haben, können ihn nutzen. Verwenden Sie ihn als dauerhaften Link für sich selbst oder um andere auf Dateien innerhalb von Freigaben hinzuweisen.</string>
+    <string name="file_private_link_error">Für diese Datei ist kein privater Link verfügbar.</string>
+    <string name="download_notification_channel_name">Downloads</string>
+    <string name="download_notification_channel_description">Dateinamen und den Fortschritt des Downloads anzeigen</string>
+    <string name="upload_notification_channel_name">Uploads</string>
+    <string name="upload_notification_channel_description">Dateinamen und den Fortschritt des Uploads anzeigen</string>
+    <string name="media_service_notification_channel_name">Music-Player</string>
+    <string name="media_service_notification_channel_description">Music-Player anzeigen</string>
+    <string name="file_sync_notification_channel_name">Dateisynchronisierung</string>
+    <string name="file_sync_notification_channel_description">Ergebnis der Dateisynchronisierung anzeigen</string>
+    <string name="file_sync_conflict_notification_channel_name">Dateikonflikte</string>
+    <string name="file_sync_conflict_notification_channel_description">Dateikonflikte sehen, sobald sie auftreten</string>
+    <string name="clicks_to_be_developer">Sie sind noch %1$d Klicks davon entfernt, die Entwicklermenüs zu aktivieren.</string>
+
+    <string name="rate_dialog_title">Bewerten Sie die %1$s-App!</string>
+    <string name="rate_dialog_description">Wenn Sie diese App gerne nutzen, könnten Sie sich einen Moment Zeit nehmen, um sie zu bewerten\? Ihr Feedback ist uns sehr wichtig.</string>
+    <string name="button_no_thanks_name">NEIN, DANKE</string>
+    <string name="button_later_name">SPÄTER</string>
+    <string name="button_rate_now_name">JETZT BEWERTEN</string>
+    <plurals name="items_selected_count">
+        <item quantity="one">%d ausgewählt</item>
+        <item quantity="other">%d ausgewählt</item>
+    </plurals>
+
+    <!-- Welcome to oC intro features -->
+    <string name="welcome_feature_skip_button">Überspringen</string>
+    <string name="welcome_feature_1_title">Verwalten Sie alle Ihre synchronisierten Dateien.</string>
+    <string name="welcome_feature_1_text">Sie können kopieren, verschieben und löschen.</string>
+    <string name="welcome_feature_2_title">Dateien und Ordner freigeben</string>
+    <string name="welcome_feature_2_text">Sie können privat oder öffentlich freigeben.</string>
+    <string name="welcome_feature_3_title">Mehrfachkonto</string>
+    <string name="welcome_feature_3_text">Mit all Ihren OpenCloud-Servern verbinden</string>
+    <string name="welcome_feature_4_title">Kamera-Uploads</string>
+    <string name="welcome_feature_4_text">Ihre Bilder/Videos wurden automatisch hochgeladen.</string>
+    <string name="welcome_feature_5_title">Video-Streaming</string>
+    <string name="welcome_feature_5_text">Spielen Sie Ihre Videos ab, ohne sie herunterzuladen.</string>
+    <string name="no_browser_installed_alert">Kein Browser installiert. Bitte installieren Sie eine Browser, um ein sicheres Anmelden zu ermöglichen.</string>
+    <string name="common_not_found">es nicht gefunden wurde</string>
+
+    <string name="supports_oauth2_error">Es war nicht möglich festzustellen, ob OAuth2 unterstützt wird.</string>
+    <string name="get_base_url_error">Es war nicht möglich, die Basis-URL des Servers zu ermitteln.</string>
+    <string name="prefs_http_logs">HTTP-Anfragen und -Antworten protokollieren</string>
+    <string name="prefs_logs_summary">Protokolle können sensible Informationen enthalten. Die Weitergabe von Protokollen an Dritte liegt in der alleinigen Verantwortung des Benutzers.</string>
+
+    <string name="synchronizing_account">Konto wird synchronisiert</string>
+    <string name="spaces_sync_failed">Spaces konnten nicht aktualisiert werden</string>
+
+    <!-- Scoped storage migration wizard -->
+    <string name="scoped_storage_wizard_explanation">Es wurden %1$s an Daten auf Ihrem externen Speicher gefunden. Diese werden in den sicheren Speicher auf Ihrem Gerät verschoben. Die verbleibenden Dateien werden nach der Migration von Ihrem externen Speicher entfernt, um Duplikate und Sicherheitslücken zu vermeiden.</string>
+    <string name="scoped_storage_wizard_intro">Ihre App wurde aktualisiert. Dieses App-Update verschiebt Ihre Dateien an einen sichereren Speicherort auf Ihrem Gerät. Diese einmalige Datenmigration ist erforderlich und kann bis zu einer Minute oder länger dauern.</string>
+    <string name="scoped_storage_wizard_intro_button">Los geht’s</string>
+    <string name="scoped_storage_wizard_not_enough_space_warning">&amp;#9888;️ Der freie Speicherplatz auf Ihrem Gerät ist derzeit begrenzt. Einige Dateien werden möglicherweise nicht migriert. Bitte überprüfen Sie, ob alle heruntergeladenen Dateien nach Abschluss des Vorgangs weiterhin heruntergeladen sind.</string>
+    <string name="scoped_storage_wizard_migrate_and_clean_button">Jetzt migrieren</string>
+    <string name="scoped_storage_wizard_migration_completed">Migration erfolgreich abgeschlossen. Ihre Dateien sind jetzt sicherer denn je.</string>
+    <string name="scoped_storage_wizard_migration_completed_access_files_button">Auf Ihre Dateien zugreifen</string>
+    <string name="scoped_storage_wizard_migration_in_progress">Migration Ihrer Dateien. Bitte das Gerät nicht ausschalten.</string>
+    <string name="scoped_storage_wizard_migration_in_progress_button">Verarbeitung läuft… Bitte warten.</string>
+    <string name="scoped_storage_wizard_title">Mehr Sicherheit für Ihre Dateien</string>
+
+    <!-- Security Enforced -->
+    <string name="security_enforced_title">Bitte wählen Sie eine Option zum Sperren der App aus:</string>
+    <string name="security_enforced_first_option">Code-Sperre</string>
+    <string name="security_enforced_second_option">Mustersperre</string>
+
+    <string name="folder_upload_some_content_or_sync_devices">Laden Sie Inhalte hoch oder synchronisieren Sie mit Ihren Geräten.</string>
+
+    <!-- Webfinger -->
+    <string name="global_proceed">Fortfahren</string>
+    <string name="error_webfinger_username_empty">Benutzername leer</string>
+
+    <!-- Release Notes -->
+    <string name="release_notes_header">Neu in %1$s</string>
+    <string name="release_notes_footer">Vielen Dank, dass Sie %1$s nutzen.\n&amp;#10084;</string>
+    <string name="release_notes_proceed">Fortfahren</string>
+    <string name="release_notes_icon">Symbol für Release-Notes</string>
+    <string name="release_notes_bugfixes_title">Kleinere Fehlerbehebungen</string>
+    <string name="release_notes_bugfixes_subtitle">Einige Fehler wurden behoben, um das Nutzererlebnis in der App zu verbessern.</string>
+    <string name="release_notes_4_5_0_title_feedback_in_previews">Feedback beim (De-)Aktivieren der Offline-Verfügbarkeit in allen Vorschauen</string>
+    <string name="release_notes_4_5_0_subtitle_feedback_in_previews">Feedback beim (De)aktivieren der Offline-Verfügbarkeit in allen Vorschauen hinzugefügt und das Optionsmenü basierend auf dem Dateistatus aktualisiert.</string>
+    <string name="release_notes_4_5_0_title_quota_improvements">Verbesserungen bei der Anzeige der Speicherauslastung</string>
+    <string name="release_notes_4_5_0_subtitle_quota_improvements">Die Speicherbelegung wird bei Datei- und Aktualisierungsvorgängen regelmäßig aktualisiert und ist – neben dem Seitenmenü – auch in der Kontenverwaltung verfügbar.</string>
+    <string name="release_notes_4_5_0_title_light_users">Light-Benutzer</string>
+    <string name="release_notes_4_5_0_subtitle_light_users">Light-Benutzer (Benutzer ohne persönlichen Bereich) werden nun in der App unterstützt.</string>
+    <string name="release_notes_4_5_1_title_strange_behaviour_apps_provider">Fix für die Dateierstellung über App-Provider</string>
+    <string name="release_notes_4_5_1_subtitle_strange_behaviour_apps_provider">Dateien werden nun korrekt geöffnet, wenn sie mithilfe von App-Providern erstellt werden.</string>
+    <string name="release_notes_title">OpenCloud-Client</string>
+    <string name="release_notes_initial_release">Willkommen in der ersten Veröffentlichung</string>
+
+
+    <!-- Open in web -->
+    <string name="ic_action_open_in_web">Öffnen im Web</string>
+    <string name="ic_action_open_with_web">Öffnen in %1$s (Web)</string>
+    <string name="open_in_web_error_generic">Konnte nicht im Web geöffnet werden.</string>
+    <string name="open_in_web_error_not_supported">Es gibt keine Apps, die diesen Dateityp unterstützen.</string>
+    <string name="open_in_web_error_too_early">Die angeforderte Datei ist noch nicht verfügbar. Bitte versuchen Sie es später erneut.</string>
+
+    <!-- accounts warning -->
+    <string name="server_accounts_warning_title">Kontenwarnung</string>
+    <string name="server_accounts_warning_message">Bitte entfernen Sie das Konto und melden sich erneut an, um die Space-Funktion nutzen zu können.</string>
+    <string name="server_accounts_warning_checkbox_message">Nicht erneut anzeigen</string>
+    <string name="server_accounts_warning_button">Verstanden</string>
+
+    <string name="tab_label_ascii">Text</string>
+
+    <string name="apply_to_all_conflicts">Auf alle %1$s Konflikte anwenden</string>
+    <string name="log_file_downloaded">Protokolldatei heruntergeladen</string>
+    <string name="go_to_download_folder">Zu den Downloads gehen</string>
+    <string name="log_file_downloaded_description">Die Protokolldatei %1$s wurde ordnungsgemäß in den Download-Ordner heruntergeladen.</string>
+
+    <!-- DeepLinks -->
+    <string name="invalid_deep_link_format">Ungültiges Linkformat</string>
+    <string name="deep_link_user_no_access">Der Benutzer hat keinen Zugriff auf die Datei</string>
+    <string name="deep_link_loading">Datei wird über Link geöffnet</string>
+
+    <string name="fab_refresh_text">Aktualisieren</string>
+    <string name="fab_refresh_sync_in_progress">Synchronisierung läuft bereits</string>
+
+    <string name="password_policy_min_characters">Mindestens %1$d Zeichen lang</string>
+    <string name="password_policy_max_characters">Maximal %1$d Zeichen lang</string>
+    <string name="password_policy_min_digits">Mindestens %1$d Ziffern</string>
+    <string name="password_policy_lowercase_characters">Mindestens %1$d Kleinbuchstaben</string>
+    <string name="password_policy_uppercase_characters">Mindestens %1$d Großbuchstaben</string>
+    <string name="password_policy_intro">Geben Sie bitte ein Passwort ein, das die folgenden Kriterien erfüllt:\n</string>
+    <string name="password_policy_min_special_character">Mindestens %1$d der Sonderzeichen: »%2$s«</string>
+    <string name="password_policy_error_password_banned">Leider ist das Passwort ein häufig verwendetes Wort. Bitte wählen Sie ein schwerer zu erratendes Wort.</string>
+
+    <string name="prefs_delete_local_files_entries_never">Nie</string>
+    <string name="prefs_delete_local_files_entries_1hour">1 Stunde</string>
+    <string name="prefs_delete_local_files_entries_12hours">12 Stunden</string>
+    <string name="prefs_delete_local_files_entries_1day">1 Tag</string>
+    <string name="prefs_delete_local_files_entries_30days">30 Tage</string>
+    <string name="prefs_delete_local_files">Lokale Kopien löschen</string>
+    <string name="prefs_delete_local_files_summary">Automatisch heruntergeladene, nicht offline verfügbare Dateien entfernen, wenn die Zeit seit ihrer letzten Nutzung die ausgewählte Zeit überschreitet.\nAusgewählte Zeit: %1$s</string>
+
+    <string name="insecure_http_url_title_dialog">Unsichere HTTP-URL</string>
+    <string name="insecure_http_url_message_dialog">Die von Ihnen angegebene URL verwendet HTTP anstelle des verschlüsselten HTTPS-Protokolls. Wenn Sie fortfahren, wird Ihre Kommunikation nicht verschlüsselt.</string>
+    <string name="insecure_http_url_continue_button">Fortfahren</string>
+
+    <string name="clean_data_account_message">Alle heruntergeladenen Dateien, die nicht offline verfügbar sind, werden für das Konto %1$s bereinigt.</string>
+    <string name="clean_data_account_title">Lokalen Speicher entfernen</string>
+    <string name="clean_data_account_button_yes">Daten löschen</string>
+
+    <string name="content_description_menu">Menü</string>
+    <string name="content_description_manage_accounts">Konten verwalten</string>
+    <string name="content_description_search">Suche</string>
+    <string name="content_description_type_view">Ansichtsart</string>
+    <string name="content_description_image_previewed">Bildvorschau</string>
+    <string name="content_description_add_public_link">Öffentlichen Link hinzufügen</string>
+    <string name="content_description_get_private_link">Privaten Link erhalten</string>
+    <string name="content_description_get_public_link">Öffentlichen Link erhalten</string>
+    <string name="content_description_delete_public_link">Öffentlichen Link löschen</string>
+    <string name="content_description_get_edit_public_link">Öffentlichen Link bearbeiten</string>
+    <string name="content_description_remove_account">Konto entfernen</string>
+    <string name="content_description_add_new_content">Neuen Inhalt hinzufügen</string>
+    <string name="content_description_add_new_content_expanded">Neuen Inhalt erweitert hinzufügen</string>
+    <string name="content_description_clean_account_storage">Kontospeicher bereinigen</string>
+    <string name="content_description_logo">Logo</string>
+    <string name="content_description_add_share">Freigabe hinzufügen</string>
+    <string name="content_description_edit_share">Freigabe bearbeiten</string>
+    <string name="content_description_delete_share">Freigabe entfernen</string>
+    <string name="content_description_file_operations">%1$s Operationen</string>
+    <string name="content_description_sort_by_name_ascending">Aufsteigend nach %1$s sortieren</string>
+    <string name="content_description_sort_by_name_descending">Absteigend nach %1$s sortieren</string>
+    <string name="content_description_create_new_folder">Neuen Ordner erstellen</string>
+
+    <string name="create_shortcut_dialog_title">Verknüpfung erstellen</string>
+    <string name="create_shortcut_dialog_url">URL</string>
+    <string name="create_shortcut_dialog_url_information">Die URL muss mit https:// oder http:// beginnen, so dass sie im Browser geöffnet werden kann.</string>
+    <string name="create_shortcut_dialog_url_error_no_blanks">Die URL darf keine Leerzeichen enthalten.</string>
+    <string name="create_shortcut_dialog_url_extension">.url</string>
+    <string name="open_shortcut_description">Diese Verknüpfung verweist auf:</string>
+    <string name="open_shortcut_title">Link öffnen</string>
+
+    <string name="feedback_dialog_get_in_contact_description"><![CDATA[ Diskutieren Sie in unserem <a href=\"%1$s\"><b>GitHub-Verzeichnis</b></a>]]></string>
+
+    <string name="link_role_accessibility">Link</string>
+    <string name="button_role_accessibility">Schaltfläche</string>
+
+    <string name="folder_picker_label">Ordnerauswahl</string>
+    <string name="passcode_label">Zugangscode</string>
+    <string name="pattern_label">Muster</string>
+    <string name="receive_external_files_label">Externe Dateien erhalten</string>
+    <string name="video_preview_label">Videovorschau</string>
+    <string name="release_notes_label">Versionshinweise</string>
+    <string name="image_preview_label">Bildvorschau</string>
+    <string name="login_label">Anmelden</string>
+    <string name="whats_new_label">Was ist neu</string>
+    <string name="audio_preview_label">Audiovorschau</string>
+    <string name="details_label">Details</string>
+    <string name="text_preview_label">Textvorschau</string>
+    <string name="release_notes_title_enhanced_bottom_nav_bar">Textbeschriftungen in der unteren Leiste hinzugefügt</string>
+    <string name="release_notes_subtitle_bottom_nav_bar">Es wurden Textbeschriftungen hinzugefügt, und der standardmäßige Aktivitätsindikator wird verwendet, um anzuzeigen, welcher Abschnitt in der unteren Leiste ausgewählt ist.</string>
+
+</resources>

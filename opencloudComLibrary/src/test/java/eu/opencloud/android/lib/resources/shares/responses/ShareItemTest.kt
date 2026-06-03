@@ -1,7 +1,5 @@
 /* openCloud Android Library is available under MIT license
- *   @author Abel García de Prada
- *
- *   Copyright (C) 2023 ownCloud GmbH.
+ *   Copyright (C) 2026 openCloud GmbH.
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -23,36 +21,28 @@
  *   THE SOFTWARE.
  *
  */
-package eu.opencloud.android.lib.resources.appregistry.responses
+package eu.opencloud.android.lib.resources.shares.responses
 
-import com.squareup.moshi.Json
-import com.squareup.moshi.JsonClass
+import org.junit.Assert.assertEquals
+import org.junit.Test
+import java.io.File
 
-@JsonClass(generateAdapter = true)
-data class AppRegistryResponse(
-    @Json(name = "mime-types")
-    val value: List<AppRegistryMimeTypeResponse>
-)
+class ShareItemTest {
 
-@JsonClass(generateAdapter = true)
-data class AppRegistryMimeTypeResponse(
-    @Json(name = "mime_type") val mimeType: String,
-    val ext: String? = null,
-    @Json(name = "app_providers")
-    val appProviders: List<AppRegistryProviderResponse>,
-    val name: String? = null,
-    val icon: String? = null,
-    val description: String? = null,
-    @Json(name = "allow_creation")
-    val allowCreation: Boolean? = null,
-    @Json(name = "default_application")
-    val defaultApplication: String? = null
-)
+    @Test
+    fun folderWithMissingPathDoesNotCreateNullPath() {
+        val remoteShare = ShareItem(itemType = ItemType.FOLDER.fileValue).toRemoteShare()
 
-@JsonClass(generateAdapter = true)
-data class AppRegistryProviderResponse(
-    val name: String,
-    @Json(name = "product_name")
-    val productName: String? = null,
-    val icon: String,
-)
+        assertEquals("", remoteShare.path)
+    }
+
+    @Test
+    fun folderWithPathKeepsTrailingSeparator() {
+        val remoteShare = ShareItem(
+            itemType = ItemType.FOLDER.fileValue,
+            path = "/Documents"
+        ).toRemoteShare()
+
+        assertEquals("/Documents${File.separator}", remoteShare.path)
+    }
+}

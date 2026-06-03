@@ -179,12 +179,26 @@ object NotificationUtils {
                 showConflictActivityIntent, pendingIntentFlags
             )
         )
-        var notificationId = 0
-
         // We need a notification id for each file in conflict, let's use the file id but in a safe way
-        if (fileInConflict.id!!.toInt() >= Int.MIN_VALUE && fileInConflict.id!!.toInt() <= Int.MAX_VALUE) {
-            notificationId = fileInConflict.id!!.toInt()
-        }
+        val notificationId = getConflictNotificationId(fileInConflict)
         notificationManager.notify(notificationId, notificationBuilder.build())
     }
+
+    internal fun getConflictNotificationId(fileInConflict: OCFile): Int {
+        val fileId = fileInConflict.id
+        return if (fileId != null && fileId in Int.MIN_VALUE.toLong()..Int.MAX_VALUE.toLong()) {
+            fileId.toInt()
+        } else {
+            stableConflictNotificationFallback(fileInConflict, fileId)
+        }
+    }
+
+    private fun stableConflictNotificationFallback(fileInConflict: OCFile, fileId: Long?): Int =
+        listOf(
+            fileId?.toString().orEmpty(),
+            fileInConflict.owner,
+            fileInConflict.spaceId.orEmpty(),
+            fileInConflict.remoteId.orEmpty(),
+            fileInConflict.remotePath,
+        ).joinToString(separator = "|").hashCode()
 }

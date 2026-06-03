@@ -1,7 +1,5 @@
 /* openCloud Android Library is available under MIT license
- *   @author Abel García de Prada
- *
- *   Copyright (C) 2023 ownCloud GmbH.
+ *   Copyright (C) 2026 openCloud GmbH.
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -23,36 +21,36 @@
  *   THE SOFTWARE.
  *
  */
-package eu.opencloud.android.lib.resources.appregistry.responses
+package eu.opencloud.android.lib.common.http.logging
 
-import com.squareup.moshi.Json
-import com.squareup.moshi.JsonClass
+import org.junit.Assert.assertEquals
+import org.junit.Test
 
-@JsonClass(generateAdapter = true)
-data class AppRegistryResponse(
-    @Json(name = "mime-types")
-    val value: List<AppRegistryMimeTypeResponse>
-)
+class LogInterceptorTest {
 
-@JsonClass(generateAdapter = true)
-data class AppRegistryMimeTypeResponse(
-    @Json(name = "mime_type") val mimeType: String,
-    val ext: String? = null,
-    @Json(name = "app_providers")
-    val appProviders: List<AppRegistryProviderResponse>,
-    val name: String? = null,
-    val icon: String? = null,
-    val description: String? = null,
-    @Json(name = "allow_creation")
-    val allowCreation: Boolean? = null,
-    @Json(name = "default_application")
-    val defaultApplication: String? = null
-)
+    @Test
+    fun durationStringFormatsSubSecondDuration() {
+        assertEquals("duration(0h, 0min, 0s, 999ms)", formatDuration(999L))
+    }
 
-@JsonClass(generateAdapter = true)
-data class AppRegistryProviderResponse(
-    val name: String,
-    @Json(name = "product_name")
-    val productName: String? = null,
-    val icon: String,
-)
+    @Test
+    fun durationStringFormatsMinuteDuration() {
+        assertEquals("duration(0h, 1min, 1s, 0ms)", formatDuration(61_000L))
+    }
+
+    @Test
+    fun durationStringFormatsHourDuration() {
+        assertEquals("duration(1h, 1min, 1s, 0ms)", formatDuration(3_661_000L))
+    }
+
+    @Test
+    fun durationStringFormatsMixedDuration() {
+        assertEquals("duration(2h, 3min, 1s, 234ms)", formatDuration(7_381_234L))
+    }
+
+    private fun formatDuration(millis: Long): String {
+        val method = LogInterceptor::class.java.getDeclaredMethod("getDurationString", Long::class.javaPrimitiveType)
+        method.isAccessible = true
+        return method.invoke(LogInterceptor(), millis) as String
+    }
+}

@@ -259,10 +259,12 @@ class UploadFileFromFileSystemWorker(
             )
         )
         val tusSupport = capabilitiesForAccount?.filesTusSupport
-        val supportsTus = tusSupport != null
-
         val hasPendingTusSession = !ocTransfer.tusUploadUrl.isNullOrBlank()
-        val shouldTryTus = hasPendingTusSession || (supportsTus && fileSize >= TusUploadHelper.DEFAULT_CHUNK_SIZE)
+        val shouldTryTus = TusUploadHelper.shouldAttemptTusUpload(
+            fileSize = fileSize,
+            tusSupport = tusSupport,
+            tusUploadUrl = ocTransfer.tusUploadUrl,
+        )
 
         if (shouldTryTus) {
             Timber.d(
@@ -309,7 +311,7 @@ class UploadFileFromFileSystemWorker(
                 "Skipping TUS: file too small or unsupported (size=%d, threshold=%d, supportsTus=%s)",
                 fileSize,
                 TusUploadHelper.DEFAULT_CHUNK_SIZE,
-                supportsTus
+                tusSupport != null
             )
         }
 

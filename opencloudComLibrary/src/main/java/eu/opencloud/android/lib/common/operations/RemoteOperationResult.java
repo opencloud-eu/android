@@ -201,7 +201,7 @@ public class RemoteOperationResult<T>
         );
 
         if (mHttpCode == HttpConstants.HTTP_BAD_REQUEST) {   // 400
-            String bodyResponse = httpMethod.getResponseBodyAsString();
+            String bodyResponse = httpMethod.getResponseBodyPreviewAsString();
 
             // do not get for other HTTP codes!; could not be available
             if (bodyResponse.length() > 0) {
@@ -212,7 +212,7 @@ public class RemoteOperationResult<T>
                         mCode = ResultCode.INVALID_CHARACTER_DETECT_IN_SERVER;
                     } else {
                         parseErrorMessageAndSetCode(
-                                httpMethod.getResponseBodyAsString(),
+                                bodyResponse,
                                 ResultCode.SPECIFIC_BAD_REQUEST
                         );
                     }
@@ -227,25 +227,25 @@ public class RemoteOperationResult<T>
         switch (mHttpCode) {
             case HttpConstants.HTTP_FORBIDDEN:
                 parseErrorMessageAndSetCode(
-                        httpMethod.getResponseBodyAsString(),
+                        httpMethod.getResponseBodyPreviewAsString(),
                         ResultCode.SPECIFIC_FORBIDDEN
                 );
                 break;
             case HttpConstants.HTTP_UNSUPPORTED_MEDIA_TYPE:
                 parseErrorMessageAndSetCode(
-                        httpMethod.getResponseBodyAsString(),
+                        httpMethod.getResponseBodyPreviewAsString(),
                         ResultCode.SPECIFIC_UNSUPPORTED_MEDIA_TYPE
                 );
                 break;
             case HttpConstants.HTTP_SERVICE_UNAVAILABLE:
                 parseErrorMessageAndSetCode(
-                        httpMethod.getResponseBodyAsString(),
+                        httpMethod.getResponseBodyPreviewAsString(),
                         ResultCode.SPECIFIC_SERVICE_UNAVAILABLE
                 );
                 break;
             case HttpConstants.HTTP_METHOD_NOT_ALLOWED:
                 parseErrorMessageAndSetCode(
-                        httpMethod.getResponseBodyAsString(),
+                        httpMethod.getResponseBodyPreviewAsString(),
                         ResultCode.SPECIFIC_METHOD_NOT_ALLOWED
                 );
                 break;

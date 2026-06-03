@@ -104,7 +104,6 @@ class PrivacyPolicyActivity : AppCompatActivity() {
                     val url = request?.url ?: return false
                     val scheme = url.scheme?.lowercase()
                     if (scheme == "http" || scheme == "https") return false
-
                     return try {
                         val intent = Intent(Intent.ACTION_VIEW, url).apply {
                             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -112,7 +111,7 @@ class PrivacyPolicyActivity : AppCompatActivity() {
                         startActivity(intent)
                         true
                     } catch (e: ActivityNotFoundException) {
-                        Timber.w(e, "No Activity found to handle privacy policy URL")
+                        Timber.d(e, "No activity to handle %s", url)
                         false
                     }
                 }

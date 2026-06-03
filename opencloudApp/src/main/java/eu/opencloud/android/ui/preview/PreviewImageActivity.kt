@@ -37,7 +37,6 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.view.Window
-import androidx.core.content.ContextCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.viewpager.widget.ViewPager
@@ -61,6 +60,7 @@ import eu.opencloud.android.presentation.files.operations.FileOperationsViewMode
 import eu.opencloud.android.presentation.spaces.SpacesListViewModel
 import eu.opencloud.android.ui.activity.FileActivity
 import eu.opencloud.android.ui.activity.FileDisplayActivity
+import eu.opencloud.android.ui.activity.enableEdgeToEdgePreSetContentView
 import eu.opencloud.android.ui.fragment.FileFragment
 import eu.opencloud.android.usecases.transfers.DOWNLOAD_ADDED_MESSAGE
 import eu.opencloud.android.usecases.transfers.DOWNLOAD_FINISH_MESSAGE
@@ -99,6 +99,10 @@ class PreviewImageActivity : FileActivity(),
     override fun onCreate(savedInstanceState: Bundle?) {
         requestWindowFeature(Window.FEATURE_ACTION_BAR_OVERLAY)
         super.onCreate(savedInstanceState)
+
+        // edge-to-edge
+        enableEdgeToEdgePreSetContentView(true)
+
         setContentView(R.layout.preview_image_activity)
 
         // ActionBar
@@ -122,7 +126,6 @@ class PreviewImageActivity : FileActivity(),
                 setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED)
             }
         }
-        window.statusBarColor = ContextCompat.getColor(this, R.color.opencloud_petrol_dark_transparent)
         localBroadcastManager = LocalBroadcastManager.getInstance(this)
     }
 

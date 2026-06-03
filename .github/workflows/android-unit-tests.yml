@@ -26,4 +26,16 @@ jobs:
         run: ./gradlew assembleDebug
 
       - name: Run unit tests
-        run: ./gradlew testDebugUnitTest --continue
+        run: ./gradlew testDebugUnitTest :opencloudApp:testOriginalDebugUnitTest --continue
+
+      - name: Generate coverage report
+        run: ./gradlew jacocoAggregatedCoverageVerification
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: jacoco-coverage-report
+          path: |
+            build/reports/jacoco/jacocoAggregatedReport
+            build/reports/jacoco/jacocoAggregatedCoverageVerification
