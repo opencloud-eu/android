@@ -79,6 +79,9 @@ interface TransferDao {
     @Query(UPDATE_TUS_URL)
     fun updateTusUrl(id: Long, tusUploadUrl: String?)
 
+    @Query(UPDATE_TUS_CHECKSUM)
+    fun updateTusChecksum(id: Long, tusUploadChecksum: String?)
+
     @Query(DELETE_TRANSFER_WITH_ID)
     fun deleteTransferWithId(id: Long)
 
@@ -160,6 +163,12 @@ interface TransferDao {
         private const val UPDATE_TUS_URL = """
             UPDATE $TRANSFERS_TABLE_NAME
             SET tusUploadUrl = :tusUploadUrl
+            WHERE id = :id
+        """
+
+        private const val UPDATE_TUS_CHECKSUM = """
+            UPDATE $TRANSFERS_TABLE_NAME
+            SET tusUploadChecksum = :tusUploadChecksum
             WHERE id = :id
         """
 

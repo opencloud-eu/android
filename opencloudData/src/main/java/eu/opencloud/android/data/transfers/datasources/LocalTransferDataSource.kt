@@ -72,4 +72,6 @@ interface LocalTransferDataSource {
     )
 
     fun updateTusUrl(id: Long, tusUploadUrl: String?)
+
+    fun updateTusChecksum(id: Long, tusUploadChecksum: String?)
 }

@@ -139,4 +139,7 @@ class OCTransferRepository(
 
     override fun updateTusUrl(id: Long, tusUploadUrl: String?) =
         localTransferDataSource.updateTusUrl(id = id, tusUploadUrl = tusUploadUrl)
+
+    override fun updateTusChecksum(id: Long, tusUploadChecksum: String?) =
+        localTransferDataSource.updateTusChecksum(id = id, tusUploadChecksum = tusUploadChecksum)
 }

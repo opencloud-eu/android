@@ -208,6 +208,8 @@ public class HttpConstants {
     // 424 Failed Dependency (WebDAV - RFC 2518)
     public static final int HTTP_FAILED_DEPENDENCY = 424;
     public static final int HTTP_TOO_EARLY = 425;
+    // 460 Checksum Mismatch (TUS checksum extension)
+    public static final int HTTP_CHECKSUM_MISMATCH = 460;
 
     /**
      * 5xx Client Error

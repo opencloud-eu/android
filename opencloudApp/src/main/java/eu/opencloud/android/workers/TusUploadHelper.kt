@@ -5,12 +5,14 @@ import eu.opencloud.android.domain.capabilities.model.OCCapability
 import eu.opencloud.android.domain.transfers.TransferRepository
 import eu.opencloud.android.domain.transfers.model.OCTransfer
 import eu.opencloud.android.lib.common.OpenCloudClient
+import eu.opencloud.android.lib.common.http.HttpConstants
 import eu.opencloud.android.lib.common.network.OnDatatransferProgressListener
 
 import eu.opencloud.android.lib.resources.files.chunks.ChunkedUploadFromFileSystemOperation
 import eu.opencloud.android.lib.resources.files.tus.CreateTusUploadRemoteOperation
 import eu.opencloud.android.lib.resources.files.tus.GetTusUploadOffsetRemoteOperation
 import eu.opencloud.android.lib.resources.files.tus.PatchTusUploadChunkRemoteOperation
+import eu.opencloud.android.lib.resources.files.tus.TusChecksumHelper
 import eu.opencloud.android.domain.exceptions.FileNotFoundException
 import timber.log.Timber
 import java.io.File
@@ -53,6 +55,8 @@ class TusUploadHelper(
     ) : String? {
         // Reset cancelled state for new upload
         cancelled = false
+        val checksum = TusChecksumHelper.parseStoredChecksum(transfer.tusUploadChecksum)
+            ?.takeIf { it.uploadAlgorithm == TusChecksumHelper.SHA1_WIRE_ALGORITHM }
         Timber.d("TUS: starting upload for %s size=%d", remotePath, fileSize)
 
         val (resolvedTusUrl, createdOffset) = prepareUpload(
@@ -64,7 +68,8 @@ class TusUploadHelper(
             fileSize = fileSize,
             mimeType = mimeType,
             lastModified = lastModified,
-            spaceWebDavUrl = spaceWebDavUrl
+            spaceWebDavUrl = spaceWebDavUrl,
+            checksum = checksum,
         )
 
         val offset = fetchCurrentOffset(client, resolvedTusUrl, createdOffset)
@@ -81,6 +86,7 @@ class TusUploadHelper(
             progressCallback = progressCallback,
             initialOffset = offset,
             uploadId = uploadId,
+            checksum = checksum,
         )
 
         verifyUploadCompletion(finalOffset, fileSize, uploadId)
@@ -97,10 +103,10 @@ class TusUploadHelper(
         fileSize: Long,
         mimeType: String,
         lastModified: String?,
-        spaceWebDavUrl: String?
+        spaceWebDavUrl: String?,
+        checksum: TusChecksumHelper.StoredChecksum?,
     ): Pair<String, Long?> {
         var tusUrl = transfer.tusUploadUrl
-        val checksumHex = transfer.tusUploadChecksum?.substringAfter("sha256:")
         var createdOffset: Long? = null
 
         if (tusUrl.isNullOrBlank()) {
@@ -110,7 +116,7 @@ class TusUploadHelper(
                 "mimetype" to mimeType,
             )
             lastModified?.takeIf { it.isNotBlank() }?.let { metadata["mtime"] = it }
-            checksumHex?.let { metadata["checksum"] = "sha256 $it" }
+            checksum?.let { metadata["checksum"] = it.metadataValue }
 
             Timber.d(
                 "TUS: creating upload resource filename=%s size=%d metadata=%s",
@@ -124,15 +130,20 @@ class TusUploadHelper(
                 spaceWebDavUrl = spaceWebDavUrl
             )
 
-            // Use creation-with-upload like the browser does for OpenCloud compatibility
-            val firstChunkSize = minOf(CreateTusUploadRemoteOperation.DEFAULT_FIRST_CHUNK, fileSize)
+            // Checked uploads must send every byte via PATCH so each chunk can carry Upload-Checksum.
+            val useCreationWithUpload = checksum == null
+            val firstChunkSize = if (useCreationWithUpload) {
+                minOf(CreateTusUploadRemoteOperation.DEFAULT_FIRST_CHUNK, fileSize)
+            } else {
+                null
+            }
             val creationResult = executeRemoteOperation {
                 CreateTusUploadRemoteOperation(
                     file = File(localPath),
                     remotePath = remotePath,
                     mimetype = mimeType,
                     metadata = metadata,
-                    useCreationWithUpload = true,
+                    useCreationWithUpload = useCreationWithUpload,
                     firstChunkSize = firstChunkSize,
                     tusUrl = "",
                     collectionUrlOverride = collectionUrl,
@@ -152,7 +163,7 @@ class TusUploadHelper(
                 tusUploadUrl = tusUrl,
                 tusUploadLength = fileSize,
                 tusUploadMetadata = metadataString,
-                tusUploadChecksum = checksumHex?.let { "sha256:$it" },
+                tusUploadChecksum = checksum?.storageValue,
                 tusResumableVersion = "1.0.0",
                 tusUploadExpires = null,
                 tusUploadConcat = null,
@@ -188,16 +199,7 @@ class TusUploadHelper(
             Timber.e("TUS: upload loop exited but offset=%d != fileSize=%d", offset, fileSize)
             throw java.io.IOException("TUS: upload incomplete - offset $offset does not match file size $fileSize")
         }
-        transferRepository.updateTusState(
-            id = uploadId,
-            tusUploadUrl = null,
-            tusUploadLength = null,
-            tusUploadMetadata = null,
-            tusUploadChecksum = null,
-            tusResumableVersion = null,
-            tusUploadExpires = null,
-            tusUploadConcat = null,
-        )
+        clearTusState(uploadId)
     }
 
     private fun finalizeEtag(
@@ -241,6 +243,7 @@ class TusUploadHelper(
         progressCallback: ((Long, Long) -> Unit)?,
         initialOffset: Long,
         uploadId: Long,
+        checksum: TusChecksumHelper.StoredChecksum?,
     ): Pair<Long, String?> {
         var offset = initialOffset
         var lastEtag: String? = null
@@ -264,6 +267,7 @@ class TusUploadHelper(
                 offset = offset,
                 chunkSize = chunkSize,
                 httpMethodOverride = httpOverride,
+                checksum = checksum,
             ).apply {
                 progressListener?.let { addDataTransferProgressListener(it) }
             }
@@ -272,6 +276,12 @@ class TusUploadHelper(
             val patchResult = patchOperation.execute(client)
             lastEtag = patchOperation.etag.takeIf { it.isNotBlank() }
             activePatchOperation = null
+            if (checksum != null && isChecksumFailure(patchResult.httpCode)) {
+                clearTusState(uploadId)
+                throw java.io.IOException(
+                    "TUS: checksum upload rejected with HTTP ${patchResult.httpCode} at offset $offset"
+                )
+            }
             if (!patchResult.isSuccess || patchResult.data == null || patchResult.data!! < offset) {
                 consecutiveFailures++
                 Timber.w(
@@ -352,6 +362,9 @@ class TusUploadHelper(
         return Pair(offset, lastEtag)
     }
 
+    private fun isChecksumFailure(httpCode: Int): Boolean =
+        httpCode == HttpConstants.HTTP_BAD_REQUEST || httpCode == HttpConstants.HTTP_CHECKSUM_MISMATCH
+
     private fun resolveTusCollectionUrl(
         client: OpenCloudClient,
         spaceWebDavUrl: String?,
@@ -402,21 +415,25 @@ class TusUploadHelper(
             throw e
         } catch (e: FileNotFoundException) {
             Timber.w(e, "TUS: upload not found on server (404), clearing state to restart")
-            transferRepository.updateTusState(
-                id = uploadId,
-                tusUploadUrl = null,
-                tusUploadLength = null,
-                tusUploadMetadata = null,
-                tusUploadChecksum = null,
-                tusResumableVersion = null,
-                tusUploadExpires = null,
-                tusUploadConcat = null,
-            )
+            clearTusState(uploadId)
             throw java.io.IOException("TUS: upload session lost (404), forcing restart", e)
         } catch (recoverError: Throwable) {
             Timber.w(recoverError, "TUS: recover offset failed")
             null
         }
+
+    private fun clearTusState(uploadId: Long) {
+        transferRepository.updateTusState(
+            id = uploadId,
+            tusUploadUrl = null,
+            tusUploadLength = null,
+            tusUploadMetadata = null,
+            tusUploadChecksum = null,
+            tusResumableVersion = null,
+            tusUploadExpires = null,
+            tusUploadConcat = null,
+        )
+    }
 
 
     companion object {

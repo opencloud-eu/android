@@ -53,6 +53,7 @@ import eu.opencloud.android.lib.common.operations.RemoteOperationResult.ResultCo
 import eu.opencloud.android.lib.resources.files.CheckPathExistenceRemoteOperation
 import eu.opencloud.android.lib.resources.files.CreateRemoteFolderOperation
 import eu.opencloud.android.lib.resources.files.UploadFileFromFileSystemOperation
+import eu.opencloud.android.lib.resources.files.tus.TusChecksumHelper
 import eu.opencloud.android.presentation.authentication.AccountUtils
 import eu.opencloud.android.utils.NotificationUtils
 import eu.opencloud.android.utils.RemoteFileUtils.getAvailableRemotePath
@@ -267,11 +268,16 @@ class UploadFileFromFileSystemWorker(
         )
 
         if (shouldTryTus) {
+            if (hasPendingTusSession && !hasStoredSha1Checksum()) {
+                Timber.w("TUS session for %s has no original checksum. Clearing state and recreating.", uploadPath)
+                clearTusState()
+            }
+            ensureOriginalTusChecksum()
             Timber.d(
                 "Attempting TUS upload (size=%d, threshold=%d, resume=%s)",
                 fileSize,
                 TusUploadHelper.DEFAULT_CHUNK_SIZE,
-                hasPendingTusSession
+                !ocTransfer.tusUploadUrl.isNullOrBlank()
             )
             val tusSucceeded = try {
                 val returnedEtag = tusUploadHelper.upload(
@@ -376,7 +382,33 @@ class UploadFileFromFileSystemWorker(
             tusUploadExpires = null,
             tusUploadConcat = null,
         )
+        ocTransfer = ocTransfer.copy(
+            tusUploadUrl = null,
+            tusUploadLength = null,
+            tusUploadMetadata = null,
+            tusUploadChecksum = null,
+            tusResumableVersion = null,
+            tusUploadExpires = null,
+            tusUploadConcat = null,
+        )
     }
+
+    private fun ensureOriginalTusChecksum() {
+        if (hasStoredSha1Checksum()) return
+
+        val checksum = TusChecksumHelper.storedSha1(
+            TusChecksumHelper.sha1Hex(File(fileSystemPath))
+        ).storageValue
+        transferRepository.updateTusChecksum(
+            id = uploadIdInStorageManager,
+            tusUploadChecksum = checksum,
+        )
+        ocTransfer = ocTransfer.copy(tusUploadChecksum = checksum)
+    }
+
+    private fun hasStoredSha1Checksum(): Boolean =
+        TusChecksumHelper.parseStoredChecksum(ocTransfer.tusUploadChecksum)?.uploadAlgorithm ==
+            TusChecksumHelper.SHA1_WIRE_ALGORITHM
 
     private fun shouldRetry(throwable: Throwable?): Boolean {
         if (throwable == null) return false

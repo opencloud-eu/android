@@ -23,6 +23,7 @@ import androidx.test.core.app.ApplicationProvider
 import eu.opencloud.android.domain.capabilities.model.OCCapability
 import eu.opencloud.android.domain.transfers.TransferRepository
 import eu.opencloud.android.lib.common.OpenCloudClient
+import eu.opencloud.android.lib.resources.files.tus.TusChecksumHelper
 import eu.opencloud.android.testutil.OC_TRANSFER
 import io.mockk.every
 import io.mockk.mockk
@@ -33,6 +34,7 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -40,6 +42,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import java.io.File
+import java.io.IOException
 
 @RunWith(RobolectricTestRunner::class)
 @Config(manifest = Config.NONE)
@@ -62,21 +65,24 @@ class TusUploadHelperTest {
     }
 
     @Test
-    fun upload_createsSessionWithFirstChunkAndClearsTusState() {
+    fun upload_createsCheckedSessionWithoutFirstChunkAndClearsTusState() {
         val localFile = tempFileWithBytes(byteArrayOf(1, 2, 3, 4, 5))
+        val sha1Hex = TusChecksumHelper.sha1Hex(localFile)
+        val storedChecksum = TusChecksumHelper.storedSha1(sha1Hex).storageValue
         val uploadUrl = "/uploads/new-session"
         server.enqueue(
             MockResponse()
                 .setResponseCode(201)
                 .addHeader("Location", uploadUrl)
-                .addHeader("Upload-Offset", "5")
+                .addHeader("Upload-Offset", "0")
         )
+        server.enqueue(MockResponse().setResponseCode(204).addHeader("Upload-Offset", "5"))
         server.enqueue(MockResponse().setResponseCode(404))
         val progress = mutableListOf<Long>()
 
         val resultEtag = TusUploadHelper(transferRepository).upload(
             client = newClient(),
-            transfer = OC_TRANSFER.copy(tusUploadUrl = null, tusUploadChecksum = "sha256:abc"),
+            transfer = OC_TRANSFER.copy(tusUploadUrl = null, tusUploadChecksum = storedChecksum),
             uploadId = UPLOAD_ID,
             localPath = localFile.absolutePath,
             remotePath = "/Photos/image.jpg",
@@ -90,22 +96,35 @@ class TusUploadHelperTest {
         )
 
         assertNull(resultEtag)
-        assertEquals(listOf(5L), progress)
+        assertEquals(listOf(0L, 5L), progress)
 
         val createRequest = server.takeRequest()
         assertEquals("POST", createRequest.method)
         assertEquals("/dav/spaces/personal/Photos", createRequest.path)
-        assertEquals("0", createRequest.getHeader("Upload-Offset"))
+        assertNull(createRequest.getHeader("Upload-Offset"))
         assertEquals("5", createRequest.getHeader("Upload-Length"))
         assertTrue(createRequest.getHeader("Upload-Metadata")!!.contains("checksum"))
+
+        val patchRequest = server.takeRequest()
+        assertEquals("PATCH", patchRequest.method)
+        assertEquals("0", patchRequest.getHeader("Upload-Offset"))
+        assertEquals(
+            TusChecksumHelper.uploadChecksumHeader(
+                file = localFile,
+                offset = 0,
+                length = 5,
+                algorithm = TusChecksumHelper.SHA1_WIRE_ALGORITHM,
+            ),
+            patchRequest.getHeader("Upload-Checksum")
+        )
 
         verify {
             transferRepository.updateTusState(
                 id = UPLOAD_ID,
                 tusUploadUrl = server.url(uploadUrl).toString(),
                 tusUploadLength = 5,
-                tusUploadMetadata = "filename=image.jpg;mimetype=image/jpeg;mtime=1700000000;checksum=sha256 abc",
-                tusUploadChecksum = "sha256:abc",
+                tusUploadMetadata = "filename=image.jpg;mimetype=image/jpeg;mtime=1700000000;checksum=SHA1 $sha1Hex",
+                tusUploadChecksum = storedChecksum,
                 tusResumableVersion = "1.0.0",
                 tusUploadExpires = null,
                 tusUploadConcat = null,
@@ -161,8 +180,67 @@ class TusUploadHelperTest {
         assertEquals("PATCH", patchRequest.method)
         assertEquals("/uploads/existing-session", patchRequest.path)
         assertEquals("2", patchRequest.getHeader("Upload-Offset"))
+        assertNull(patchRequest.getHeader("Upload-Checksum"))
 
         verify(exactly = 1) {
+            transferRepository.updateTusState(
+                id = UPLOAD_ID,
+                tusUploadUrl = null,
+                tusUploadLength = null,
+                tusUploadMetadata = null,
+                tusUploadChecksum = null,
+                tusResumableVersion = null,
+                tusUploadExpires = null,
+                tusUploadConcat = null,
+            )
+        }
+    }
+
+    @Test
+    fun upload_checksumMismatchClearsTusStateAndThrows() {
+        val localFile = tempFileWithBytes(byteArrayOf(1, 2, 3, 4, 5))
+        val sha1Hex = TusChecksumHelper.sha1Hex(localFile)
+        val storedChecksum = TusChecksumHelper.storedSha1(sha1Hex).storageValue
+        val uploadUrl = "/uploads/checksum-mismatch"
+        server.enqueue(
+            MockResponse()
+                .setResponseCode(201)
+                .addHeader("Location", uploadUrl)
+                .addHeader("Upload-Offset", "0")
+        )
+        server.enqueue(MockResponse().setResponseCode(460))
+
+        val thrown = assertThrows(IOException::class.java) {
+            TusUploadHelper(transferRepository).upload(
+                client = newClient(),
+                transfer = OC_TRANSFER.copy(tusUploadUrl = null, tusUploadChecksum = storedChecksum),
+                uploadId = UPLOAD_ID,
+                localPath = localFile.absolutePath,
+                remotePath = "/Photos/image.jpg",
+                fileSize = localFile.length(),
+                mimeType = "image/jpeg",
+                lastModified = "1700000000",
+                tusSupport = tusSupport(),
+                progressListener = null,
+                progressCallback = null,
+                spaceWebDavUrl = server.url("/dav/spaces/personal").toString(),
+            )
+        }
+
+        assertTrue(thrown.message!!.contains("checksum"))
+        server.takeRequest()
+        val patchRequest = server.takeRequest()
+        assertEquals("PATCH", patchRequest.method)
+        assertEquals(
+            TusChecksumHelper.uploadChecksumHeader(
+                file = localFile,
+                offset = 0,
+                length = 5,
+                algorithm = TusChecksumHelper.SHA1_WIRE_ALGORITHM,
+            ),
+            patchRequest.getHeader("Upload-Checksum")
+        )
+        verify {
             transferRepository.updateTusState(
                 id = UPLOAD_ID,
                 tusUploadUrl = null,

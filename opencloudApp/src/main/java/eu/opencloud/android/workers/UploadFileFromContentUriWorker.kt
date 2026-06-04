@@ -60,6 +60,7 @@ import eu.opencloud.android.lib.common.operations.RemoteOperationResult.ResultCo
 import eu.opencloud.android.lib.resources.files.CheckPathExistenceRemoteOperation
 import eu.opencloud.android.lib.resources.files.CreateRemoteFolderOperation
 import eu.opencloud.android.lib.resources.files.UploadFileFromFileSystemOperation
+import eu.opencloud.android.lib.resources.files.tus.TusChecksumHelper
 import eu.opencloud.android.presentation.authentication.AccountUtils
 import eu.opencloud.android.utils.NotificationUtils
 import eu.opencloud.android.utils.UPLOAD_NOTIFICATION_CHANNEL_ID
@@ -147,16 +148,35 @@ class UploadFileFromContentUriWorker(
         cachePath = localStorageProvider.getTemporalPath(account.name, ocTransfer.spaceId) +
                 File.separator + flatCacheName
 
-        // Re-copy if the cache file is missing or empty. A previous run may have copied it
-        // and then had it removed (e.g. by removeCacheFile() at the end of a successful run
-        // that the OS killed before bookkeeping). Only the contentUri from worker params is
-        // authoritative.
         val cacheFile = File(cachePath)
-        if (!cacheFile.exists() || cacheFile.length() == 0L) {
+        if (!isCacheFileReadyForUpload(cacheFile)) {
             checkDocumentFileExists()
             checkPermissionsToReadDocumentAreGranted()
             copyFileToLocalStorage()
         }
+    }
+
+    private fun isCacheFileReadyForUpload(cacheFile: File): Boolean {
+        if (!cacheFile.exists()) return false
+
+        val cacheSize = cacheFile.length()
+        val isValidCacheSize = ContentUriUploadCacheValidator.isValidCacheSize(
+            actualSize = cacheSize,
+            expectedSize = ocTransfer.fileSize,
+        )
+        if (isValidCacheSize) return true
+
+        Timber.w(
+            "Cached upload file for %s has invalid size. expected=%d actual=%d. Deleting and recopying.",
+            contentUri,
+            ocTransfer.fileSize,
+            cacheSize,
+        )
+        if (!cacheFile.delete()) {
+            Timber.w("Could not delete invalid cached upload file: %s", cacheFile.absolutePath)
+        }
+        clearTusState()
+        return false
     }
 
     private fun areParametersValid(): Boolean {
@@ -208,11 +228,14 @@ class UploadFileFromContentUriWorker(
     private fun copyFileToLocalStorage() {
         val documentFile = DocumentFile.fromSingleUri(appContext, contentUri)
         val cacheFile = File(cachePath)
+        val partFile = File("$cachePath.part")
         val cacheDir = cacheFile.parentFile
         if (cacheDir != null && !cacheDir.exists()) {
             cacheDir.mkdirs()
         }
-        cacheFile.createNewFile()
+        if (partFile.exists() && !partFile.delete()) {
+            Timber.w("Could not delete stale partial cache file: %s", partFile.absolutePath)
+        }
 
         // openInputStream can return null if the content provider is unavailable or permissions were revoked.
         // Failing here avoids silently uploading a 0-byte file.
@@ -221,19 +244,59 @@ class UploadFileFromContentUriWorker(
             Timber.e("Failed to open input stream for %s — content provider unavailable or permissions revoked", contentUri)
             throw LocalFileNotFoundException()
         }
-        val outputStream = FileOutputStream(cachePath)
-        inputStream.use { input ->
-            outputStream.use { output ->
-                input.copyTo(output)
+        val checksumResult = try {
+            inputStream.use { input ->
+                FileOutputStream(partFile).use { output ->
+                    TusChecksumHelper.copyAndSha1Hex(input, output)
+                }
             }
+        } catch (throwable: Throwable) {
+            partFile.delete()
+            throw throwable
         }
 
-        // Guard against a truncated or empty copy (e.g. file deleted mid-read).
-        if (cacheFile.length() == 0L) {
-            Timber.e("Cache file is 0 bytes after copy from %s — source may have been deleted mid-read", contentUri)
-            cacheFile.delete()
-            throw LocalFileNotFoundException()
+        val copiedSize = checksumResult.bytesCopied
+        if (!ContentUriUploadCacheValidator.isValidCacheSize(copiedSize, ocTransfer.fileSize)) {
+            Timber.e(
+                "Partial cache copy from %s. expected=%d actual=%d",
+                contentUri,
+                ocTransfer.fileSize,
+                copiedSize,
+            )
+            partFile.delete()
+            clearTusState()
+            throw IOException(
+                "Cache copy size mismatch for $contentUri: " +
+                    "expected ${ocTransfer.fileSize} bytes, copied $copiedSize bytes"
+            )
         }
+
+        if (cacheFile.exists() && !cacheFile.delete()) {
+            partFile.delete()
+            throw IOException("Could not replace cached upload file: ${cacheFile.absolutePath}")
+        }
+        if (!partFile.renameTo(cacheFile)) {
+            partFile.delete()
+            throw IOException("Could not finalize cached upload file: ${cacheFile.absolutePath}")
+        }
+
+        val finalSize = cacheFile.length()
+        if (!ContentUriUploadCacheValidator.isValidCacheSize(finalSize, ocTransfer.fileSize)) {
+            Timber.e(
+                "Invalid finalized cache copy from %s. expected=%d actual=%d",
+                contentUri,
+                ocTransfer.fileSize,
+                finalSize,
+            )
+            cacheFile.delete()
+            clearTusState()
+            throw IOException(
+                "Final cache copy size mismatch for $contentUri: " +
+                    "expected ${ocTransfer.fileSize} bytes, copied $finalSize bytes"
+            )
+        }
+
+        persistTusChecksum(checksumResult.sha1Hex)
 
         transferRepository.updateTransferSourcePath(uploadIdInStorageManager, contentUri.toString())
         transferRepository.updateTransferLocalPath(uploadIdInStorageManager, cachePath)
@@ -315,11 +378,16 @@ class UploadFileFromContentUriWorker(
         )
 
         if (shouldTryTus) {
+            if (hasPendingTusSession && !hasStoredSha1Checksum()) {
+                Timber.w("TUS session for %s has no original checksum. Clearing state and recreating.", uploadPath)
+                clearTusState()
+            }
+            ensureOriginalTusChecksum()
             Timber.d(
                 "Attempting TUS upload (size=%d, threshold=%d, resume=%s)",
                 fileSize,
                 TusUploadHelper.DEFAULT_CHUNK_SIZE,
-                hasPendingTusSession
+                !ocTransfer.tusUploadUrl.isNullOrBlank()
             )
             val tusSucceeded = try {
                 tusUploadHelper.upload(
@@ -406,9 +474,46 @@ class UploadFileFromContentUriWorker(
         cacheFile.delete()
     }
 
+    private fun ensureOriginalTusChecksum() {
+        if (hasStoredSha1Checksum()) return
+
+        val inputStream = appContext.contentResolver.openInputStream(contentUri)
+        if (inputStream == null) {
+            Timber.e("Failed to open input stream for checksum source %s", contentUri)
+            throw LocalFileNotFoundException()
+        }
+
+        val sha1Hex = inputStream.use { input ->
+            TusChecksumHelper.sha1Hex(input)
+        }
+        persistTusChecksum(sha1Hex)
+    }
+
+    private fun persistTusChecksum(sha1Hex: String) {
+        val checksum = TusChecksumHelper.storedSha1(sha1Hex).storageValue
+        transferRepository.updateTusChecksum(
+            id = uploadIdInStorageManager,
+            tusUploadChecksum = checksum,
+        )
+        ocTransfer = ocTransfer.copy(tusUploadChecksum = checksum)
+    }
+
+    private fun hasStoredSha1Checksum(): Boolean =
+        TusChecksumHelper.parseStoredChecksum(ocTransfer.tusUploadChecksum)?.uploadAlgorithm ==
+            TusChecksumHelper.SHA1_WIRE_ALGORITHM
+
     private fun clearTusState() {
         transferRepository.updateTusState(
             id = uploadIdInStorageManager,
+            tusUploadUrl = null,
+            tusUploadLength = null,
+            tusUploadMetadata = null,
+            tusUploadChecksum = null,
+            tusResumableVersion = null,
+            tusUploadExpires = null,
+            tusUploadConcat = null,
+        )
+        ocTransfer = ocTransfer.copy(
             tusUploadUrl = null,
             tusUploadLength = null,
             tusUploadMetadata = null,
