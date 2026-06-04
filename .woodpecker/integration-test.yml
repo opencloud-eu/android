@@ -30,7 +30,7 @@ steps:
   - name: run tests
     image: *android_image
     commands:
-      - adb connect 10.8.0.1::5555
+      - adb connect android-emulator-cuda:5555
       - adb devices
       - curl -L -o adbserver-desktop.jar https://github.com/KasperskyLab/Kaspresso/raw/master/artifacts/adbserver-desktop.jar
       - java -jar adbserver-desktop.jar &
