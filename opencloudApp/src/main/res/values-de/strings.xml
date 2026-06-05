@@ -139,7 +139,7 @@
     <string name="auth_oauth_failure">Das Zugriffstoken ist abgelaufen oder ungültig geworden. Melden Sie sich erneut an, um wieder Zugriff zu erhalten.</string>
     <string name="auth_oauth_failure_snackbar_action">Anmelden</string>
     <string name="auth_check_server">Server überprüfen</string>
-    <string name="auth_host_url">Serveradresse https://...</string>
+    <string name="auth_host_url">Serveradresse https://…</string>
     <string name="auth_username">Benutzername</string>
     <string name="auth_password">Passwort</string>
     <string name="auth_register">Neu bei %1$s\?</string>
