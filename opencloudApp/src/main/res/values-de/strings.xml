@@ -139,7 +139,7 @@
     <string name="auth_oauth_failure">Das Zugriffstoken ist abgelaufen oder ungültig geworden. Melden Sie sich erneut an, um wieder Zugriff zu erhalten.</string>
     <string name="auth_oauth_failure_snackbar_action">Anmelden</string>
     <string name="auth_check_server">Server überprüfen</string>
-    <string name="auth_host_url">Serveradresse https://&amp;#8230;</string>
+    <string name="auth_host_url">Serveradresse https://...</string>
     <string name="auth_username">Benutzername</string>
     <string name="auth_password">Passwort</string>
     <string name="auth_register">Neu bei %1$s\?</string>
@@ -172,7 +172,7 @@
     <string name="spaces_list_empty_subtitle">Sie haben aktuell keinen Zugriff auf einen Space!</string>
     <string name="file_list_empty_subtitle_available_offline">Dateien und Ordner, die Sie als offline verfügbar markieren, werden hier angezeigt.</string>
     <string name="file_list_empty_subtitle_shared_by_links">Dateien und Ordner, die Sie per Link teilen, werden hier angezeigt.</string>
-    <string name="file_list_loading">&amp;#8230; wird geladen</string>
+    <string name="file_list_loading">... wird geladen</string>
     <string name="file_list_no_app_for_file_type">Keine App für diesen Dateityp gefunden</string>
     <string name="file_list_no_app_for_perform_action">Keine App für diese Aktion gefunden</string>
     <string name="local_file_list_empty">Es befinden sich keine Dateien in diesem Ordner.</string>
