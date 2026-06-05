@@ -172,7 +172,7 @@
     <string name="spaces_list_empty_subtitle">Sie haben aktuell keinen Zugriff auf einen Space!</string>
     <string name="file_list_empty_subtitle_available_offline">Dateien und Ordner, die Sie als offline verfügbar markieren, werden hier angezeigt.</string>
     <string name="file_list_empty_subtitle_shared_by_links">Dateien und Ordner, die Sie per Link teilen, werden hier angezeigt.</string>
-    <string name="file_list_loading">... wird geladen</string>
+    <string name="file_list_loading">… wird geladen</string>
     <string name="file_list_no_app_for_file_type">Keine App für diesen Dateityp gefunden</string>
     <string name="file_list_no_app_for_perform_action">Keine App für diese Aktion gefunden</string>
     <string name="local_file_list_empty">Es befinden sich keine Dateien in diesem Ordner.</string>
