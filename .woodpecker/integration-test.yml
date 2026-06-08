@@ -21,6 +21,14 @@ steps:
       - sleep 3
       - ./gradlew :opencloudApp:connectedOriginalDebugAndroidTest --console=plain
 
+  - name: instrumented data tests
+    image: *android_image
+    commands:
+      - adb connect android-emulator-cuda:5555
+      - adb devices
+      - sleep 3
+      - ./gradlew :opencloudData:connectedAndroidTest --console=plain
+
   - name: test results
     image: *android_image
     when:
