@@ -29,9 +29,6 @@ services:
       - ./keys/adbkey:/root/.android/adbkey:ro
       - ./keys/adbkey.pub:/root/.android/adbkey.pub:ro
       - ./android_avd:/data
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-      - "cloud.opencloud.test:127.0.0.1"
     deploy:
       resources:
         reservations:
@@ -55,8 +52,6 @@ services:
       WOODPECKER_BACKEND_DOCKER_NETWORK: android-integration-tests
     networks:
       android-integration-tests:
-    extra_hosts:
-      - "${WOODPECKER_EXTRA_HOST}"
     volumes:
       - woodpecker-agent-config:/etc/woodpecker
       - /var/run/docker.sock:/var/run/docker.sock
