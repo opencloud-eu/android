@@ -16,7 +16,7 @@ steps:
     commands:
       - adb connect android-emulator-cuda:5555
       - adb devices
-      - curl -L -o adbserver-desktop.jar https://github.com/KasperskyLab/Kaspresso/raw/master/artifacts/adbserver-desktop.jar
+      - curl -L -o adbserver-desktop.jar https://github.com/KasperskyLab/Kaspresso/refs/tags/1.6.0/artifacts/adbserver-desktop.jar
       - java -jar adbserver-desktop.jar &
       - sleep 3
       - ./gradlew :opencloudApp:connectedOriginalDebugAndroidTest --console=plain
