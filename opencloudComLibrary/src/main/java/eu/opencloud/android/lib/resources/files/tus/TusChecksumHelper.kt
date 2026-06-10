@@ -49,10 +49,8 @@ object TusChecksumHelper {
             get() = algorithm.lowercase(Locale.ROOT)
 
         private fun metadataAlgorithm(): String =
-            when (algorithm.lowercase(Locale.ROOT)) {
-                SHA1_WIRE_ALGORITHM -> SHA1_METADATA_ALGORITHM
-                else -> algorithm.uppercase(Locale.ROOT)
-            }
+            if (algorithm.lowercase(Locale.ROOT) == SHA1_WIRE_ALGORITHM) SHA1_METADATA_ALGORITHM
+            else algorithm.uppercase(Locale.ROOT)
     }
 
     data class CopyChecksumResult(
