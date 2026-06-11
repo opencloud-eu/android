@@ -25,9 +25,6 @@ package eu.opencloud.android.lib.resources.files
 
 import eu.opencloud.android.lib.common.OpenCloudClient
 import eu.opencloud.android.lib.common.http.HttpConstants
-import eu.opencloud.android.lib.common.http.methods.webdav.DavConstants
-import eu.opencloud.android.lib.common.http.methods.webdav.DavUtils
-import eu.opencloud.android.lib.common.http.methods.webdav.PropfindMethod
 import eu.opencloud.android.lib.common.http.methods.webdav.PutMethod
 import eu.opencloud.android.lib.common.network.FileRequestBody
 import eu.opencloud.android.lib.common.network.OnDatatransferProgressListener
@@ -72,13 +69,6 @@ open class UploadFileFromFileSystemOperation(
     override fun run(client: OpenCloudClient): RemoteOperationResult<Unit> {
         var result: RemoteOperationResult<Unit>
         try {
-            val propfindMethod = PropfindMethod(
-                URL(client.userFilesWebDavUri.toString()),
-                DavConstants.DEPTH_1,
-                DavUtils.allPropSet
-            )
-            val status = client.executeHttpMethod(propfindMethod)
-
             if (cancellationRequested.get()) {
                 // the operation was cancelled before getting it's turn to be executed in the queue of uploads
                 result = RemoteOperationResult<Unit>(OperationCancelledException())
@@ -86,7 +76,7 @@ open class UploadFileFromFileSystemOperation(
             } else {
                 // perform the upload
                 result = uploadFile(client)
-                Timber.i("Upload of $localPath to $remotePath - HTTP status code: $status")
+                Timber.i("Upload of $localPath to $remotePath: ${result.logMessage}")
             }
         } catch (e: Exception) {
             if (putMethod?.isAborted == true) {
