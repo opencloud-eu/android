@@ -1,0 +1,58 @@
+version: "4"
+services:
+  android-emulator-cuda:
+    image: opencloudeu/android-emulator-ci:api-36
+    ports:
+      - 10.8.0.1:5554:5554
+      - 10.8.0.1:5555:5555
+    networks:
+      android-integration-tests:
+    hostname: android-emulator-cuda
+    restart: unless-stopped
+    environment:
+      - DISABLE_ANIMATION=false
+      - DISABLE_HIDDEN_POLICY=true
+      - SKIP_AUTH=false
+      - MEMORY=16384
+      - CORES=6
+    privileged: true
+    tty: true
+    stdin_open: true
+    volumes:
+      - ./keys/adbkey:/root/.android/adbkey:ro
+      - ./keys/adbkey.pub:/root/.android/adbkey.pub:ro
+      - ./android_avd:/data
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  woodpecker-agent:
+    image: woodpeckerci/woodpecker-agent:v3.14.1
+    command: agent
+    restart: unless-stopped
+    environment:
+      WOODPECKER_SERVER: ${WOODPECKER_SERVER}
+      WOODPECKER_AGENT_SECRET: ${WOODPECKER_AGENT_SECRET}
+      WOODPECKER_AGENT_LABELS: ${WOODPECKER_AGENT_LABELS}
+      WOODPECKER_MAX_WORKFLOWS: ${WOODPECKER_MAX_WORKFLOWS:-1}
+      WOODPECKER_LOG_LEVEL: ${WOODPECKER_LOG_LEVEL}
+      WOODPECKER_GRPC_SECURE: true
+      WOODPECKER_BACKEND: docker
+      WOODPECKER_BACKEND_DOCKER_NETWORK: android-integration-tests
+    networks:
+      android-integration-tests:
+    volumes:
+      - woodpecker-agent-config:/etc/woodpecker
+      - /var/run/docker.sock:/var/run/docker.sock
+
+
+volumes:
+  woodpecker-agent-config:
+
+networks:
+ android-integration-tests:
+   name: android-integration-tests

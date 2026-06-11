@@ -1,0 +1,58 @@
+variables:
+  - &android_image 'docker.io/mingc/android-build-box:1.29.0'
+
+when:
+  - event: pull_request
+  - event: push
+    branch:
+      - ${CI_REPO_DEFAULT_BRANCH}
+
+labels:
+  platform: android-emulator
+
+steps:
+  - name: run tests
+    image: *android_image
+    commands:
+      - adb connect android-emulator-cuda:5555
+      - adb devices
+      - curl -L -o adbserver-desktop.jar https://github.com/KasperskyLab/Kaspresso/refs/tags/1.6.0/artifacts/adbserver-desktop.jar
+      - java -jar adbserver-desktop.jar &
+      - sleep 3
+      - ./gradlew :opencloudApp:connectedOriginalDebugAndroidTest --console=plain
+
+  - name: instrumented data tests
+    image: *android_image
+    commands:
+      - adb connect android-emulator-cuda:5555
+      - adb devices
+      - sleep 3
+      - ./gradlew :opencloudData:connectedAndroidTest --console=plain
+
+  - name: test results
+    image: *android_image
+    when:
+      - status: [ success, failure ]
+    commands:
+      - |
+        python3 -c "
+        import xml.etree.ElementTree as ET, glob
+        passed = skipped = failed = 0
+        for f in glob.glob('**/TEST-*.xml', recursive=True):
+            root = ET.parse(f).getroot()
+            suites = [root] if root.tag == 'testsuite' else root.findall('testsuite')
+            for suite in suites:
+                for tc in suite.findall('testcase'):
+                    name = f\"{suite.get('name')}.{tc.get('name')}\"
+                    if tc.find('skipped') is not None:
+                        print(f'⏭  {name}'); skipped += 1
+                    elif tc.find('failure') is not None:
+                        print(f'❌ {name}'); failed += 1
+                    else:
+                        print(f'✅ {name}'); passed += 1
+        print()
+        print(f'✅ passed:  {passed}')
+        print(f'❌ failed:  {failed}')
+        print(f'⏭  skipped: {skipped}')
+        print(f'   total:   {passed+failed+skipped}')
+        "

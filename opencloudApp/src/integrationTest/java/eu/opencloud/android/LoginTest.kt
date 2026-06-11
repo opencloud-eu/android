@@ -12,9 +12,8 @@ import screens.LoginScreen
 import screens.MainScreen
 import screens.ManageAccountsDialog
 import screens.StartScreen
-import screens.TrustCertificate
 
-class LoginScreenTest : TestCase(
+class LoginTest : TestCase(
     kaspressoBuilder = Kaspresso.Builder.advanced {
         flakySafetyParams = FlakySafetyParams.custom(
             timeoutMs = 20_000L,
@@ -30,31 +29,22 @@ class LoginScreenTest : TestCase(
     @get:Rule
     val activityRule = ActivityScenarioRule(SplashActivity::class.java)
 
+    @get:Rule
+    val permissionRule: GrantPermissionRule = GrantPermissionRule.grant(
+        android.Manifest.permission.READ_EXTERNAL_STORAGE,
+        android.Manifest.permission.WRITE_EXTERNAL_STORAGE
+    )
 
     @Test
-    fun loginApp() {
-        before {
-            adbServer.performCmd("adb", listOf("reverse", "tcp:9200", "tcp:9200"))
-        }.after {
-            adbServer.performCmd("adb", listOf("shell", "am", "force-stop", "com.android.chrome"))
-            adbServer.performCmd("adb", listOf("reverse", "--remove", "tcp:9200"))
-        }.run {
+    fun loginAndRemoveAccount() {
+        run {
             step("set opencloud url") {
                 StartScreen {
                     hostUrlInput {
                         isVisible()
-                        typeText("https://localhost:9200")
+                        typeText("https://cloud.rc.opencloud.rocks")
                     }
                     checkServerButton {
-                        isVisible()
-                        isClickable()
-                        click()
-                    }
-                }
-            }
-            step("trust certificate") {
-                TrustCertificate {
-                    yesBtn {
                         isVisible()
                         isClickable()
                         click()
@@ -69,11 +59,6 @@ class LoginScreenTest : TestCase(
                     username.typeText("alan")
                     password.typeText("demo")
                     loginButton.click()
-                    keepAccessForeverBtn {
-                        isDisplayed()
-                        isClickable()
-                        click()
-                    }
                 }
             }
             step("check personal space") {

@@ -48,138 +48,177 @@ class CreateTusUploadRemoteOperation(
             Base64.encodeToString(bytes, Base64.NO_WRAP)
     }
 
-    override fun run(client: OpenCloudClient): RemoteOperationResult<CreationResult> = try {
-        // Determine TUS endpoint URL based on provided parameters
-        val targetFileUrl = if (!tusUrl.isNullOrBlank()) {
-            tusUrl
-        } else {
-            val baseCollection = (collectionUrlOverride
-                ?: client.userFilesWebDavUri.toString()).trim()
-            // Remove trailing slash - OpenCloud expects no slash on space endpoints
-            val resolvedCollection = buildCollectionUrl(baseCollection, remotePath).trimEnd('/')
-            Timber.d("TUS resolved collection: %s", resolvedCollection)
-            resolvedCollection
-        }
+    private data class CreationRequestBody(
+        val body: RequestBody,
+        val fileToClose: RandomAccessFile?
+    )
 
+    override fun run(client: OpenCloudClient): RemoteOperationResult<CreationResult> {
+        var creationUploadFile: RandomAccessFile? = null
+        return try {
+            val targetFileUrl = resolveTargetFileUrl(client)
             Timber.d("TUS Creation URL: %s", targetFileUrl)
 
-            // Prepare request body first
-            val postBody: RequestBody = if (useCreationWithUpload && (firstChunkSize ?: 0L) > 0L) {
-                // creation-with-upload: include first chunk
-                // Don't use .use{} here - the channel must stay open for OkHttp to read
-                val raf = RandomAccessFile(file, "r")
-                val channel: FileChannel = raf.channel
-                ChunkFromFileRequestBody(
-                    file = file,
-                    contentType = HttpConstants.CONTENT_TYPE_OFFSET_OCTET_STREAM.toMediaTypeOrNull(),
-                    channel = channel,
-                    chunkSize = firstChunkSize!!
-                )
-            } else {
-                // creation only: empty body
-                ByteArray(0).toRequestBody(null)
-            }
-
-            val postMethod = PostMethod(URL(targetFileUrl), postBody)
-
-            // Set TUS headers
-            postMethod.setRequestHeader(HttpConstants.TUS_RESUMABLE, "1.0.0")
-            postMethod.setRequestHeader(HttpConstants.UPLOAD_LENGTH, file.length().toString())
-            postMethod.setRequestHeader(HttpConstants.CONTENT_TYPE_HEADER, HttpConstants.CONTENT_TYPE_OFFSET_OCTET_STREAM)
-            // Set TUS-Extension header to indicate which extensions we want to use
-            val extensions = if (useCreationWithUpload && (firstChunkSize ?: 0L) > 0L) {
-                "creation,creation-with-upload"
-            } else {
-                "creation"
-            }
-            postMethod.setRequestHeader(HttpConstants.TUS_EXTENSION, extensions)
-
-            // Prepare Upload-Metadata like iOS SDK
-            val allMetadata = metadata.toMutableMap()
-            allMetadata.putIfAbsent("filename", remotePath.substringAfterLast('/'))
-            allMetadata.putIfAbsent("mtime", (file.lastModified() / 1000).toString())
-
-            if (allMetadata.isNotEmpty()) {
-                postMethod.setRequestHeader(HttpConstants.UPLOAD_METADATA, encodeTusMetadata(allMetadata))
-            }
-
-            // Set Upload-Offset for creation-with-upload
-            if (useCreationWithUpload && (firstChunkSize ?: 0L) > 0L) {
-                setCreationWithUploadHeaders(postMethod, firstChunkSize!!)
-            }
+            val creationRequestBody = buildCreationRequestBody()
+            creationUploadFile = creationRequestBody.fileToClose
+            val postMethod = PostMethod(URL(targetFileUrl), creationRequestBody.body)
+            configureCreationRequest(postMethod)
 
             val status = client.executeHttpMethod(postMethod)
             Timber.d("TUS Creation [%s] - %d%s", targetFileUrl, status, if (!isSuccess(status)) " (FAIL)" else "")
             if (!isSuccess(status)) {
-                Timber.w("TUS Creation failed - Status: %d", status)
-                Timber.w("  Target URL: %s", targetFileUrl)
-                Timber.w("  Collection Override: %s", collectionUrlOverride)
-                Timber.w("  User Files WebDAV: %s", client.userFilesWebDavUri)
-                Timber.w("  Remote Path: %s", remotePath)
-                Timber.w("  File Size: %d bytes", file.length())
-                Timber.w("  Tus-Resumable: %s", postMethod.getRequestHeader(HttpConstants.TUS_RESUMABLE))
-                Timber.w("  Upload-Length: %s", postMethod.getRequestHeader(HttpConstants.UPLOAD_LENGTH))
-                Timber.w("  Upload-Metadata: %s", postMethod.getRequestHeader(HttpConstants.UPLOAD_METADATA))
+                logCreationFailure(status, targetFileUrl, postMethod, client)
             }
 
-            // Debug logging for troubleshooting
-            if (status == 412) {
-                Timber.w("HTTP 412 Precondition Failed - Request headers:")
-                Timber.w("  Tus-Resumable: %s", postMethod.getRequestHeader(HttpConstants.TUS_RESUMABLE))
-                Timber.w("  Tus-Extension: %s", postMethod.getRequestHeader(HttpConstants.TUS_EXTENSION))
-                Timber.w("  Upload-Length: %s", postMethod.getRequestHeader(HttpConstants.UPLOAD_LENGTH))
-                Timber.w("  Upload-Metadata: %s", postMethod.getRequestHeader(HttpConstants.UPLOAD_METADATA))
-                Timber.w("  Content-Type: %s", postMethod.getRequestHeader(HttpConstants.CONTENT_TYPE_HEADER))
-                Timber.w("  Content-Length: %d", postBody.contentLength())
-                if (useCreationWithUpload && (firstChunkSize ?: 0L) > 0L) {
-                    Timber.w("  Upload-Offset: %s", postMethod.getRequestHeader(HttpConstants.UPLOAD_OFFSET))
-                }
+            if (status == HttpConstants.HTTP_PRECONDITION_FAILED) {
+                logPreconditionFailure(postMethod, creationRequestBody.body)
             }
 
-            if (isSuccess(status)) {
-                val locationHeader = postMethod.getResponseHeader(HttpConstants.LOCATION_HEADER)
-                    ?: postMethod.getResponseHeader(HttpConstants.LOCATION_HEADER_LOWER)
-                val base = URL(postMethod.getFinalUrl().toString())
-                val resolved = resolveLocationToAbsolute(locationHeader, base)
-
-                val offsetHeader = postMethod.getResponseHeader(HttpConstants.UPLOAD_OFFSET)
-                val offset = offsetHeader?.toLongOrNull() ?: 0L
-
-                if (resolved != null) {
-                    Timber.d("TUS upload resource created: %s (offset=%d)", resolved, offset)
-                    RemoteOperationResult<CreationResult>(ResultCode.OK).apply {
-                        data = CreationResult(resolved, offset)
-                    }
-                } else {
-                    Timber.e("Location header is missing in TUS creation response")
-                    RemoteOperationResult<CreationResult>(IllegalStateException("Location header missing")).apply {
-                        data = null
-                    }
-                }
-            } else {
-                Timber.w("TUS creation failed with status: %d", status)
-                RemoteOperationResult<CreationResult>(postMethod).apply { data = null }
+            buildCreationResult(status, postMethod)
+        } catch (e: Exception) {
+            val result = RemoteOperationResult<CreationResult>(e)
+            Timber.e(e, "TUS creation operation failed")
+            result
+        } finally {
+            try {
+                creationUploadFile?.close()
+            } catch (e: Exception) {
+                Timber.w(e, "Failed to close TUS creation upload file")
             }
-    } catch (e: Exception) {
-        val result = RemoteOperationResult<CreationResult>(e)
-        Timber.e(e, "TUS creation operation failed")
-        result
-    }
-
-    private fun setCreationWithUploadHeaders(postMethod: PostMethod, firstChunkSize: Long) {
-        postMethod.setRequestHeader(HttpConstants.UPLOAD_OFFSET, "0")
-        // The data part of a creation-with-upload POST follows the same rules as a
-        // PATCH (TUS spec), so it carries Upload-Checksum for the first chunk.
-        checksumAlgorithm?.let { algorithm ->
-            val chunkChecksumHeader = TusChecksumHelper.uploadChecksumHeader(
-                file = file,
-                offset = 0,
-                length = firstChunkSize,
-                algorithm = algorithm,
-            )
-            postMethod.setRequestHeader(HttpConstants.UPLOAD_CHECKSUM, chunkChecksumHeader)
         }
     }
+
+    private fun resolveTargetFileUrl(client: OpenCloudClient): String {
+        if (!tusUrl.isNullOrBlank()) {
+            return tusUrl
+        }
+
+        val baseCollection = (collectionUrlOverride
+            ?: client.userFilesWebDavUri.toString()).trim()
+        val resolvedCollection = buildCollectionUrl(baseCollection, remotePath).trimEnd('/')
+        Timber.d("TUS resolved collection: %s", resolvedCollection)
+        return resolvedCollection
+    }
+
+    private fun buildCreationRequestBody(): CreationRequestBody =
+        if (shouldUseCreationWithUpload()) {
+            val raf = RandomAccessFile(file, "r")
+            val channel: FileChannel = raf.channel
+            CreationRequestBody(
+                body = ChunkFromFileRequestBody(
+                    file = file,
+                    contentType = HttpConstants.CONTENT_TYPE_OFFSET_OCTET_STREAM.toMediaTypeOrNull(),
+                    channel = channel,
+                    chunkSize = firstChunkSize!!
+                ),
+                fileToClose = raf
+            )
+        } else {
+            CreationRequestBody(
+                body = ByteArray(0).toRequestBody(null),
+                fileToClose = null
+            )
+        }
+
+    private fun configureCreationRequest(postMethod: PostMethod) {
+        postMethod.setRequestHeader(HttpConstants.TUS_RESUMABLE, "1.0.0")
+        postMethod.setRequestHeader(HttpConstants.UPLOAD_LENGTH, file.length().toString())
+        postMethod.setRequestHeader(HttpConstants.CONTENT_TYPE_HEADER, HttpConstants.CONTENT_TYPE_OFFSET_OCTET_STREAM)
+        postMethod.setRequestHeader(HttpConstants.TUS_EXTENSION, tusExtensionHeader())
+
+        val allMetadata = metadata.toMutableMap()
+        allMetadata.putIfAbsent("filename", remotePath.substringAfterLast('/'))
+        allMetadata.putIfAbsent("mtime", (file.lastModified() / 1000).toString())
+
+        if (allMetadata.isNotEmpty()) {
+            postMethod.setRequestHeader(HttpConstants.UPLOAD_METADATA, encodeTusMetadata(allMetadata))
+        }
+
+        if (shouldUseCreationWithUpload()) {
+            postMethod.setRequestHeader(HttpConstants.UPLOAD_OFFSET, "0")
+            // The data part of a creation-with-upload POST follows the same rules as a
+            // PATCH (TUS spec), so it carries Upload-Checksum for the first chunk.
+            checksumAlgorithm?.let { algorithm ->
+                val chunkChecksumHeader = TusChecksumHelper.uploadChecksumHeader(
+                    file = file,
+                    offset = 0,
+                    length = firstChunkSize!!,
+                    algorithm = algorithm,
+                )
+                postMethod.setRequestHeader(HttpConstants.UPLOAD_CHECKSUM, chunkChecksumHeader)
+            }
+        }
+    }
+
+    private fun tusExtensionHeader(): String =
+        if (shouldUseCreationWithUpload()) {
+            "creation,creation-with-upload"
+        } else {
+            "creation"
+        }
+
+    private fun buildCreationResult(status: Int, postMethod: PostMethod): RemoteOperationResult<CreationResult> =
+        if (isSuccess(status)) {
+            buildSuccessfulCreationResult(postMethod)
+        } else {
+            Timber.w("TUS creation failed with status: %d", status)
+            RemoteOperationResult<CreationResult>(postMethod).apply { data = null }
+        }
+
+    private fun buildSuccessfulCreationResult(postMethod: PostMethod): RemoteOperationResult<CreationResult> {
+        val locationHeader = postMethod.getResponseHeader(HttpConstants.LOCATION_HEADER)
+            ?: postMethod.getResponseHeader(HttpConstants.LOCATION_HEADER_LOWER)
+        val base = URL(postMethod.getFinalUrl().toString())
+        val resolved = resolveLocationToAbsolute(locationHeader, base)
+
+        val offsetHeader = postMethod.getResponseHeader(HttpConstants.UPLOAD_OFFSET)
+        val offset = offsetHeader?.toLongOrNull() ?: 0L
+
+        return if (resolved != null) {
+            Timber.d("TUS upload resource created: %s (offset=%d)", resolved, offset)
+            RemoteOperationResult<CreationResult>(ResultCode.OK).apply {
+                data = CreationResult(resolved, offset)
+            }
+        } else {
+            Timber.e("Location header is missing in TUS creation response")
+            RemoteOperationResult<CreationResult>(IllegalStateException("Location header missing")).apply {
+                data = null
+            }
+        }
+    }
+
+    private fun logCreationFailure(
+        status: Int,
+        targetFileUrl: String,
+        postMethod: PostMethod,
+        client: OpenCloudClient
+    ) {
+        Timber.w("TUS Creation failed - Status: %d", status)
+        Timber.w("  Target URL: %s", targetFileUrl)
+        Timber.w("  Collection Override: %s", collectionUrlOverride)
+        Timber.w("  User Files WebDAV: %s", client.userFilesWebDavUri)
+        Timber.w("  Remote Path: %s", remotePath)
+        Timber.w("  File Size: %d bytes", file.length())
+        Timber.w("  Tus-Resumable: %s", postMethod.getRequestHeader(HttpConstants.TUS_RESUMABLE))
+        Timber.w("  Upload-Length: %s", postMethod.getRequestHeader(HttpConstants.UPLOAD_LENGTH))
+        Timber.w("  Upload-Metadata: %s", postMethod.getRequestHeader(HttpConstants.UPLOAD_METADATA))
+    }
+
+    private fun logPreconditionFailure(postMethod: PostMethod, postBody: RequestBody) {
+        Timber.w("HTTP 412 Precondition Failed - Request headers:")
+        Timber.w("  Tus-Resumable: %s", postMethod.getRequestHeader(HttpConstants.TUS_RESUMABLE))
+        Timber.w("  Tus-Extension: %s", postMethod.getRequestHeader(HttpConstants.TUS_EXTENSION))
+        Timber.w("  Upload-Length: %s", postMethod.getRequestHeader(HttpConstants.UPLOAD_LENGTH))
+        Timber.w("  Upload-Metadata: %s", postMethod.getRequestHeader(HttpConstants.UPLOAD_METADATA))
+        Timber.w("  Content-Type: %s", postMethod.getRequestHeader(HttpConstants.CONTENT_TYPE_HEADER))
+        Timber.w("  Content-Length: %d", postBody.contentLength())
+        if (shouldUseCreationWithUpload()) {
+            Timber.w("  Upload-Offset: %s", postMethod.getRequestHeader(HttpConstants.UPLOAD_OFFSET))
+        }
+    }
+
+    private fun shouldUseCreationWithUpload(): Boolean =
+        useCreationWithUpload && (firstChunkSize ?: 0L) > 0L
 
     private fun isSuccess(status: Int) =
         status.isOneOf(HttpConstants.HTTP_CREATED, HttpConstants.HTTP_OK)
@@ -199,7 +238,6 @@ class CreateTusUploadRemoteOperation(
             null
         }
     }
-
 
 
     private fun buildCollectionUrl(base: String, remotePath: String): String {

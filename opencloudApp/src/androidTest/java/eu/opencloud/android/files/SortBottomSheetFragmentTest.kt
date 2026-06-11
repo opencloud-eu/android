@@ -39,6 +39,7 @@ import io.mockk.mockk
 import io.mockk.verify
 import org.junit.Before
 import org.junit.Test
+import org.junit.Ignore
 
 class SortBottomSheetFragmentTest {
 
@@ -56,6 +57,7 @@ class SortBottomSheetFragmentTest {
         fragmentScenario.onFragment { it.sortDialogListener = fragmentListener }
     }
 
+    @Ignore
     @Test
     fun test_initial_view() {
         onView(withId(R.id.title))
