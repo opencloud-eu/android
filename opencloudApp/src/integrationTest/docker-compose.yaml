@@ -1,13 +1,7 @@
 version: "4"
 services:
   android-emulator-cuda:
-    build:
-      context: .
-      dockerfile: ./Dockerfile.gpu
-      args:
-        - API_LEVEL=36
-        - CMD_LINE_VERSION=11076708_latest
-        - IMG_TYPE=default
+    image: opencloudeu/android-emulator-ci:api-36
     ports:
       - 10.8.0.1:5554:5554
       - 10.8.0.1:5555:5555
@@ -21,7 +15,6 @@ services:
       - SKIP_AUTH=false
       - MEMORY=16384
       - CORES=6
-      - GPU_ACCELERATED=true
     privileged: true
     tty: true
     stdin_open: true
@@ -61,5 +54,5 @@ volumes:
   woodpecker-agent-config:
 
 networks:
-  android-integration-tests:
-    name: android-integration-tests
+ android-integration-tests:
+   name: android-integration-tests
