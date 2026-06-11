@@ -57,6 +57,8 @@ open class UploadFileFromFileSystemOperation(
     val lastModifiedTimestamp: String,
     val requiredEtag: String?,
     val spaceWebDavUrl: String? = null,
+    /** Whole-file checksum as "ALGORITHM:hex" (e.g. "SHA1:30338d…"); server rejects with 400 on mismatch. */
+    val ocChecksum: String? = null,
 ) : RemoteOperation<Unit>() {
 
     protected val cancellationRequested = AtomicBoolean(false)
@@ -76,7 +78,8 @@ open class UploadFileFromFileSystemOperation(
             } else {
                 // perform the upload
                 result = uploadFile(client)
-                Timber.i("Upload of $localPath to $remotePath: ${result.logMessage}")
+                val outcome = if (result.isSuccess) "success, etag=$etag" else result.logMessage
+                Timber.i("Upload of $localPath to $remotePath: $outcome")
             }
         } catch (e: Exception) {
             if (putMethod?.isAborted == true) {
@@ -107,6 +110,7 @@ open class UploadFileFromFileSystemOperation(
             }
             addRequestHeader(HttpConstants.OC_TOTAL_LENGTH_HEADER, fileToUpload.length().toString())
             addRequestHeader(HttpConstants.OC_X_OC_MTIME_HEADER, lastModifiedTimestamp)
+            ocChecksum?.let { addRequestHeader(HttpConstants.OC_CHECKSUM_HEADER, it) }
         }
 
         val status = client.executeHttpMethod(putMethod)

@@ -377,12 +377,16 @@ class UploadFileFromContentUriWorker(
             tusUploadUrl = ocTransfer.tusUploadUrl,
         )
 
+        if (hasPendingTusSession && !hasStoredSha1Checksum()) {
+            Timber.w("TUS session for %s has no original checksum. Clearing state and recreating.", uploadPath)
+            clearTusState()
+        }
+        // Always have the whole-file checksum: TUS sends it in Upload-Metadata, plain PUTs
+        // in the OC-Checksum header. Usually already persisted by copyFileToLocalStorage;
+        // this only reads the source again for cache-reuse runs of pre-checksum DB rows.
+        ensureOriginalTusChecksum()
+
         if (shouldTryTus) {
-            if (hasPendingTusSession && !hasStoredSha1Checksum()) {
-                Timber.w("TUS session for %s has no original checksum. Clearing state and recreating.", uploadPath)
-                clearTusState()
-            }
-            ensureOriginalTusChecksum()
             Timber.d(
                 "Attempting TUS upload (size=%d, threshold=%d, resume=%s)",
                 fileSize,
@@ -434,6 +438,7 @@ class UploadFileFromContentUriWorker(
     }
 
     private fun uploadPlainFile(client: OpenCloudClient) {
+        val fileChecksum = TusChecksumHelper.parseStoredChecksum(ocTransfer.tusUploadChecksum)
         uploadFileOperation = UploadFileFromFileSystemOperation(
             localPath = cachePath,
             remotePath = uploadPath,
@@ -441,6 +446,7 @@ class UploadFileFromContentUriWorker(
             lastModifiedTimestamp = lastModified,
             requiredEtag = null,
             spaceWebDavUrl = spaceWebDavUrl,
+            ocChecksum = fileChecksum?.ocChecksumHeaderValue,
         ).apply {
             addDataTransferProgressListener(this@UploadFileFromContentUriWorker)
         }

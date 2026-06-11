@@ -69,7 +69,8 @@ class DownloadRemoteFileOperation(
         return try {
             tmpFile.parentFile?.mkdirs()
             downloadFile(client, tmpFile).also { result ->
-                Timber.i("Download of $remotePath to $tmpPath: ${result.logMessage}")
+                val outcome = if (result.isSuccess) "success, etag=$etag" else result.logMessage
+                Timber.i("Download of $remotePath to $tmpPath: $outcome")
             }
         } catch (e: Exception) {
             RemoteOperationResult<Unit>(e).also { result ->

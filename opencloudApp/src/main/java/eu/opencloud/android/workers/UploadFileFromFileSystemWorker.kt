@@ -267,12 +267,15 @@ class UploadFileFromFileSystemWorker(
             tusUploadUrl = ocTransfer.tusUploadUrl,
         )
 
+        if (hasPendingTusSession && !hasStoredSha1Checksum()) {
+            Timber.w("TUS session for %s has no original checksum. Clearing state and recreating.", uploadPath)
+            clearTusState()
+        }
+        // Always compute the whole-file checksum: TUS sends it in Upload-Metadata,
+        // plain PUTs send it in the OC-Checksum header.
+        ensureOriginalTusChecksum()
+
         if (shouldTryTus) {
-            if (hasPendingTusSession && !hasStoredSha1Checksum()) {
-                Timber.w("TUS session for %s has no original checksum. Clearing state and recreating.", uploadPath)
-                clearTusState()
-            }
-            ensureOriginalTusChecksum()
             Timber.d(
                 "Attempting TUS upload (size=%d, threshold=%d, resume=%s)",
                 fileSize,
@@ -326,6 +329,7 @@ class UploadFileFromFileSystemWorker(
     }
 
     private fun uploadPlainFile(client: OpenCloudClient) {
+        val fileChecksum = TusChecksumHelper.parseStoredChecksum(ocTransfer.tusUploadChecksum)
         uploadFileOperation = UploadFileFromFileSystemOperation(
             localPath = fileSystemPath,
             remotePath = uploadPath,
@@ -333,6 +337,7 @@ class UploadFileFromFileSystemWorker(
             lastModifiedTimestamp = lastModified,
             requiredEtag = eTagInConflict,
             spaceWebDavUrl = spaceWebDavUrl,
+            ocChecksum = fileChecksum?.ocChecksumHeaderValue,
         ).apply {
             addDataTransferProgressListener(this@UploadFileFromFileSystemWorker)
         }

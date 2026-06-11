@@ -48,6 +48,10 @@ object TusChecksumHelper {
         val uploadAlgorithm: String
             get() = algorithm.lowercase(Locale.ROOT)
 
+        /** Value for the OC-Checksum header on plain PUTs: "SHA1:<hex>" (colon-separated). */
+        val ocChecksumHeaderValue: String
+            get() = "${metadataAlgorithm()}:${hex.lowercase(Locale.ROOT)}"
+
         private fun metadataAlgorithm(): String =
             if (algorithm.lowercase(Locale.ROOT) == SHA1_WIRE_ALGORITHM) SHA1_METADATA_ALGORITHM
             else algorithm.uppercase(Locale.ROOT)
