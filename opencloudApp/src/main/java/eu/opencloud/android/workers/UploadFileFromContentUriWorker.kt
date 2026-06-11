@@ -62,6 +62,7 @@ import eu.opencloud.android.lib.resources.files.CreateRemoteFolderOperation
 import eu.opencloud.android.lib.resources.files.UploadFileFromFileSystemOperation
 import eu.opencloud.android.lib.resources.files.tus.TusChecksumHelper
 import eu.opencloud.android.presentation.authentication.AccountUtils
+import eu.opencloud.android.utils.MimetypeIconUtil
 import eu.opencloud.android.utils.NotificationUtils
 import eu.opencloud.android.utils.UPLOAD_NOTIFICATION_CHANNEL_ID
 import eu.opencloud.android.utils.RemoteFileUtils.getAvailableRemotePath
@@ -360,7 +361,7 @@ class UploadFileFromContentUriWorker(
 
     private fun uploadDocument(client: OpenCloudClient) {
         val cacheFile = File(cachePath)
-        mimeType = cacheFile.extension
+        mimeType = MimetypeIconUtil.getBestMimeTypeByFilename(uploadPath)
         fileSize = cacheFile.length()
         ensureValidLastModified(null, cacheFile)
 

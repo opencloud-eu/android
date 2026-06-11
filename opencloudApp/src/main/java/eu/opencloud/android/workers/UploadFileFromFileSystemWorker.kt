@@ -55,6 +55,7 @@ import eu.opencloud.android.lib.resources.files.CreateRemoteFolderOperation
 import eu.opencloud.android.lib.resources.files.UploadFileFromFileSystemOperation
 import eu.opencloud.android.lib.resources.files.tus.TusChecksumHelper
 import eu.opencloud.android.presentation.authentication.AccountUtils
+import eu.opencloud.android.utils.MimetypeIconUtil
 import eu.opencloud.android.utils.NotificationUtils
 import eu.opencloud.android.utils.RemoteFileUtils.getAvailableRemotePath
 import eu.opencloud.android.utils.UPLOAD_NOTIFICATION_CHANNEL_ID
@@ -182,7 +183,7 @@ class UploadFileFromFileSystemWorker(
             // Permissions not granted. Throw an exception to ask for them.
             throw LocalFileNotFoundException()
         }
-        mimetype = fileInFileSystem.extension
+        mimetype = MimetypeIconUtil.getBestMimeTypeByFilename(fileInFileSystem.name)
         fileSize = fileInFileSystem.length()
         ensureValidLastModified(fileInFileSystem)
     }
