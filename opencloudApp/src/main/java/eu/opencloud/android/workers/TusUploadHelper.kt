@@ -326,11 +326,15 @@ class TusUploadHelper(
                     Timber.w("TUS: offset recovery failed (recovered=%s, current=%d)", recoveredOffset, offset)
                 }
 
-                // Check if we've exhausted retries
+                // Check if we've exhausted retries. This retry loop is meant for transient
+                // network failures; local read errors (e.g. cache file deleted mid-upload)
+                // also end up here, but since the request body propagates them (PR #157)
+                // patchResult.exception carries the real cause — chain it so the final
+                // failure doesn't blame the network for a local problem.
                 if (consecutiveFailures >= MAX_RETRIES) {
                     throw java.io.IOException(
-                        "TUS: giving up after $MAX_RETRIES retries at offset $offset (network error)",
-                        IllegalStateException("TUS: max retries exceeded")
+                        "TUS: giving up after $MAX_RETRIES retries at offset $offset",
+                        patchResult.exception ?: IllegalStateException("TUS: max retries exceeded")
                     )
                 }
 
