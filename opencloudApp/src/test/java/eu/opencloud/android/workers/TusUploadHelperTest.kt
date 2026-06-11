@@ -31,6 +31,7 @@ import io.mockk.verify
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.After
+import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -65,18 +66,19 @@ class TusUploadHelperTest {
     }
 
     @Test
-    fun upload_createsCheckedSessionWithoutFirstChunkAndClearsTusState() {
+    fun upload_createsCheckedSessionWithFirstChunkChecksumAndClearsTusState() {
         val localFile = tempFileWithBytes(byteArrayOf(1, 2, 3, 4, 5))
         val sha1Hex = TusChecksumHelper.sha1Hex(localFile)
         val storedChecksum = TusChecksumHelper.storedSha1(sha1Hex).storageValue
         val uploadUrl = "/uploads/new-session"
+        // creation-with-upload: the whole 5-byte file fits in the creation POST,
+        // so the server acknowledges Upload-Offset 5 and no PATCH follows.
         server.enqueue(
             MockResponse()
                 .setResponseCode(201)
                 .addHeader("Location", uploadUrl)
-                .addHeader("Upload-Offset", "0")
+                .addHeader("Upload-Offset", "5")
         )
-        server.enqueue(MockResponse().setResponseCode(204).addHeader("Upload-Offset", "5"))
         server.enqueue(MockResponse().setResponseCode(404))
         val progress = mutableListOf<Long>()
 
@@ -96,18 +98,14 @@ class TusUploadHelperTest {
         )
 
         assertNull(resultEtag)
-        assertEquals(listOf(0L, 5L), progress)
+        assertEquals(listOf(5L), progress)
 
         val createRequest = server.takeRequest()
         assertEquals("POST", createRequest.method)
         assertEquals("/dav/spaces/personal/Photos", createRequest.path)
-        assertNull(createRequest.getHeader("Upload-Offset"))
+        assertEquals("0", createRequest.getHeader("Upload-Offset"))
         assertEquals("5", createRequest.getHeader("Upload-Length"))
         assertTrue(createRequest.getHeader("Upload-Metadata")!!.contains("checksum"))
-
-        val patchRequest = server.takeRequest()
-        assertEquals("PATCH", patchRequest.method)
-        assertEquals("0", patchRequest.getHeader("Upload-Offset"))
         assertEquals(
             TusChecksumHelper.uploadChecksumHeader(
                 file = localFile,
@@ -115,8 +113,9 @@ class TusUploadHelperTest {
                 length = 5,
                 algorithm = TusChecksumHelper.SHA1_WIRE_ALGORITHM,
             ),
-            patchRequest.getHeader("Upload-Checksum")
+            createRequest.getHeader("Upload-Checksum")
         )
+        assertArrayEquals(byteArrayOf(1, 2, 3, 4, 5), createRequest.body.readByteArray())
 
         verify {
             transferRepository.updateTusState(

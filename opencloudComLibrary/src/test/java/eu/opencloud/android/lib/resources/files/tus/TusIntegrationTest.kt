@@ -243,7 +243,6 @@ class TusIntegrationTest {
         val localFile = File.createTempFile("tus", ".bin").apply {
             writeBytes(byteArrayOf(1, 2, 3, 4, 5))
         }
-        val checksum = TusChecksumHelper.storedSha1(TusChecksumHelper.sha1Hex(localFile))
         server.enqueue(
             MockResponse()
                 .setResponseCode(204)
@@ -255,7 +254,7 @@ class TusIntegrationTest {
             uploadUrl = server.url(locationPath).toString(),
             offset = 0,
             chunkSize = 5,
-            checksum = checksum,
+            checksumAlgorithm = TusChecksumHelper.SHA1_WIRE_ALGORITHM,
         )
         val patchResult = patch.execute(client)
 
@@ -337,6 +336,57 @@ class TusIntegrationTest {
         // creation-with-upload sends Content-Type and Content-Length for the chunk
         assertEquals("application/offset+octet-stream", postReq.getHeader("Content-Type"))
         assertEquals(firstChunkSize.toString(), postReq.getHeader("Content-Length"))
+    }
+
+    @Test
+    fun creation_with_upload_sendsUploadChecksumForFirstChunk() {
+        val client = newClient()
+        val collectionPath = "/remote.php/dav/uploads/$userId"
+        val locationPath = "$collectionPath/UPLD-WITH-DATA-CHECKSUM"
+        val localFile = File.createTempFile("tus", ".bin").apply {
+            writeBytes(ByteArray(100) { it.toByte() })
+        }
+        val firstChunkSize = 50L
+        server.enqueue(
+            MockResponse()
+                .setResponseCode(201)
+                .addHeader("Tus-Resumable", "1.0.0")
+                .addHeader("Location", locationPath)
+                .addHeader("Upload-Offset", firstChunkSize.toString())
+        )
+
+        val create = CreateTusUploadRemoteOperation(
+            file = localFile,
+            remotePath = "/test-with-data.bin",
+            mimetype = "application/octet-stream",
+            metadata = mapOf("filename" to "test-with-data.bin"),
+            useCreationWithUpload = true,
+            firstChunkSize = firstChunkSize,
+            tusUrl = null,
+            collectionUrlOverride = server.url(collectionPath).toString(),
+            base64Encoder = object : Base64Encoder {
+                override fun encode(bytes: ByteArray): String =
+                    Base64.getEncoder().encodeToString(bytes)
+            },
+            checksumAlgorithm = TusChecksumHelper.SHA1_WIRE_ALGORITHM,
+        )
+
+        val createResult = create.execute(client)
+        assertTrue("Create operation failed", createResult.isSuccess)
+
+        val postReq = server.takeRequest()
+        assertEquals("POST", postReq.method)
+        assertEquals("0", postReq.getHeader("Upload-Offset"))
+        // The Upload-Checksum header must cover exactly the first chunk, not the whole file.
+        assertEquals(
+            TusChecksumHelper.uploadChecksumHeader(
+                file = localFile,
+                offset = 0,
+                length = firstChunkSize,
+                algorithm = TusChecksumHelper.SHA1_WIRE_ALGORITHM,
+            ),
+            postReq.getHeader("Upload-Checksum")
+        )
     }
 
     @Test

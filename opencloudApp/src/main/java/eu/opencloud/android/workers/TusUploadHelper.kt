@@ -55,7 +55,7 @@ class TusUploadHelper(
     ) : String? {
         // Reset cancelled state for new upload
         cancelled = false
-        val checksum = TusChecksumHelper.parseStoredChecksum(transfer.tusUploadChecksum)
+        val fileChecksum = TusChecksumHelper.parseStoredChecksum(transfer.tusUploadChecksum)
             ?.takeIf { it.uploadAlgorithm == TusChecksumHelper.SHA1_WIRE_ALGORITHM }
         Timber.d("TUS: starting upload for %s size=%d", remotePath, fileSize)
 
@@ -69,7 +69,8 @@ class TusUploadHelper(
             mimeType = mimeType,
             lastModified = lastModified,
             spaceWebDavUrl = spaceWebDavUrl,
-            checksum = checksum,
+            fileChecksum = fileChecksum,
+            tusSupport = tusSupport,
         )
 
         val offset = fetchCurrentOffset(client, resolvedTusUrl, createdOffset)
@@ -86,7 +87,7 @@ class TusUploadHelper(
             progressCallback = progressCallback,
             initialOffset = offset,
             uploadId = uploadId,
-            checksum = checksum,
+            checksumAlgorithm = fileChecksum?.uploadAlgorithm,
         )
 
         verifyUploadCompletion(finalOffset, fileSize, uploadId)
@@ -104,7 +105,8 @@ class TusUploadHelper(
         mimeType: String,
         lastModified: String?,
         spaceWebDavUrl: String?,
-        checksum: TusChecksumHelper.StoredChecksum?,
+        fileChecksum: TusChecksumHelper.StoredChecksum?,
+        tusSupport: OCCapability.TusSupport?,
     ): Pair<String, Long?> {
         var tusUrl = transfer.tusUploadUrl
         var createdOffset: Long? = null
@@ -116,7 +118,7 @@ class TusUploadHelper(
                 "mimetype" to mimeType,
             )
             lastModified?.takeIf { it.isNotBlank() }?.let { metadata["mtime"] = it }
-            checksum?.let { metadata["checksum"] = it.metadataValue }
+            fileChecksum?.let { metadata["checksum"] = it.metadataValue }
 
             Timber.d(
                 "TUS: creating upload resource filename=%s size=%d metadata=%s",
@@ -130,23 +132,25 @@ class TusUploadHelper(
                 spaceWebDavUrl = spaceWebDavUrl
             )
 
-            // Checked uploads must send every byte via PATCH so each chunk can carry Upload-Checksum.
-            val useCreationWithUpload = checksum == null
-            val firstChunkSize = if (useCreationWithUpload) {
-                minOf(CreateTusUploadRemoteOperation.DEFAULT_FIRST_CHUNK, fileSize)
-            } else {
-                null
-            }
+            // Use creation-with-upload like the browser does for OpenCloud compatibility.
+            // The data part of a creation-with-upload POST follows the same rules as a PATCH
+            // (TUS spec), so it carries Upload-Checksum for the first chunk just like the
+            // PATCH requests do for the remaining ones — and like a PATCH it must respect
+            // the server's max_chunk_size (DEFAULT_FIRST_CHUNK is 10 MiB, but e.g. OpenCloud
+            // advertises 10_000_000, slightly smaller).
+            val serverMaxChunk = tusSupport?.maxChunkSize?.takeIf { it > 0 }?.toLong() ?: Long.MAX_VALUE
+            val firstChunkSize = minOf(CreateTusUploadRemoteOperation.DEFAULT_FIRST_CHUNK, fileSize, serverMaxChunk)
             val creationResult = executeRemoteOperation {
                 CreateTusUploadRemoteOperation(
                     file = File(localPath),
                     remotePath = remotePath,
                     mimetype = mimeType,
                     metadata = metadata,
-                    useCreationWithUpload = useCreationWithUpload,
+                    useCreationWithUpload = true,
                     firstChunkSize = firstChunkSize,
                     tusUrl = "",
                     collectionUrlOverride = collectionUrl,
+                    checksumAlgorithm = fileChecksum?.uploadAlgorithm,
                 ).execute(client)
             }
 
@@ -163,7 +167,7 @@ class TusUploadHelper(
                 tusUploadUrl = tusUrl,
                 tusUploadLength = fileSize,
                 tusUploadMetadata = metadataString,
-                tusUploadChecksum = checksum?.storageValue,
+                tusUploadChecksum = fileChecksum?.storageValue,
                 tusResumableVersion = "1.0.0",
                 tusUploadExpires = null,
                 tusUploadConcat = null,
@@ -243,7 +247,7 @@ class TusUploadHelper(
         progressCallback: ((Long, Long) -> Unit)?,
         initialOffset: Long,
         uploadId: Long,
-        checksum: TusChecksumHelper.StoredChecksum?,
+        checksumAlgorithm: String?,
     ): Pair<Long, String?> {
         var offset = initialOffset
         var lastEtag: String? = null
@@ -267,7 +271,7 @@ class TusUploadHelper(
                 offset = offset,
                 chunkSize = chunkSize,
                 httpMethodOverride = httpOverride,
-                checksum = checksum,
+                checksumAlgorithm = checksumAlgorithm,
             ).apply {
                 progressListener?.let { addDataTransferProgressListener(it) }
             }
@@ -276,7 +280,7 @@ class TusUploadHelper(
             val patchResult = patchOperation.execute(client)
             lastEtag = patchOperation.etag.takeIf { it.isNotBlank() }
             activePatchOperation = null
-            if (checksum != null && isChecksumFailure(patchResult.httpCode)) {
+            if (checksumAlgorithm != null && isChecksumFailure(patchResult.httpCode)) {
                 clearTusState(uploadId)
                 throw java.io.IOException(
                     "TUS: checksum upload rejected with HTTP ${patchResult.httpCode} at offset $offset"

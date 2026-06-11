@@ -29,7 +29,9 @@ class CreateTusUploadRemoteOperation(
     private val firstChunkSize: Long?,
     private val tusUrl: String?,
     private val collectionUrlOverride: String? = null,
-    private val base64Encoder: Base64Encoder = DefaultBase64Encoder()
+    private val base64Encoder: Base64Encoder = DefaultBase64Encoder(),
+    /** When set (e.g. "sha1"), an Upload-Checksum header is computed over the first chunk. */
+    private val checksumAlgorithm: String? = null,
 ) : RemoteOperation<CreateTusUploadRemoteOperation.CreationResult>() {
 
     data class CreationResult(
@@ -103,7 +105,7 @@ class CreateTusUploadRemoteOperation(
 
             // Set Upload-Offset for creation-with-upload
             if (useCreationWithUpload && (firstChunkSize ?: 0L) > 0L) {
-                postMethod.setRequestHeader(HttpConstants.UPLOAD_OFFSET, "0")
+                setCreationWithUploadHeaders(postMethod, firstChunkSize!!)
             }
 
             val status = client.executeHttpMethod(postMethod)
@@ -162,6 +164,21 @@ class CreateTusUploadRemoteOperation(
         val result = RemoteOperationResult<CreationResult>(e)
         Timber.e(e, "TUS creation operation failed")
         result
+    }
+
+    private fun setCreationWithUploadHeaders(postMethod: PostMethod, firstChunkSize: Long) {
+        postMethod.setRequestHeader(HttpConstants.UPLOAD_OFFSET, "0")
+        // The data part of a creation-with-upload POST follows the same rules as a
+        // PATCH (TUS spec), so it carries Upload-Checksum for the first chunk.
+        checksumAlgorithm?.let { algorithm ->
+            val chunkChecksumHeader = TusChecksumHelper.uploadChecksumHeader(
+                file = file,
+                offset = 0,
+                length = firstChunkSize,
+                algorithm = algorithm,
+            )
+            postMethod.setRequestHeader(HttpConstants.UPLOAD_CHECKSUM, chunkChecksumHeader)
+        }
     }
 
     private fun isSuccess(status: Int) =

@@ -32,7 +32,8 @@ class PatchTusUploadChunkRemoteOperation(
     private val offset: Long,
     private val chunkSize: Long,
     private val httpMethodOverride: String? = null,
-    private val checksum: TusChecksumHelper.StoredChecksum? = null,
+    /** When set (e.g. "sha1"), an Upload-Checksum header is computed over this chunk's bytes. */
+    private val checksumAlgorithm: String? = null,
 ) : RemoteOperation<Long>() {
 
     private val cancellationRequested = AtomicBoolean(false)
@@ -75,16 +76,14 @@ class PatchTusUploadChunkRemoteOperation(
                     setRequestHeader(HttpConstants.TUS_RESUMABLE, HttpConstants.TUS_RESUMABLE_VERSION_1_0_0)
                     setRequestHeader(HttpConstants.UPLOAD_OFFSET, offset.toString())
                     setRequestHeader(HttpConstants.CONTENT_TYPE_HEADER, HttpConstants.CONTENT_TYPE_OFFSET_OCTET_STREAM)
-                    checksum?.let {
-                        setRequestHeader(
-                            HttpConstants.UPLOAD_CHECKSUM,
-                            TusChecksumHelper.uploadChecksumHeader(
-                                file = file,
-                                offset = offset,
-                                length = chunkSize,
-                                algorithm = it.uploadAlgorithm,
-                            )
+                    checksumAlgorithm?.let { algorithm ->
+                        val chunkChecksumHeader = TusChecksumHelper.uploadChecksumHeader(
+                            file = file,
+                            offset = offset,
+                            length = chunkSize,
+                            algorithm = algorithm,
                         )
+                        setRequestHeader(HttpConstants.UPLOAD_CHECKSUM, chunkChecksumHeader)
                     }
                 }
 
