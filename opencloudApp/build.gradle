@@ -119,7 +119,7 @@ android {
         testInstrumentationRunner "eu.opencloud.android.utils.OCTestAndroidJUnitRunner"
 
         versionCode = 10
-        versionName = "1.3.0"
+        versionName = "1.2.4"
 
         buildConfigField "String", gitRemote, "\"" + getGitOriginRemote() + "\""
         buildConfigField "String", commitSHA1, "\"" + getLatestGitHash() + "\""
