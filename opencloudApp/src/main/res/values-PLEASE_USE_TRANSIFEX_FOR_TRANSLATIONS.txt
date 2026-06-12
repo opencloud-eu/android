@@ -1,0 +1,2 @@
+-> https://app.transifex.com/opencloud-eu/opencloud-eu/android/
+
