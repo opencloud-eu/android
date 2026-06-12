@@ -42,21 +42,21 @@
     <string name="prefs_subsection_more">Meer</string>
     <string name="prefs_subsection_security">Beveiliging</string>
     <string name="prefs_subsection_whatsnew">Wat is er nieuw in de laatste versie\?</string>
-    <string name="prefs_subsection_security_summary">Stel vergrendelingen in om toegang tot de app te beheren en toestaan van aanrakingen met andere zichtbare vensters</string>
-    <string name="prefs_subsection_logging_summary">Houd logboeken bij die zijn geproduceerd door de uitvoering van de app</string>
+    <string name="prefs_subsection_security_summary">Beheer van toegangsvergrendeling tot de app en het toestaan van aanrakingen bij andere zichtbare vensters</string>
+    <string name="prefs_subsection_logging_summary">Logboeken bijhouden van de uitvoering van de app</string>
     <string name="prefs_subsection_more_summary">App-info, feedback en overige</string>
     <string name="prefs_accounts">Accounts</string>
     <string name="prefs_manage_accounts">Accounts beheren</string>
-    <string name="prefs_passcode">Toegangscode-vergrendeling</string>
-    <string name="prefs_biometric">Biometrische vergrendeling</string>
-    <string name="prefs_biometric_summary">Schakel toegangscode of patroonvergrendeling in om deze optie in te schakelen</string>
-    <string name="prefs_lock_application">Toepassing vergrendelen</string>
+    <string name="prefs_passcode">Toegangscodeontgrendeling</string>
+    <string name="prefs_biometric">Biometrische ontgrendeling</string>
+    <string name="prefs_biometric_summary">Deze optie vereist ontgrendeling met toegangscode of patroon</string>
+    <string name="prefs_lock_application">App vergrendelen</string>
     <string name="prefs_lock_application_entries_immediately">Onmiddellijk</string>
     <string name="prefs_lock_application_entries_1minute">Na 1 minuut</string>
     <string name="prefs_lock_application_entries_5minutes">Na 5 minuten</string>
     <string name="prefs_lock_application_entries_30minutes">Na 30 minuten</string>
-    <string name="prefs_lock_access_from_document_provider">Toegang vergrendelen vanaf documentprovider</string>
-    <string name="prefs_lock_access_from_document_provider_summary">Vergrendel de toegang van andere apps tot de bestanden van de accounts in de app via de Android bestandsverkenner.</string>
+    <string name="prefs_lock_access_from_document_provider">Toegang blokkeren vanuit bestandsbeheer</string>
+    <string name="prefs_lock_access_from_document_provider_summary">Blokkeer de toegang van andere apps tot de bestanden van accounts in de app via Android bestandsbeheer.</string>
     <string name="prefs_touches_with_other_visible_windows">Raakt andere zichtbare vensters</string>
     <string name="prefs_touches_with_other_visible_windows_summary">Sta aanrakingen toe als de weergave door een ander zichtbaar venster wordt bedekt. Schakel dit in om apps voor lichtfiltering te kunnen gebruiken.</string>
     <string name="confirmation_touches_with_other_windows_title">Weet u zeker dat u deze functie wilt inschakelen\?</string>
@@ -84,7 +84,7 @@
     <string name="prefs_show_hidden_files">Verborgen bestanden weergeven</string>
     <string name="prefs_log_open_logs_list_view">Logboekbestanden</string>
     <string name="prefs_log_no_logs_list_view">Logboekbestanden wissen!</string>
-    <string name="prefs_log_empty_subtitle">Logging inschakelen en logbestanden verschijnen hier.</string>
+    <string name="prefs_log_empty_subtitle">Logboeken inschakelen en logboekbestanden verschijnen hier.</string>
     <string name="prefs_log_title">Logboeken inschakelen</string>
     <string name="prefs_log_summary">Dit wordt gebruikt om problemen te registeren.</string>
     <string name="prefs_log_title_history">Logboekgeschiedenis</string>
@@ -100,7 +100,7 @@
     <string name="prefs_imprint">Handelsmerk</string>
     <string name="prefs_remember_last_share_location">Onthoud locatie delen</string>
     <string name="prefs_remember_last_upload_location_summary">Onthoud de locatie van de laatste upload van gedeelde bestanden</string>
-    <string name="prefs_pattern">Patroonvergrendeling</string>
+    <string name="prefs_pattern">Patroonontgrendeling</string>
     <string name="prefs_enable_logging">Logboeken inschakelen</string>
     <string name="prefs_enable_logging_summary">Indien ingeschakeld, kunnen logboeken de prestaties beïnvloeden en gevoelige informatie bevatten. De logboeken worden echter niet automatisch verzonden naar OpenCloud-servers. Het delen van logboeken met anderen is de exclusieve verantwoordelijkheid van de gebruiker.</string>
     <string name="prefs_send_feedback">Reacties versturen</string>
@@ -112,10 +112,10 @@
     <string name="pattern_incorrect_pattern">Onjuist patroon</string>
     <string name="pattern_reenter_pattern">Voer uw patroon opnieuw in.</string>
     <string name="pattern_not_same_pattern">De patronen zijn niet hetzelfde.</string>
-    <string name="pattern_error_set">Er is een fout opgetreden bij het instellen van de patroonvergrendeling.</string>
-    <string name="pattern_error_remove">Er is een fout opgetreden bij het verwijderen van de patroonvergrendeling.</string>
-    <string name="pattern_already_set">Patroon- en toegangscodevergrendelingen kunnen niet tegelijkertijd worden ingeschakeld. Schakel patroon eerst uit.</string>
-    <string name="passcode_already_set">Patroon- en toegangscodevergrendelingen kunnen niet tegelijkertijd worden ingeschakeld. Schakel eerst de toegangscode uit.</string>
+    <string name="pattern_error_set">Er is een fout opgetreden bij het instellen van de patroonontgrendeling.</string>
+    <string name="pattern_error_remove">Er is een fout opgetreden bij het verwijderen van de patroonontgrendeling.</string>
+    <string name="pattern_already_set">Ontgrendeling met toegangscode kan niet samen met patroon. Schakel patroon eerst uit.</string>
+    <string name="passcode_already_set">Ontgrendeling met patroon kan niet samen met toegangscode. Schakel toegangscode eerst uit.</string>
     <string name="pattern_no_longer_required">Het patroon zal niet meer worden opgevraagd.</string>
     <string name="pattern_configure_your_pattern_explanation">De patroon wordt elke keer dat de app wordt gestart, opgevraagd.</string>
     <string name="document_provider_locked">Vergrendeld</string>
@@ -139,7 +139,7 @@
     <string name="auth_oauth_failure">Het toegangstoken is verlopen of ongeldig geworden. Meld opnieuw aan om weer toegang te krijgen.</string>
     <string name="auth_oauth_failure_snackbar_action">Inloggen</string>
     <string name="auth_check_server">Server controleren</string>
-    <string name="auth_host_url">Server-adres https://&amp;#8230;</string>
+    <string name="auth_host_url">Server-adres https://…</string>
     <string name="auth_username">Gebruikersnaam</string>
     <string name="auth_password">Wachtwoord</string>
     <string name="auth_register">Nieuw bij %1$s\?</string>
@@ -172,7 +172,7 @@
     <string name="spaces_list_empty_subtitle">U hebt geen toegang tot een ruimte!</string>
     <string name="file_list_empty_subtitle_available_offline">Bestanden en mappen die u offline markeert, worden hier weergegeven.</string>
     <string name="file_list_empty_subtitle_shared_by_links">Bestanden en mappen die u per link deelt, worden hier weergegeven.</string>
-    <string name="file_list_loading">Laden&amp;#8230;</string>
+    <string name="file_list_loading">Laden…</string>
     <string name="file_list_no_app_for_file_type">Geen app voor dit type bestand</string>
     <string name="file_list_no_app_for_perform_action">Geen app gevonden voor deze actie</string>
     <string name="local_file_list_empty">Er zijn geen bestanden in deze map.</string>
@@ -210,7 +210,7 @@
     <string name="common_back">Terug</string>
     <string name="common_save_exit">Opslaan &amp; afsluiten</string>
     <string name="common_error">Fout</string>
-    <string name="common_loading">Laden&amp;#8230;</string>
+    <string name="common_loading">Laden…</string>
     <string name="common_unknown">onbekend</string>
     <string name="common_error_unknown">onbekende fout</string>
     <string name="common_pending">In behandeling</string>
@@ -220,7 +220,7 @@
     <string name="create_account">Account aanmaken</string>
     <string name="upload_chooser_title">Uploaden van</string>
     <string name="uploader_info_dirname">Mapnaam</string>
-    <string name="uploader_upload_in_progress_ticker">Uploaden&amp;#8230;</string>
+    <string name="uploader_upload_in_progress_ticker">Uploaden…</string>
     <string name="uploader_upload_in_progress_content">%1$d%% Uploaden %2$s</string>
     <string name="uploader_upload_succeeded_ticker">Upload succesvol</string>
     <string name="uploader_upload_succeeded_content_single">%1$s geüpload</string>
@@ -270,7 +270,7 @@
     <string name="uploader_upload_canceled_ticker">Upload geannuleerd</string>
     <string name="downloader_download_canceled_ticker">Download geannuleerd</string>
     <string name="downloader_download_enqueued_ticker">Download van %1$s is in de wachtrij geplaatst.</string>
-    <string name="downloader_download_in_progress_ticker">Downloaden&amp;#8230;</string>
+    <string name="downloader_download_in_progress_ticker">Downloaden…</string>
     <string name="downloader_download_in_progress_content">%1$d%% Downloaden %2$s</string>
     <string name="downloader_download_succeeded_ticker">Download succesvol</string>
     <string name="downloader_download_succeeded_content">%1$s gedownload</string>
@@ -299,8 +299,8 @@
     <string name="pass_code_remove_your_pass_code">Verwijder uw toegangscode.</string>
     <string name="pass_code_mismatch">De toegangscodes zijn niet hetzelfde.</string>
     <string name="pass_code_wrong">Onjuiste toegangscode</string>
-    <string name="pass_code_error_set">Er is een fout opgetreden bij het instellen van de toegangscodevergrendeling.</string>
-    <string name="pass_code_error_remove">Er is een fout opgetreden bij het verwijderen van de toegangscodevergrendeling.</string>
+    <string name="pass_code_error_set">Er is een fout opgetreden bij het instellen van de toegangscodeontgrendeling.</string>
+    <string name="pass_code_error_remove">Er is een fout opgetreden bij het verwijderen van de toegangscodeontgrendeling.</string>
     <string name="numberkeyboard_backspace_button_content_description">Knop Backspace</string>
     <string name="numberkeyboard_biometric_button_content_description">Knop Biometrie</string>
 
@@ -321,7 +321,7 @@
     <string name="biometric_prompt_title">Biometrische aanmelding</string>
     <string name="biometric_prompt_subtitle">Log in met uw biometrische referentie.</string>
     <string name="biometric_dialog_title">Wilt u aanvullende biometrische beveiliging activeren\?</string>
-    <string name="biometric_not_available">Biometrische ontgrendeling is niet beschikbaar op dit systeem</string>
+    <string name="biometric_not_available">Biometrische ontgrendeling is niet beschikbaar op dit apparaat</string>
 
     <string name="media_notif_ticker">%1$s muziekspeler</string>
     <string name="media_state_playing">%1$s (afspelen)</string>
@@ -344,8 +344,8 @@
     <string name="media_forward_description">Knop Vooruit</string>
     <string name="upload_from_camera_title">Foto van camera</string>
 
-    <string name="auth_getting_authorization">Autorisatie krijgen&amp;#8230;</string>
-    <string name="auth_trying_to_login">Proberen in te loggen&amp;#8230;</string>
+    <string name="auth_getting_authorization">Autorisatie verkrijgen…</string>
+    <string name="auth_trying_to_login">Aanmelden…</string>
     <string name="auth_no_net_conn_title">Geen netwerkverbinding</string>
     <string name="auth_nossl_plain_ok_title">Beveiligde verbinding niet beschikbaar.</string>
     <string name="auth_connection_established">Verbinding tot stand gebracht</string>
@@ -523,7 +523,7 @@
     <string name="log_send_history_button">Geschiedenis versturen</string>
     <string name="log_send_no_mail_app">Geen app voor het verzenden van gevonden logboeken. Installeer een mail-app.</string>
     <string name="log_send_mail_subject">%1$s Android app-logboeken</string>
-    <string name="log_progress_dialog_text">Gegevens laden&amp;#8230;</string>
+    <string name="log_progress_dialog_text">Gegevens laden…</string>
 
     <string name="actionbar_select_all">Alles selecteren</string>
     <string name="actionbar_select_inverse">Selectie omkeren</string>
@@ -708,7 +708,7 @@
     <string name="scoped_storage_wizard_explanation">%1$s gegevens gevonden over uw externe opslag. Het wordt verplaatst naar de veilige opslag op uw apparaat. De overige bestanden worden na de migratie uit jouw externe opslag verwijderd om duplicaten en kwetsbaarheid te voorkomen.</string>
     <string name="scoped_storage_wizard_intro">De app is bijgewerkt. Deze app-update migreert de bestanden naar een veiligere locatie op dit apparaat. Deze eenmalige datamigratie is vereist en kan tot een minuut of langer duren.</string>
     <string name="scoped_storage_wizard_intro_button">Laten we beginnen</string>
-    <string name="scoped_storage_wizard_not_enough_space_warning">&amp;#9888;️ De vrije ruimte is momenteel beperkt op dit apparaat. Sommige bestanden zijn mogelijk niet gemigreerd. Controleer of alle gedownloade bestanden gedownload blijven nadat het proces is voltooid.</string>
+    <string name="scoped_storage_wizard_not_enough_space_warning">⚠️ Uw vrije ruimte is momenteel beperkt op uw apparaat. Sommige bestanden zijn mogelijk niet gemigreerd. Controleer of alle gedownloade bestanden gedownload blijven nadat het proces is voltooid.</string>
     <string name="scoped_storage_wizard_migrate_and_clean_button">Migreer nu</string>
     <string name="scoped_storage_wizard_migration_completed">Migratie succesvol afgerond. Uw bestanden zijn nu veiliger dan ooit.</string>
     <string name="scoped_storage_wizard_migration_completed_access_files_button">Toegang tot uw bestanden</string>
@@ -729,7 +729,7 @@
 
     <!-- Release Notes -->
     <string name="release_notes_header">Nieuw in %1$s</string>
-    <string name="release_notes_footer">Bedankt voor het gebruik van %1$s.\n&amp;#10084;</string>
+    <string name="release_notes_footer">Bedankt voor het gebruik van %1$s.\n♥️</string>
     <string name="release_notes_proceed">Doorgaan</string>
     <string name="release_notes_icon">Pictogram Release note</string>
     <string name="release_notes_bugfixes_title">Kleine bugfixes</string>
