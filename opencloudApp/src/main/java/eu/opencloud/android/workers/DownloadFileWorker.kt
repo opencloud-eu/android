@@ -208,9 +208,11 @@ class DownloadFileWorker(
         val finalFile = File(finalLocationForFile)
         val currentTime = System.currentTimeMillis()
         ocFile.apply {
+            val serverEtag = FileEtagNormalizer.normalize(downloadRemoteFileOperation.etag).orEmpty()
             needsToUpdateThumbnail = true
             modificationTimestamp = downloadRemoteFileOperation.modificationTimestamp
-            etag = downloadRemoteFileOperation.etag
+            etag = serverEtag
+            remoteEtag = serverEtag
             storagePath = finalLocationForFile
             length = finalFile.length()
             // Use the file's actual mtime, not the current time. SynchronizeFileUseCase

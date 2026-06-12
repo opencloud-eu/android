@@ -52,6 +52,7 @@ import eu.opencloud.android.lib.common.network.OnDatatransferProgressListener
 import eu.opencloud.android.lib.common.operations.RemoteOperationResult.ResultCode
 import eu.opencloud.android.lib.resources.files.CheckPathExistenceRemoteOperation
 import eu.opencloud.android.lib.resources.files.CreateRemoteFolderOperation
+import eu.opencloud.android.lib.resources.files.ReadRemoteFileOperation
 import eu.opencloud.android.lib.resources.files.UploadFileFromFileSystemOperation
 import eu.opencloud.android.lib.resources.files.tus.TusChecksumHelper
 import eu.opencloud.android.presentation.authentication.AccountUtils
@@ -128,6 +129,7 @@ class UploadFileFromFileSystemWorker(
             checkParentFolderExistence(clientForThisUpload)
             checkNameCollisionAndGetAnAvailableOneInCase(clientForThisUpload)
             uploadDocument(clientForThisUpload)
+            resolveFinalEtagIfNeeded(clientForThisUpload)
             updateUploadsDatabaseWithResult(null)
             updateFilesDatabaseWithLatestDetails()
             Result.success()
@@ -354,6 +356,22 @@ class UploadFileFromFileSystemWorker(
         }
     }
 
+    private fun resolveFinalEtagIfNeeded(client: OpenCloudClient) {
+        if (FileEtagNormalizer.normalize(finalEtag) != null) return
+
+        finalEtag = try {
+            executeRemoteOperation {
+                ReadRemoteFileOperation(
+                    remotePath = uploadPath,
+                    spaceWebDavUrl = spaceWebDavUrl,
+                ).execute(client)
+            }.etag.orEmpty()
+        } catch (e: Throwable) {
+            Timber.w(e, "Could not resolve final ETag for %s after upload", uploadPath)
+            ""
+        }
+    }
+
     private fun updateProgressFromTus(offset: Long, totalSize: Long) {
         if (this.isStopped) {
             Timber.w("Cancelling TUS upload. The worker is stopped by user or system")
@@ -449,13 +467,15 @@ class UploadFileFromFileSystemWorker(
     private fun updateFilesDatabaseWithLatestDetails() {
         val currentTime = System.currentTimeMillis()
         val getFileByRemotePathUseCase: GetFileByRemotePathUseCase by inject()
-        val file = getFileByRemotePathUseCase(GetFileByRemotePathUseCase.Params(account.name, ocTransfer.remotePath, ocTransfer.spaceId))
+        val serverEtag = FileEtagNormalizer.normalize(finalEtag).orEmpty()
+        val file = getFileByRemotePathUseCase(GetFileByRemotePathUseCase.Params(account.name, uploadPath, ocTransfer.spaceId))
         file.getDataOrNull()?.let { ocFile ->
             val fileWithNewDetails =
                 if (ocTransfer.forceOverwrite) {
                     ocFile.copy(
                         needsToUpdateThumbnail = true,
-                        etag = finalEtag,
+                        etag = serverEtag,
+                        remoteEtag = serverEtag,
                         length = fileSize,
                         lastSyncDateForData = currentTime,
                         modifiedAtLastSyncForData = currentTime,
@@ -465,7 +485,8 @@ class UploadFileFromFileSystemWorker(
                     ocFile.copy(
                         storagePath = null,
                         needsToUpdateThumbnail = true,
-                        etag = finalEtag.ifBlank { ocFile.etag },
+                        etag = serverEtag,
+                        remoteEtag = serverEtag,
                         length = fileSize,
                         lastSyncDateForData = currentTime,
                         modifiedAtLastSyncForData = currentTime,
