@@ -467,6 +467,9 @@ class UploadFileFromFileSystemWorker(
     private fun updateFilesDatabaseWithLatestDetails() {
         val currentTime = System.currentTimeMillis()
         val getFileByRemotePathUseCase: GetFileByRemotePathUseCase by inject()
+        // If the upload returned no etag and resolveFinalEtagIfNeeded() failed too, keep the
+        // existing etags instead of clobbering them with "" — a blank remoteEtag would also
+        // blank the thumbnail cache token.
         val serverEtag = FileEtagNormalizer.normalize(finalEtag).orEmpty()
         val file = getFileByRemotePathUseCase(GetFileByRemotePathUseCase.Params(account.name, uploadPath, ocTransfer.spaceId))
         file.getDataOrNull()?.let { ocFile ->
@@ -474,8 +477,8 @@ class UploadFileFromFileSystemWorker(
                 if (ocTransfer.forceOverwrite) {
                     ocFile.copy(
                         needsToUpdateThumbnail = true,
-                        etag = serverEtag,
-                        remoteEtag = serverEtag,
+                        etag = serverEtag.ifEmpty { ocFile.etag },
+                        remoteEtag = serverEtag.ifEmpty { ocFile.remoteEtag.orEmpty() },
                         length = fileSize,
                         lastSyncDateForData = currentTime,
                         modifiedAtLastSyncForData = currentTime,
@@ -485,8 +488,8 @@ class UploadFileFromFileSystemWorker(
                     ocFile.copy(
                         storagePath = null,
                         needsToUpdateThumbnail = true,
-                        etag = serverEtag,
-                        remoteEtag = serverEtag,
+                        etag = serverEtag.ifEmpty { ocFile.etag },
+                        remoteEtag = serverEtag.ifEmpty { ocFile.remoteEtag.orEmpty() },
                         length = fileSize,
                         lastSyncDateForData = currentTime,
                         modifiedAtLastSyncForData = currentTime,

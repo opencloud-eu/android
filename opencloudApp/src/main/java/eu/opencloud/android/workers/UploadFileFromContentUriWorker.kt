@@ -595,6 +595,9 @@ class UploadFileFromContentUriWorker(
 
     private fun updateFilesDatabaseWithLatestDetails() {
         val currentTime = System.currentTimeMillis()
+        // If the upload returned no etag and resolveFinalEtagIfNeeded() failed too, keep the
+        // existing etags instead of clobbering them with "" — a blank remoteEtag would also
+        // blank the thumbnail cache token.
         val serverEtag = FileEtagNormalizer.normalize(finalEtag).orEmpty()
         val file = getFileByRemotePathUseCase(
             GetFileByRemotePathUseCase.Params(
@@ -607,8 +610,8 @@ class UploadFileFromContentUriWorker(
             val fileWithNewDetails = ocFile.copy(
                 storagePath = null,
                 needsToUpdateThumbnail = true,
-                etag = serverEtag,
-                remoteEtag = serverEtag,
+                etag = serverEtag.ifEmpty { ocFile.etag },
+                remoteEtag = serverEtag.ifEmpty { ocFile.remoteEtag.orEmpty() },
                 length = fileSize,
                 modificationTimestamp = lastModified.toLongOrNull()?.times(1000L) ?: currentTime,
                 lastSyncDateForData = currentTime,
