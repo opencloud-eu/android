@@ -994,13 +994,18 @@ class MainFileListFragment : Fragment(),
      * Check whether the fab should be shown or hidden depending on the [FileListOption] and
      * the current folder displayed permissions
      *
-     * Show FAB when [FileListOption.ALL_FILES] and not picking a folder
-     * Hide FAB When [FileListOption.SHARED_BY_LINK], [FileListOption.AV_OFFLINE] or picking a folder
+     * Show FAB when [FileListOption.ALL_FILES], or when inside a sub-folder reached via
+     * [FileListOption.SHARED_BY_LINK] (i.e. a folder shared with the user in the Shares space)
+     * and the current folder grants add-file or add-subdirectory permission.
+     * Hide FAB at the flat-list roots ([FileListOption.SHARED_BY_LINK] root,
+     * [FileListOption.AV_OFFLINE]) or when picking a folder.
      *
      * @param newFileListOption new file list option to enable.
      */
     private fun showOrHideFab(newFileListOption: FileListOption, currentFolder: OCFile) {
-        if (!newFileListOption.isAllFiles() || isPickingAFolder() ||
+        val isFabSupportedView = newFileListOption.isAllFiles() ||
+                (newFileListOption.isSharedByLink() && currentFolder.remotePath != ROOT_PATH)
+        if (!isFabSupportedView || isPickingAFolder() ||
             (!currentFolder.hasAddFilePermission && !currentFolder.hasAddSubdirectoriesPermission)) {
             toggleFabVisibility(false)
         } else {
