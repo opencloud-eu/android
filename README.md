@@ -30,3 +30,12 @@ If you are interested in testing the new features before being released and give
 3. Press the **I'M IN** button to join the beta program and your final app will be replaced with the beta one.
 
 Note: If you want to use the OpenCloud production version you have to leave the beta program, uninstall the app, and reinstall the production version.
+
+Alternatively: https://play.google.com/apps/testing/eu.opencloud.android
+
+## Join translating!
+Translations are managed on transifex and then pulled into the binary when we release:
+
+https://app.transifex.com/opencloud-eu/opencloud-eu/android/
+
+Register there to help out.
