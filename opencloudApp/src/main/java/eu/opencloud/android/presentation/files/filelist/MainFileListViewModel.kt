@@ -319,7 +319,8 @@ class MainFileListViewModel(
                     displaySelectAll = displaySelectAll,
                     displaySelectInverse = isMultiselection,
                     onlyAvailableOfflineFiles = fileListOption.value.isAvailableOffline(),
-                    onlySharedByLinkFiles = fileListOption.value.isSharedByLink(),
+                    onlySharedByLinkFiles = fileListOption.value.isSharedByLink() &&
+                            currentFolderDisplayed.value.remotePath == ROOT_PATH,
                     shareViaLinkAllowed = shareViaLinkAllowed,
                     shareWithUsersAllowed = shareWithUsersAllowed,
                     sendAllowed = sendAllowed,
