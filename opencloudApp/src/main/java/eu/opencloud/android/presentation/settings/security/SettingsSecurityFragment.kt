@@ -24,7 +24,6 @@ import android.app.Activity
 import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
-import android.security.KeyChain
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.preference.CheckBoxPreference
@@ -57,8 +56,6 @@ class SettingsSecurityFragment : PreferenceFragmentCompat() {
     private var prefLockApplication: ListPreference? = null
     private var prefLockAccessDocumentProvider: CheckBoxPreference? = null
     private var prefTouchesWithOtherVisibleWindows: CheckBoxPreference? = null
-    private var prefMtls: CheckBoxPreference? = null
-    private var prefMtlsSelectCert: Preference? = null
 
     private val enablePasscodeLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -225,66 +222,6 @@ class SettingsSecurityFragment : PreferenceFragmentCompat() {
             }
             true
         }
-
-        // mTLS client certificate
-        prefMtls = findPreference(SettingsSecurityViewModel.PREFERENCE_ENABLE_MTLS)
-        prefMtlsSelectCert = findPreference(SettingsSecurityViewModel.PREFERENCE_MTLS_SELECT_CERTIFICATE)
-
-        updateMtlsCertSummary()
-
-        prefMtls?.setOnPreferenceChangeListener { _: Preference?, newValue: Any ->
-            val enabled = newValue as Boolean
-            if (enabled && securityViewModel.getMtlsAlias() == null) {
-                // Optimistically allow the toggle, prompt for a cert, revert if cancelled.
-                launchKeyChainPicker { alias ->
-                    if (alias != null) {
-                        onMtlsCertPicked(alias)
-                    } else {
-                        prefMtls?.isChecked = false
-                    }
-                }
-            } else if (!enabled) {
-                securityViewModel.clearMtlsAlias()
-                updateMtlsCertSummary()
-                securityViewModel.invalidateHttpClients()
-            } else {
-                securityViewModel.invalidateHttpClients()
-            }
-            true
-        }
-
-        prefMtlsSelectCert?.setOnPreferenceClickListener {
-            launchKeyChainPicker { alias ->
-                // Null = user cancelled; preserve current selection.
-                if (alias != null) onMtlsCertPicked(alias)
-            }
-            true
-        }
-    }
-
-    private fun onMtlsCertPicked(alias: String) {
-        securityViewModel.setMtlsAlias(alias)
-        showMessageInSnackbar(getString(R.string.prefs_mtls_cert_selected))
-        updateMtlsCertSummary()
-        securityViewModel.invalidateHttpClients()
-    }
-
-    private fun launchKeyChainPicker(onResult: (String?) -> Unit) {
-        val currentAlias = securityViewModel.getMtlsAlias()
-        KeyChain.choosePrivateKeyAlias(
-            requireActivity(),
-            { alias -> activity?.runOnUiThread { onResult(alias) } },
-            null, null, null, KEYCHAIN_NO_PORT, currentAlias
-        )
-    }
-
-    private fun updateMtlsCertSummary() {
-        val alias = securityViewModel.getMtlsAlias()
-        prefMtlsSelectCert?.summary = if (alias != null) {
-            getString(R.string.prefs_mtls_select_cert_summary, alias)
-        } else {
-            getString(R.string.prefs_mtls_select_cert_summary_none)
-        }
     }
 
     private fun enableBiometricAndLockApplication() {
@@ -309,6 +246,5 @@ class SettingsSecurityFragment : PreferenceFragmentCompat() {
         const val PREFERENCE_TOUCHES_WITH_OTHER_VISIBLE_WINDOWS = "touches_with_other_visible_windows"
         const val EXTRAS_LOCK_ENFORCED = "EXTRAS_LOCK_ENFORCED"
         const val PREFERENCE_LOCK_ATTEMPTS = "PrefLockAttempts"
-        private const val KEYCHAIN_NO_PORT = -1
     }
 }

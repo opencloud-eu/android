@@ -200,6 +200,28 @@
                                 android:visibility="gone" />
                         </FrameLayout>
 
+                        <Button
+                            android:id="@+id/mtls_select_cert_button"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="@android:color/transparent"
+                            android:contentDescription="@string/auth_mtls_select_cert"
+                            android:gravity="center_vertical"
+                            android:paddingTop="5dp"
+                            android:paddingBottom="5dp"
+                            android:text="@string/auth_mtls_select_cert"
+                            android:textColor="@color/login_text_color" />
+
+                        <TextView
+                            android:id="@+id/mtls_status_text"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="10dp"
+                            android:textColor="@color/login_text_color"
+                            android:visibility="gone"
+                            tools:text="@string/auth_mtls_cert_selected"
+                            tools:visibility="visible" />
+
                         <TextView
                             android:id="@+id/server_status_text"
                             android:layout_width="match_parent"

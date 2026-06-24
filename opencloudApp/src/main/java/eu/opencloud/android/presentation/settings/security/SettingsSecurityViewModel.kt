@@ -23,8 +23,6 @@ package eu.opencloud.android.presentation.settings.security
 import androidx.lifecycle.ViewModel
 import eu.opencloud.android.R
 import eu.opencloud.android.data.providers.SharedPreferencesProvider
-import eu.opencloud.android.lib.common.SingleSessionManager
-import eu.opencloud.android.lib.common.network.ClientCertificateManager
 import eu.opencloud.android.presentation.security.LockEnforcedType
 import eu.opencloud.android.presentation.security.LockEnforcedType.Companion.parseFromInteger
 import eu.opencloud.android.presentation.security.LockTimeout
@@ -65,22 +63,4 @@ class SettingsSecurityViewModel(
             integerKey = R.integer.lock_delay_enforced
         )
     ) != LockTimeout.DISABLED
-
-    fun getMtlsAlias(): String? =
-        preferencesProvider.getString(ClientCertificateManager.PREF_MTLS_ALIAS, null)
-
-    fun setMtlsAlias(alias: String) =
-        preferencesProvider.putString(ClientCertificateManager.PREF_MTLS_ALIAS, alias)
-
-    fun clearMtlsAlias() =
-        preferencesProvider.removePreference(ClientCertificateManager.PREF_MTLS_ALIAS)
-
-    fun invalidateHttpClients() {
-        SingleSessionManager.getDefaultSingleton().invalidateAllClients()
-    }
-
-    companion object {
-        const val PREFERENCE_ENABLE_MTLS = ClientCertificateManager.PREF_MTLS_ENABLED
-        const val PREFERENCE_MTLS_SELECT_CERTIFICATE = "mtls_select_certificate"
-    }
 }

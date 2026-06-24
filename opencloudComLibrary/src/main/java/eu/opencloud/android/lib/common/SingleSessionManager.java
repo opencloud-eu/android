@@ -177,6 +177,12 @@ public class SingleSessionManager {
 
             keepUriUpdated(account, client);
         }
+
+        // Present the per-account client certificate (if any) for mutual TLS. Re-resolved on every
+        // call so a certificate changed via Manage Accounts is picked up on the next request; the
+        // client only rebuilds when the alias actually changes.
+        client.setClientCertAlias(AccountUtils.getClientCertAliasForAccount(context, account.getSavedAccount()));
+
         Timber.d("getClientFor finishing ");
         return client;
     }

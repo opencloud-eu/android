@@ -63,6 +63,10 @@ public class HttpClient {
 
     private OkHttpClient mOkHttpClient = null;
 
+    // Alias (from the Android KeyChain) of the client certificate to present for mTLS on this
+    // client's connections. Resolved per account; null means no client certificate.
+    private String mClientCertAlias = null;
+
     protected HttpClient(Context context) {
         if (context == null) {
             Timber.e("Context may not be NULL!");
@@ -79,7 +83,7 @@ public class HttpClient {
 
                 final SSLContext sslContext = buildSSLContext();
 
-                KeyManager[] keyManagers = ClientCertificateManager.INSTANCE.getKeyManagers(mContext);
+                KeyManager[] keyManagers = ClientCertificateManager.INSTANCE.getKeyManagers(mContext, mClientCertAlias);
                 sslContext.init(keyManagers, new TrustManager[]{trustManager}, null);
                 final SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
 
@@ -99,7 +103,23 @@ public class HttpClient {
     }
 
     public synchronized void invalidate() {
+        if (mOkHttpClient != null) {
+            // Drop idle keep-alive connections so the next request renegotiates TLS (e.g. with a
+            // changed client certificate) instead of reusing a connection from the old config.
+            mOkHttpClient.connectionPool().evictAll();
+        }
         mOkHttpClient = null;
+    }
+
+    /**
+     * Sets the alias (from the Android KeyChain) of the client certificate to present for mTLS.
+     * Invalidates the cached client when the alias changes so it is rebuilt with the new certificate.
+     */
+    public synchronized void setClientCertAlias(String alias) {
+        if ((alias == null) ? (mClientCertAlias != null) : !alias.equals(mClientCertAlias)) {
+            mClientCertAlias = alias;
+            invalidate();
+        }
     }
 
     private SSLContext buildSSLContext() throws NoSuchAlgorithmException {

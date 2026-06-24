@@ -25,8 +25,6 @@
 package eu.opencloud.android.lib.common.network
 
 import android.content.Context
-import android.content.SharedPreferences
-import android.preference.PreferenceManager
 import android.security.KeyChain
 import timber.log.Timber
 import java.net.Socket
@@ -38,37 +36,25 @@ import javax.net.ssl.X509KeyManager
 
 object ClientCertificateManager {
 
-    const val PREF_MTLS_ENABLED = "enable_mtls"
-    const val PREF_MTLS_ALIAS = "mtls_cert_alias"
-
-    fun getAlias(context: Context): String? =
-        prefs(context).getString(PREF_MTLS_ALIAS, null)
-
-    fun setAlias(context: Context, alias: String) {
-        prefs(context).edit().putString(PREF_MTLS_ALIAS, alias).apply()
-    }
-
-    fun clearAlias(context: Context) {
-        prefs(context).edit().remove(PREF_MTLS_ALIAS).apply()
-    }
-
-    fun isMtlsEnabled(context: Context): Boolean =
-        prefs(context).getBoolean(PREF_MTLS_ENABLED, false)
-
-    fun getKeyManagers(context: Context): Array<KeyManager>? {
-        if (!isMtlsEnabled(context)) return null
-        val alias = getAlias(context) ?: return null
+    /**
+     * Builds the [KeyManager]s that present the client certificate identified by [alias] (an alias
+     * from the Android [KeyChain]) during the TLS handshake. The alias is resolved per account, so
+     * callers pass the alias bound to the account/login that owns the connection.
+     *
+     * @return null when [alias] is null/blank, i.e. mTLS is not configured for this connection.
+     */
+    fun getKeyManagers(context: Context, alias: String?): Array<KeyManager>? {
+        if (alias.isNullOrBlank()) return null
         return arrayOf(KeyChainKeyManager(context.applicationContext, alias))
     }
-
-    private fun prefs(context: Context): SharedPreferences =
-        PreferenceManager.getDefaultSharedPreferences(context)
 
     private class KeyChainKeyManager(
         private val appContext: Context,
         private val alias: String,
     ) : X509KeyManager {
 
+        // We always present the single configured alias: it is the only certificate the user
+        // selected for this account, so there is nothing to choose between.
         override fun chooseClientAlias(keyType: Array<String>?, issuers: Array<Principal>?, socket: Socket?): String = alias
 
         override fun getClientAliases(keyType: String?, issuers: Array<Principal>?): Array<String> = arrayOf(alias)

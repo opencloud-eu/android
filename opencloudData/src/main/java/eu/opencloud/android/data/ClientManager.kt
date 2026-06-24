@@ -56,6 +56,11 @@ class ClientManager(
     // This client will maintain cookies across the whole login process.
     private var openCloudClient: OpenCloudClient? = null
 
+    // Alias (from the Android KeyChain) of the client certificate to present for mutual TLS during
+    // the login process, before the account exists. Set from the login screen and persisted to the
+    // account's userData on success. Null means no client certificate.
+    var loginClientCertAlias: String? = null
+
     // Cached client to avoid retrieving the client for each service
     private var openCloudClientForCurrentAccount: OpenCloudClient? = null
 
@@ -86,6 +91,7 @@ class ClientManager(
                 context
             ).apply {
                 credentials = openCloudCredentials
+                setClientCertAlias(loginClientCertAlias)
             }.also {
                 openCloudClient = it
             }
@@ -93,6 +99,7 @@ class ClientManager(
             Timber.d("Reusing anonymous client for ${safeClient.baseUri}")
             safeClient.apply {
                 credentials = openCloudCredentials
+                setClientCertAlias(loginClientCertAlias)
             }
         }
     }
