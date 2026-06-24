@@ -32,7 +32,7 @@ jobs:
         run: ./gradlew jacocoAggregatedCoverageVerification
 
       - name: Upload coverage report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: jacoco-coverage-report
