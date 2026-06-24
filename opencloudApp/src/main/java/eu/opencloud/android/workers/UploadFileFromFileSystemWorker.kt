@@ -54,7 +54,9 @@ import eu.opencloud.android.lib.resources.files.CheckPathExistenceRemoteOperatio
 import eu.opencloud.android.lib.resources.files.CreateRemoteFolderOperation
 import eu.opencloud.android.lib.resources.files.ReadRemoteFileOperation
 import eu.opencloud.android.lib.resources.files.UploadFileFromFileSystemOperation
+import eu.opencloud.android.lib.resources.files.tus.TusChecksumHelper
 import eu.opencloud.android.presentation.authentication.AccountUtils
+import eu.opencloud.android.utils.MimetypeIconUtil
 import eu.opencloud.android.utils.NotificationUtils
 import eu.opencloud.android.utils.RemoteFileUtils.getAvailableRemotePath
 import eu.opencloud.android.utils.UPLOAD_NOTIFICATION_CHANNEL_ID
@@ -183,7 +185,7 @@ class UploadFileFromFileSystemWorker(
             // Permissions not granted. Throw an exception to ask for them.
             throw LocalFileNotFoundException()
         }
-        mimetype = fileInFileSystem.extension
+        mimetype = MimetypeIconUtil.getBestMimeTypeByFilename(fileInFileSystem.name)
         fileSize = fileInFileSystem.length()
         ensureValidLastModified(fileInFileSystem)
     }
@@ -268,12 +270,20 @@ class UploadFileFromFileSystemWorker(
             tusUploadUrl = ocTransfer.tusUploadUrl,
         )
 
+        if (hasPendingTusSession && !hasStoredSha1Checksum()) {
+            Timber.w("TUS session for %s has no original checksum. Clearing state and recreating.", uploadPath)
+            clearTusState()
+        }
+        // Always compute the whole-file checksum: TUS sends it in Upload-Metadata,
+        // plain PUTs send it in the OC-Checksum header.
+        ensureOriginalTusChecksum()
+
         if (shouldTryTus) {
             Timber.d(
                 "Attempting TUS upload (size=%d, threshold=%d, resume=%s)",
                 fileSize,
                 TusUploadHelper.DEFAULT_CHUNK_SIZE,
-                hasPendingTusSession
+                !ocTransfer.tusUploadUrl.isNullOrBlank()
             )
             val tusSucceeded = try {
                 val returnedEtag = tusUploadHelper.upload(
@@ -322,6 +332,7 @@ class UploadFileFromFileSystemWorker(
     }
 
     private fun uploadPlainFile(client: OpenCloudClient) {
+        val fileChecksum = TusChecksumHelper.parseStoredChecksum(ocTransfer.tusUploadChecksum)
         uploadFileOperation = UploadFileFromFileSystemOperation(
             localPath = fileSystemPath,
             remotePath = uploadPath,
@@ -329,6 +340,7 @@ class UploadFileFromFileSystemWorker(
             lastModifiedTimestamp = lastModified,
             requiredEtag = eTagInConflict,
             spaceWebDavUrl = spaceWebDavUrl,
+            ocChecksum = fileChecksum?.ocChecksumHeaderValue,
         ).apply {
             addDataTransferProgressListener(this@UploadFileFromFileSystemWorker)
         }
@@ -394,7 +406,33 @@ class UploadFileFromFileSystemWorker(
             tusUploadExpires = null,
             tusUploadConcat = null,
         )
+        ocTransfer = ocTransfer.copy(
+            tusUploadUrl = null,
+            tusUploadLength = null,
+            tusUploadMetadata = null,
+            tusUploadChecksum = null,
+            tusResumableVersion = null,
+            tusUploadExpires = null,
+            tusUploadConcat = null,
+        )
     }
+
+    private fun ensureOriginalTusChecksum() {
+        if (hasStoredSha1Checksum()) return
+
+        val checksum = TusChecksumHelper.storedSha1(
+            TusChecksumHelper.sha1Hex(File(fileSystemPath))
+        ).storageValue
+        transferRepository.updateTusChecksum(
+            id = uploadIdInStorageManager,
+            tusUploadChecksum = checksum,
+        )
+        ocTransfer = ocTransfer.copy(tusUploadChecksum = checksum)
+    }
+
+    private fun hasStoredSha1Checksum(): Boolean =
+        TusChecksumHelper.parseStoredChecksum(ocTransfer.tusUploadChecksum)?.uploadAlgorithm ==
+            TusChecksumHelper.SHA1_WIRE_ALGORITHM
 
     private fun shouldRetry(throwable: Throwable?): Boolean {
         if (throwable == null) return false
@@ -429,6 +467,9 @@ class UploadFileFromFileSystemWorker(
     private fun updateFilesDatabaseWithLatestDetails() {
         val currentTime = System.currentTimeMillis()
         val getFileByRemotePathUseCase: GetFileByRemotePathUseCase by inject()
+        // If the upload returned no etag and resolveFinalEtagIfNeeded() failed too, keep the
+        // existing etags instead of clobbering them with "" — a blank remoteEtag would also
+        // blank the thumbnail cache token.
         val serverEtag = FileEtagNormalizer.normalize(finalEtag).orEmpty()
         val file = getFileByRemotePathUseCase(GetFileByRemotePathUseCase.Params(account.name, uploadPath, ocTransfer.spaceId))
         file.getDataOrNull()?.let { ocFile ->
@@ -436,8 +477,8 @@ class UploadFileFromFileSystemWorker(
                 if (ocTransfer.forceOverwrite) {
                     ocFile.copy(
                         needsToUpdateThumbnail = true,
-                        etag = serverEtag,
-                        remoteEtag = serverEtag,
+                        etag = serverEtag.ifEmpty { ocFile.etag },
+                        remoteEtag = serverEtag.ifEmpty { ocFile.remoteEtag.orEmpty() },
                         length = fileSize,
                         lastSyncDateForData = currentTime,
                         modifiedAtLastSyncForData = currentTime,
@@ -447,8 +488,8 @@ class UploadFileFromFileSystemWorker(
                     ocFile.copy(
                         storagePath = null,
                         needsToUpdateThumbnail = true,
-                        etag = serverEtag,
-                        remoteEtag = serverEtag,
+                        etag = serverEtag.ifEmpty { ocFile.etag },
+                        remoteEtag = serverEtag.ifEmpty { ocFile.remoteEtag.orEmpty() },
                         length = fileSize,
                         lastSyncDateForData = currentTime,
                         modifiedAtLastSyncForData = currentTime,

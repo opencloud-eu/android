@@ -26,9 +26,6 @@ package eu.opencloud.android.lib.resources.files
 import eu.opencloud.android.lib.common.OpenCloudClient
 import eu.opencloud.android.lib.common.http.HttpConstants
 import eu.opencloud.android.lib.common.http.methods.nonwebdav.GetMethod
-import eu.opencloud.android.lib.common.http.methods.webdav.DavConstants
-import eu.opencloud.android.lib.common.http.methods.webdav.DavUtils
-import eu.opencloud.android.lib.common.http.methods.webdav.PropfindMethod
 import eu.opencloud.android.lib.common.network.OnDatatransferProgressListener
 import eu.opencloud.android.lib.common.network.WebdavUtils
 import eu.opencloud.android.lib.common.operations.OperationCancelledException
@@ -68,18 +65,12 @@ class DownloadRemoteFileOperation(
         // download will be performed to a temporal file, then moved to the final location
         val tmpFile = File(tmpPath)
 
-        val propfindMethod = PropfindMethod(
-            URL(client.userFilesWebDavUri.toString()),
-            DavConstants.DEPTH_1,
-            DavUtils.allPropSet
-        )
-        val status = client.executeHttpMethod(propfindMethod)
-
         // perform the download
         return try {
             tmpFile.parentFile?.mkdirs()
-            downloadFile(client, tmpFile).also {
-                Timber.i("Download of $remotePath to $tmpPath - HTTP status code: $status")
+            downloadFile(client, tmpFile).also { result ->
+                val outcome = if (result.isSuccess) "success, etag=$etag" else result.logMessage
+                Timber.i("Download of $remotePath to $tmpPath: $outcome")
             }
         } catch (e: Exception) {
             RemoteOperationResult<Unit>(e).also { result ->

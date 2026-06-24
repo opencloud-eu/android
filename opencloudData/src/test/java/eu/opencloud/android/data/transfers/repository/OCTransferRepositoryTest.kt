@@ -124,6 +124,17 @@ class OCTransferRepositoryTest {
     }
 
     @Test
+    fun `updateTusChecksum updates TUS checksum correctly`() {
+        val checksum = "sha1:aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d"
+
+        ocTransferRepository.updateTusChecksum(OC_TRANSFER.id!!, checksum)
+
+        verify(exactly = 1) {
+            localTransferDataSource.updateTusChecksum(OC_TRANSFER.id!!, checksum)
+        }
+    }
+
+    @Test
     fun `deleteTransferById removes a transfer correctly`() {
         ocTransferRepository.deleteTransferById(OC_TRANSFER.id!!)
 

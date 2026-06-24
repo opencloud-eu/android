@@ -58,7 +58,7 @@
     <string name="prefs_lock_access_from_document_provider">Verrouiller l’accès au gestionnaire de fichier</string>
     <string name="prefs_lock_access_from_document_provider_summary">Verrouiller l\'accès des autres applications aux fichiers d\'utilisateurs de l\'application via le navigateur de fichiers natif d\'Android.</string>
     <string name="prefs_touches_with_other_visible_windows">Interactions avec d\'autres fenêtres visibles</string>
-    <string name="prefs_touches_with_other_visible_windows_summary">Autoriser les interactions quand une autre fenêtre visible se superpose a l\'affichage. Activer pour utiliser le fonctionnement des applications de filtre lumineux.</string>
+    <string name="prefs_touches_with_other_visible_windows_summary">Autoriser les interactions quand une autre fenêtre visible se superpose à l\'affichage. Activer pour utiliser le fonctionnement des applications de filtre lumineux.</string>
     <string name="confirmation_touches_with_other_windows_title">Êtes-vous sûr de vouloir activer cette fonctionnalité \?</string>
     <string name="confirmation_touches_with_other_windows_message">Utilisez cette fonctionnalité à vos propres risques. Une application malveillante pourrait tenter de vous pousser à effectuer des actions en falsifiant l\'affichage.</string>
     <string name="prefs_subsection_picture_uploads">Téléversement automatique des images</string>
@@ -78,7 +78,7 @@
     <string name="prefs_camera_video_upload_path_title">Chemin d\'accès au répertoire de téléversement des vidéos</string>
     <string name="prefs_camera_video_upload_on_wifi">Téléverser les images via une connexion WiFi uniquement</string>
     <string name="prefs_camera_video_upload_on_charging">Téléverser les vidéos uniquement pendant le chargement de la batterie</string>
-    <string name="prefs_automatic_uploads_not_available_users_light">Les téléversements automatiques ne sont pas disponibles pour les utilisateurs légers</string>
+    <string name="prefs_automatic_uploads_not_available_users_light">Les téléversements automatiques ne sont pas disponibles pour les utilisateurs Light</string>
     <string name="prefs_subsection_advanced">Avancé</string>
     <string name="prefs_subsection_notifications">Gérer les notifications</string>
     <string name="prefs_show_hidden_files">Afficher les fichiers cachés</string>
@@ -139,7 +139,6 @@
     <string name="auth_oauth_failure">Le jeton d\'accès de la connexion a expiré ou est devenu invalide. Connectez-vous à nouveau pour rétablir l\'accès.</string>
     <string name="auth_oauth_failure_snackbar_action">Se connecter</string>
     <string name="auth_check_server">Vérifier le serveur</string>
-    <string name="auth_host_url">Adresse du serveur https://…</string>
     <string name="auth_username">Nom d\'utilisateur</string>
     <string name="auth_password">Mot de passe</string>
     <string name="auth_register">Nouveau dans %1$s \?</string>
@@ -220,7 +219,6 @@
     <string name="create_account">Créer un compte</string>
     <string name="upload_chooser_title">Téléversez depuis</string>
     <string name="uploader_info_dirname">Nom du dossier</string>
-    <string name="uploader_upload_in_progress_ticker">Téléversement ...</string>
     <string name="uploader_upload_in_progress_content">Envoi du fichier %2$s : %1$d%% effectués</string>
     <string name="uploader_upload_succeeded_ticker">Téléversement réussi</string>
     <string name="uploader_upload_succeeded_content_single">%1$s téléversé</string>
@@ -270,7 +268,6 @@
     <string name="uploader_upload_canceled_ticker">Téléversement annulé</string>
     <string name="downloader_download_canceled_ticker">Téléchargement annulé</string>
     <string name="downloader_download_enqueued_ticker">Le téléchargement de %1$s a été ajouté à la file d\'attente</string>
-    <string name="downloader_download_in_progress_ticker">Téléchargement ...</string>
     <string name="downloader_download_in_progress_content">Téléchargement en cours de %2$s, %1$d%% effectués</string>
     <string name="downloader_download_succeeded_ticker">Téléchargement réussi</string>
     <string name="downloader_download_succeeded_content">%1$s téléchargé</string>
@@ -344,8 +341,6 @@
     <string name="media_forward_description">Bouton d\'avance rapide</string>
     <string name="upload_from_camera_title">Image de la caméra</string>
 
-    <string name="auth_getting_authorization">Demande d\'autorisation…</string>
-    <string name="auth_trying_to_login">Tentative d\'identification ...</string>
     <string name="auth_no_net_conn_title">Pas de connexion réseau</string>
     <string name="auth_nossl_plain_ok_title">Connexion sécurisée non disponible</string>
     <string name="auth_connection_established">Connexion établie</string>
@@ -523,8 +518,6 @@
     <string name="log_send_history_button">Envoyer l\'Historique</string>
     <string name="log_send_no_mail_app">Aucune application n\'a été trouvée pour envoyer les journaux. Veuillez installer une application de messagerie !</string>
     <string name="log_send_mail_subject">Journaux de l\'application Android %1$s</string>
-    <string name="log_progress_dialog_text">Chargement des données…</string>
-
     <string name="actionbar_select_all">Tout sélectionner</string>
     <string name="actionbar_select_inverse">Inversez la sélection</string>
 
@@ -709,7 +702,6 @@
     <string name="scoped_storage_wizard_explanation">%1$s de données ont été trouvés sur votre stockage externe. Ce contenu sera déplacé vers un emplacement sécurisé sur votre appareil. Les fichiers restants seront supprimés de votre stockage externe après la migration afin d\'éviter des duplications ou failles de sécurité.</string>
     <string name="scoped_storage_wizard_intro">Votre application a été mise à jour. Cette mise à jour nécessite le déplacement de vos fichiers vers un emplacement plus sécurisé de votre appareil. Ce transfert unique de données est nécessaire et peut prendre une minute ou plus.</string>
     <string name="scoped_storage_wizard_intro_button">Commençons</string>
-    <string name="scoped_storage_wizard_not_enough_space_warning">⚠️ Votre espace libre est actuellement faible sur votre appareil. Certains fichiers pourraient ne pas être transférés, veuillez vérifier que tous les fichiers transférés sont bien présents a la fin du transfert.</string>
     <string name="scoped_storage_wizard_migrate_and_clean_button">Migrer maintenant</string>
     <string name="scoped_storage_wizard_migration_completed">Migration terminée avec succès. Vos fichiers sont maintenant plus sûrs que jamais.</string>
     <string name="scoped_storage_wizard_migration_completed_access_files_button">Accéder à vos fichiers</string>
@@ -730,7 +722,6 @@
 
     <!-- Release Notes -->
     <string name="release_notes_header">Nouveau dans %1$s</string>
-    <string name="release_notes_footer">Merci d\'utiliser %1$s.\n❤</string>
     <string name="release_notes_proceed">Exécuter</string>
     <string name="release_notes_icon">Icône des notes de version</string>
     <string name="release_notes_bugfixes_title">Corrections de bugs mineures</string>
@@ -739,8 +730,8 @@
     <string name="release_notes_4_5_0_subtitle_feedback_in_previews">Ajout d\'un retour lors de l\'activation/désactivation de la disponibilité hors ligne dans tous les aperçus et mise à jour du menu d\'options selon l\'état du fichier</string>
     <string name="release_notes_4_5_0_title_quota_improvements">Améliorations de l\'affichage de l\'occupation du stockage</string>
     <string name="release_notes_4_5_0_subtitle_quota_improvements">Occupation du stockage actualisée fréquemment lors des opérations sur les fichiers et d\'actualisation, et disponible dans la vue de gestion des comptes en plus du menu latéral</string>
-    <string name="release_notes_4_5_0_title_light_users">Utilisateur léger</string>
-    <string name="release_notes_4_5_0_subtitle_light_users">Les utilisateurs légers (utilisateurs sans espace personnel) sont désormais pris en charge dans l\'application</string>
+    <string name="release_notes_4_5_0_title_light_users">Utilisateur Light</string>
+    <string name="release_notes_4_5_0_subtitle_light_users">Les utilisateurs Light (utilisateurs sans espace personnel) sont désormais pris en charge dans l\'application</string>
     <string name="release_notes_4_5_1_title_strange_behaviour_apps_provider">Correction de la création de fichiers via les fournisseurs d\'applications</string>
     <string name="release_notes_4_5_1_subtitle_strange_behaviour_apps_provider">Les fichiers sont désormais ouverts correctement lorsqu\'ils sont créés à l\'aide de fournisseurs d\'applications</string>
     <string name="release_notes_title">Client OpenCloud</string>

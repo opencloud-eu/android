@@ -25,9 +25,6 @@ package eu.opencloud.android.lib.resources.files
 
 import eu.opencloud.android.lib.common.OpenCloudClient
 import eu.opencloud.android.lib.common.http.HttpConstants
-import eu.opencloud.android.lib.common.http.methods.webdav.DavConstants
-import eu.opencloud.android.lib.common.http.methods.webdav.DavUtils
-import eu.opencloud.android.lib.common.http.methods.webdav.PropfindMethod
 import eu.opencloud.android.lib.common.http.methods.webdav.PutMethod
 import eu.opencloud.android.lib.common.network.FileRequestBody
 import eu.opencloud.android.lib.common.network.OnDatatransferProgressListener
@@ -60,6 +57,8 @@ open class UploadFileFromFileSystemOperation(
     val lastModifiedTimestamp: String,
     val requiredEtag: String?,
     val spaceWebDavUrl: String? = null,
+    /** Whole-file checksum as "ALGORITHM:hex" (e.g. "SHA1:30338d…"); server rejects with 400 on mismatch. */
+    val ocChecksum: String? = null,
 ) : RemoteOperation<Unit>() {
 
     protected val cancellationRequested = AtomicBoolean(false)
@@ -72,13 +71,6 @@ open class UploadFileFromFileSystemOperation(
     override fun run(client: OpenCloudClient): RemoteOperationResult<Unit> {
         var result: RemoteOperationResult<Unit>
         try {
-            val propfindMethod = PropfindMethod(
-                URL(client.userFilesWebDavUri.toString()),
-                DavConstants.DEPTH_1,
-                DavUtils.allPropSet
-            )
-            val status = client.executeHttpMethod(propfindMethod)
-
             if (cancellationRequested.get()) {
                 // the operation was cancelled before getting it's turn to be executed in the queue of uploads
                 result = RemoteOperationResult<Unit>(OperationCancelledException())
@@ -86,7 +78,8 @@ open class UploadFileFromFileSystemOperation(
             } else {
                 // perform the upload
                 result = uploadFile(client)
-                Timber.i("Upload of $localPath to $remotePath - HTTP status code: $status")
+                val outcome = if (result.isSuccess) "success, etag=$etag" else result.logMessage
+                Timber.i("Upload of $localPath to $remotePath: $outcome")
             }
         } catch (e: Exception) {
             if (putMethod?.isAborted == true) {
@@ -117,6 +110,7 @@ open class UploadFileFromFileSystemOperation(
             }
             addRequestHeader(HttpConstants.OC_TOTAL_LENGTH_HEADER, fileToUpload.length().toString())
             addRequestHeader(HttpConstants.OC_X_OC_MTIME_HEADER, lastModifiedTimestamp)
+            ocChecksum?.let { addRequestHeader(HttpConstants.OC_CHECKSUM_HEADER, it) }
         }
 
         val status = client.executeHttpMethod(putMethod)

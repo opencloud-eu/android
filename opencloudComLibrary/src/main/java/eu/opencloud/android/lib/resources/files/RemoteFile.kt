@@ -39,6 +39,7 @@ import at.bitfire.dav4jvm.property.OCPermissions
 import at.bitfire.dav4jvm.property.OCPrivatelink
 import at.bitfire.dav4jvm.property.OCSize
 import eu.opencloud.android.lib.common.http.HttpConstants
+import eu.opencloud.android.lib.common.http.methods.webdav.properties.OCChecksums
 import eu.opencloud.android.lib.common.http.methods.webdav.properties.OCShareTypes
 import eu.opencloud.android.lib.common.utils.isOneOf
 import eu.opencloud.android.lib.resources.shares.ShareType
@@ -73,6 +74,8 @@ data class RemoteFile(
     var owner: String,
     var sharedByLink: Boolean = false,
     var sharedWithSharee: Boolean = false,
+    /** Server-reported checksums as raw "ALGORITHM:value" strings (e.g. "SHA1:1c68ea…"). */
+    var checksums: List<String> = emptyList(),
 ) : Parcelable {
 
     // To do: Quotas not used. Use or remove them.
@@ -133,6 +136,9 @@ data class RemoteFile(
                     }
                     is OCPrivatelink -> {
                         remoteFile.privateLink = property.link
+                    }
+                    is OCChecksums -> {
+                        remoteFile.checksums = property.checksums
                     }
                     is OCShareTypes -> {
                         val list = property.shareTypes

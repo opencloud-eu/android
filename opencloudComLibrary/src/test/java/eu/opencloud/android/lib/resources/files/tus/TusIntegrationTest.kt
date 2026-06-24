@@ -65,6 +65,14 @@ class TusIntegrationTest {
         return client
     }
 
+    private fun decodeTusMetadata(header: String): Map<String, String> =
+        header.split(",")
+            .filter { it.isNotBlank() }
+            .associate { entry ->
+                val parts = entry.split(" ", limit = 2)
+                parts[0] to String(Base64.getDecoder().decode(parts[1]))
+            }
+
     @Test
     fun create_patch_head_delete_success() {
         val client = newClient()
@@ -186,6 +194,89 @@ class TusIntegrationTest {
     }
 
     @Test
+    fun create_encodesChecksumMetadataWithoutCreationWithUpload() {
+        val client = newClient()
+        val collectionPath = "/remote.php/dav/uploads/$userId"
+        val locationPath = "$collectionPath/UPLD-checksum"
+        val localFile = File.createTempFile("tus", ".bin").apply {
+            writeBytes(byteArrayOf(1, 2, 3, 4, 5))
+        }
+        val sha1Hex = TusChecksumHelper.sha1Hex(localFile)
+        server.enqueue(
+            MockResponse()
+                .setResponseCode(201)
+                .addHeader("Tus-Resumable", "1.0.0")
+                .addHeader("Location", locationPath)
+                .addHeader("Upload-Offset", "0")
+        )
+
+        val create = CreateTusUploadRemoteOperation(
+            file = localFile,
+            remotePath = "/test.bin",
+            mimetype = "application/octet-stream",
+            metadata = mapOf(
+                "filename" to "test.bin",
+                "checksum" to "SHA1 $sha1Hex",
+            ),
+            useCreationWithUpload = false,
+            firstChunkSize = null,
+            tusUrl = null,
+            collectionUrlOverride = server.url(collectionPath).toString(),
+            base64Encoder = object : Base64Encoder {
+                override fun encode(bytes: ByteArray): String =
+                    Base64.getEncoder().encodeToString(bytes)
+            }
+        )
+
+        val createResult = create.execute(client)
+        assertTrue("Create operation failed", createResult.isSuccess)
+
+        val postReq = server.takeRequest()
+        assertEquals("POST", postReq.method)
+        assertEquals("5", postReq.getHeader("Upload-Length"))
+        assertNull(postReq.getHeader("Upload-Offset"))
+        val metadata = decodeTusMetadata(postReq.getHeader("Upload-Metadata")!!)
+        assertEquals("test.bin", metadata["filename"])
+        assertEquals("SHA1 $sha1Hex", metadata["checksum"])
+    }
+
+    @Test
+    fun patch_sendsUploadChecksumHeader() {
+        val client = newClient()
+        val locationPath = "/remote.php/dav/uploads/$userId/UPLD-checksum-patch"
+        val localFile = File.createTempFile("tus", ".bin").apply {
+            writeBytes(byteArrayOf(1, 2, 3, 4, 5))
+        }
+        server.enqueue(
+            MockResponse()
+                .setResponseCode(204)
+                .addHeader("Upload-Offset", "5")
+        )
+
+        val patch = PatchTusUploadChunkRemoteOperation(
+            localPath = localFile.absolutePath,
+            uploadUrl = server.url(locationPath).toString(),
+            offset = 0,
+            chunkSize = 5,
+            checksumAlgorithm = TusChecksumHelper.SHA1_WIRE_ALGORITHM,
+        )
+        val patchResult = patch.execute(client)
+
+        assertTrue(patchResult.isSuccess)
+        val patchReq = server.takeRequest()
+        assertEquals("PATCH", patchReq.method)
+        assertEquals(
+            TusChecksumHelper.uploadChecksumHeader(
+                file = localFile,
+                offset = 0,
+                length = 5,
+                algorithm = TusChecksumHelper.SHA1_WIRE_ALGORITHM,
+            ),
+            patchReq.getHeader("Upload-Checksum")
+        )
+    }
+
+    @Test
     fun creation_with_upload_returns_offset() {
         val client = newClient()
         val collectionPath = "/remote.php/dav/uploads/$userId"
@@ -275,6 +366,57 @@ class TusIntegrationTest {
         } finally {
             localFile.delete()
         }
+    }
+
+    @Test
+    fun creation_with_upload_sendsUploadChecksumForFirstChunk() {
+        val client = newClient()
+        val collectionPath = "/remote.php/dav/uploads/$userId"
+        val locationPath = "$collectionPath/UPLD-WITH-DATA-CHECKSUM"
+        val localFile = File.createTempFile("tus", ".bin").apply {
+            writeBytes(ByteArray(100) { it.toByte() })
+        }
+        val firstChunkSize = 50L
+        server.enqueue(
+            MockResponse()
+                .setResponseCode(201)
+                .addHeader("Tus-Resumable", "1.0.0")
+                .addHeader("Location", locationPath)
+                .addHeader("Upload-Offset", firstChunkSize.toString())
+        )
+
+        val create = CreateTusUploadRemoteOperation(
+            file = localFile,
+            remotePath = "/test-with-data.bin",
+            mimetype = "application/octet-stream",
+            metadata = mapOf("filename" to "test-with-data.bin"),
+            useCreationWithUpload = true,
+            firstChunkSize = firstChunkSize,
+            tusUrl = null,
+            collectionUrlOverride = server.url(collectionPath).toString(),
+            base64Encoder = object : Base64Encoder {
+                override fun encode(bytes: ByteArray): String =
+                    Base64.getEncoder().encodeToString(bytes)
+            },
+            checksumAlgorithm = TusChecksumHelper.SHA1_WIRE_ALGORITHM,
+        )
+
+        val createResult = create.execute(client)
+        assertTrue("Create operation failed", createResult.isSuccess)
+
+        val postReq = server.takeRequest()
+        assertEquals("POST", postReq.method)
+        assertEquals("0", postReq.getHeader("Upload-Offset"))
+        // The Upload-Checksum header must cover exactly the first chunk, not the whole file.
+        assertEquals(
+            TusChecksumHelper.uploadChecksumHeader(
+                file = localFile,
+                offset = 0,
+                length = firstChunkSize,
+                algorithm = TusChecksumHelper.SHA1_WIRE_ALGORITHM,
+            ),
+            postReq.getHeader("Upload-Checksum")
+        )
     }
 
     @Test

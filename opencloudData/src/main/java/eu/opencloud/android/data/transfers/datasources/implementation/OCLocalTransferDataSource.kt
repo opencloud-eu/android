@@ -171,6 +171,10 @@ class OCLocalTransferDataSource(
         transferDao.updateTusUrl(id = id, tusUploadUrl = tusUploadUrl)
     }
 
+    override fun updateTusChecksum(id: Long, tusUploadChecksum: String?) {
+        transferDao.updateTusChecksum(id = id, tusUploadChecksum = tusUploadChecksum)
+    }
+
 
     companion object {
 

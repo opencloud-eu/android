@@ -23,6 +23,7 @@
 
 package eu.opencloud.android.lib.resources.files
 
+import at.bitfire.dav4jvm.PropertyRegistry
 import eu.opencloud.android.lib.common.OpenCloudClient
 import eu.opencloud.android.lib.common.accounts.AccountUtils
 import eu.opencloud.android.lib.common.http.HttpConstants.HTTP_MULTI_STATUS
@@ -30,6 +31,8 @@ import eu.opencloud.android.lib.common.http.HttpConstants.HTTP_OK
 import eu.opencloud.android.lib.common.http.methods.webdav.DavConstants.DEPTH_0
 import eu.opencloud.android.lib.common.http.methods.webdav.DavUtils
 import eu.opencloud.android.lib.common.http.methods.webdav.PropfindMethod
+import eu.opencloud.android.lib.common.http.methods.webdav.properties.OCChecksums
+import eu.opencloud.android.lib.common.http.methods.webdav.properties.OCShareTypes
 import eu.opencloud.android.lib.common.network.WebdavUtils
 import eu.opencloud.android.lib.common.operations.RemoteOperation
 import eu.opencloud.android.lib.common.operations.RemoteOperationResult
@@ -62,6 +65,9 @@ class ReadRemoteFileOperation(
             if (client.account == null) {
                 throw AccountUtils.AccountNotFoundException()
             }
+            PropertyRegistry.register(OCShareTypes.Factory())
+            PropertyRegistry.register(OCChecksums.Factory())
+
             val propFind = PropfindMethod(
                 url = getFinalWebDavUrl(),
                 depth = DEPTH_0,
