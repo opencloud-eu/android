@@ -1,1 +1,15 @@
 include ':opencloudApp', ':opencloudDomain', ':opencloudData', ':opencloudComLibrary', ':opencloudTestUtil'
+
+// === LOCAL android-dav composite build (for testing local android-dav fixes) ===========
+// While this block is active, the `com.github.opencloud-eu:android-dav` dependency in
+// opencloudComLibrary/build.gradle is transparently replaced by the local ../android-dav
+// source (no need to touch that line). Comment this whole block out to go back to the
+// published JitPack artifact.
+
+//includeBuild('../android-dav') {
+//    dependencySubstitution {
+//        substitute module('com.github.opencloud-eu:android-dav') using project(':')
+//    }
+//}
+
+// === end LOCAL android-dav composite build =========================================
