@@ -28,6 +28,7 @@ import eu.opencloud.android.lib.common.http.HttpConstants.OC_X_REQUEST_ID
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import okhttp3.Headers
+import okhttp3.HttpUrl
 import okhttp3.Interceptor
 import okhttp3.MediaType
 import okhttp3.Request
@@ -74,7 +75,7 @@ class LogInterceptor : Interceptor {
                             info = RequestInfo(
                                 id = requestId,
                                 method = request.method,
-                                url = request.url.toString(),
+                                url = redactUrl(request.url),
                             )
                         )
                     )
@@ -88,10 +89,16 @@ class LogInterceptor : Interceptor {
         if (auxHeaders.contains(AUTHORIZATION_HEADER)) {
             val authHeaderList = auxHeaders[AUTHORIZATION_HEADER]!!.split(" ")
             val authType = authHeaderList[0]
-            val authInfo = if (redactAuthHeader) "[redacted]" else authHeaderList[1]
+            val authInfo = if (redactAuthHeader) REDACTED else authHeaderList.getOrNull(1).orEmpty()
             auxHeaders[AUTHORIZATION_HEADER] = "$authType $authInfo"
         }
-        return auxHeaders
+        return auxHeaders.mapValues { (header, value) ->
+            if (SENSITIVE_HEADER_NAMES.any { it.equals(header, ignoreCase = true) }) {
+                REDACTED
+            } else {
+                redactSensitiveData(value)
+            }
+        }
     }
 
     private fun getRequestBodyString(requestBodyParam: RequestBody?): String? {
@@ -110,7 +117,7 @@ class LogInterceptor : Interceptor {
             val contentType = requestBody.contentType()
             val charset: Charset = contentType?.charset(StandardCharsets.UTF_8) ?: StandardCharsets.UTF_8
             if (contentType.isLoggable()) {
-                return buffer.readString(charset)
+                return redactSensitiveData(buffer.readString(charset))
             } else if (requestBody.contentLength() > 0) {
                 return "$BINARY_OMITTED ${requestBody.contentLength()} $BYTES"
             }
@@ -147,7 +154,7 @@ class LogInterceptor : Interceptor {
                                     status = response.code,
                                     version = response.protocol.toString(),
                                 ),
-                                url = request.url.toString(),
+                                url = redactUrl(request.url),
                             )
                         )
                     )
@@ -158,7 +165,7 @@ class LogInterceptor : Interceptor {
 
     private fun getResponseBodyString(contentType: MediaType?, contentLength: Int, responseBody: String): String? =
         if (contentType?.isLoggable() == true) {
-            responseBody
+            redactSensitiveData(responseBody)
         } else if (contentLength > 0) {
             "$BINARY_OMITTED $contentLength $BYTES"
         } else {
@@ -176,11 +183,63 @@ class LogInterceptor : Interceptor {
         return String.format(DURATION_FORMAT, hours, minutes, seconds, auxMillis)
     }
 
+    private fun redactUrl(url: HttpUrl): String {
+        var redactedUrl = url.newBuilder()
+        url.queryParameterNames
+            .filter(::isSensitiveField)
+            .forEach { redactedUrl = redactedUrl.setQueryParameter(it, REDACTED) }
+        return redactedUrl.build().toString()
+    }
+
+    private fun redactSensitiveData(value: String): String =
+        FORM_FIELD_REGEX.replace(
+            JSON_FIELD_REGEX.replace(
+                TO_STRING_FIELD_REGEX.replace(value) {
+                    "${it.groupValues[1]}$REDACTED"
+                }
+            ) {
+                "${it.groupValues[1]}$REDACTED${it.groupValues[4]}"
+            }
+        ) {
+            "${it.groupValues[1]}${it.groupValues[2]}=$REDACTED"
+        }
+
+    private fun isSensitiveField(field: String): Boolean =
+        SENSITIVE_FIELD_NAMES.any { it.equals(field, ignoreCase = true) }
+
     companion object {
         var httpLogsEnabled: Boolean = false
         var redactAuthHeader: Boolean = true
+        private const val REDACTED = "[redacted]"
         private const val LIMIT_BODY_LOG: Long = 1000000
         private const val BINARY_OMITTED = "<-- Body end for response -- Binary -- Omitted:"
         private const val BYTES = "bytes -->"
+        private val SENSITIVE_HEADER_NAMES = setOf(
+            "Cookie",
+            "Set-Cookie",
+            "X-Auth-Token",
+        )
+        private val SENSITIVE_FIELD_NAMES = setOf(
+            "access_token",
+            "accessToken",
+            "authorization_code",
+            "authorizationCode",
+            "client_secret",
+            "clientSecret",
+            "code",
+            "code_verifier",
+            "codeVerifier",
+            "id_token",
+            "idToken",
+            "password",
+            "passcode",
+            "pattern",
+            "refresh_token",
+            "refreshToken",
+        )
+        private val SENSITIVE_FIELD_PATTERN = SENSITIVE_FIELD_NAMES.joinToString("|") { Regex.escape(it) }
+        private val JSON_FIELD_REGEX = Regex("""(?i)("($SENSITIVE_FIELD_PATTERN)"\s*:\s*")([^"]*)(")""")
+        private val FORM_FIELD_REGEX = Regex("""(?i)(^|[?&])($SENSITIVE_FIELD_PATTERN)=([^&#]*)""")
+        private val TO_STRING_FIELD_REGEX = Regex("""(?i)(\b($SENSITIVE_FIELD_PATTERN)\s*=\s*)([^,)\s&]+)""")
     }
 }
