@@ -61,7 +61,7 @@
     <string name="prefs_touches_with_other_visible_windows_summary">Allow touches when the view is obscured by another visible window. Enable it to use light filtering apps.</string>
 
     <!-- mTLS client certificate (per account) -->
-    <string name="auth_mtls_select_cert">Client certificate (mTLS)</string>
+    <string name="auth_connection_button">Connection…</string>
     <string name="auth_mtls_cert_selected">Certificate: %1$s</string>
     <string name="account_mtls_button">Client certificate</string>
     <string name="account_mtls_set_cert">Set client certificate</string>

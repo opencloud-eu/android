@@ -39,8 +39,10 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.security.KeyChain
+import android.view.View
 import android.view.View.INVISIBLE
 import android.view.WindowManager.LayoutParams.FLAG_SECURE
+import android.widget.PopupMenu
 import androidx.appcompat.app.AppCompatActivity
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.net.toUri
@@ -113,6 +115,10 @@ private const val KEY_AUTH_MTLS_CERT_ALIAS = "KEY_AUTH_MTLS_CERT_ALIAS"
 
 // KeyChain.choosePrivateKeyAlias: -1 means no port constraint on the host hint.
 private const val KEYCHAIN_NO_PORT = -1
+
+// PopupMenu item ids for the wizard "Connection…" menu.
+private const val MENU_SET_CERT = 1
+private const val MENU_CLEAR_CERT = 2
 
 class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrustedCertListener, SecurityEnforced {
 
@@ -231,7 +237,7 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
 
         binding.embeddedCheckServerButton.setOnClickListener { checkOcServer() }
 
-        binding.mtlsSelectCertButton.setOnClickListener { launchClientCertPicker() }
+        binding.connectionOptionsButton.setOnClickListener { showConnectionMenu(it) }
 
         binding.loginButton.setOnClickListener {
             if (AccountTypeUtils.getAuthTokenTypeAccessToken(accountType) != authTokenType) { // Basic
@@ -1152,6 +1158,43 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
                 isVisible = true
             }
         }
+    }
+
+    /**
+     * Shows the "Connection…" popup with the client-certificate (mTLS) actions, mirroring the
+     * per-account menu in ManageAccountsDialogFragment. "Remove" only appears once a certificate
+     * is selected, so a fresh login shows just "Set client certificate".
+     */
+    private fun showConnectionMenu(anchor: View) {
+        val hasCert = !clientCertAlias.isNullOrBlank()
+        PopupMenu(this, anchor).apply {
+            menu.add(0, MENU_SET_CERT, 0, getString(R.string.account_mtls_set_cert))
+            if (hasCert) {
+                menu.add(0, MENU_CLEAR_CERT, 1, getString(R.string.account_mtls_clear_cert))
+            }
+            setOnMenuItemClickListener { item ->
+                when (item.itemId) {
+                    MENU_SET_CERT -> {
+                        launchClientCertPicker()
+                        true
+                    }
+                    MENU_CLEAR_CERT -> {
+                        clearClientCert()
+                        true
+                    }
+                    else -> {
+                        false
+                    }
+                }
+            }
+            show()
+        }
+    }
+
+    private fun clearClientCert() {
+        clientCertAlias = null
+        clientManager.loginClientCertAlias = null
+        updateClientCertStatus()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
