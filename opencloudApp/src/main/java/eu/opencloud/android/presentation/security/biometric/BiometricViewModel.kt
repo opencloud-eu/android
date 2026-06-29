@@ -28,6 +28,7 @@ import androidx.biometric.BiometricPrompt
 import androidx.lifecycle.ViewModel
 import eu.opencloud.android.R
 import eu.opencloud.android.data.providers.SharedPreferencesProvider
+import eu.opencloud.android.presentation.security.AppLockSecretHash
 import eu.opencloud.android.presentation.security.PREFERENCE_LAST_UNLOCK_TIMESTAMP
 import eu.opencloud.android.presentation.security.passcode.PassCodeActivity
 import eu.opencloud.android.providers.ContextProvider
@@ -90,11 +91,18 @@ class BiometricViewModel(
     fun shouldAskForNewPassCode(): Boolean {
         val passCode = preferencesProvider.getString(PassCodeActivity.PREFERENCE_PASSCODE, loadPinFromOldFormatIfPossible())
         val passCodeDigits = maxOf(contextProvider.getInt(R.integer.passcode_digits), PassCodeActivity.PASSCODE_MIN_LENGTH)
-        return (passCode != null && passCode.length < passCodeDigits)
+        val savedPassCodeDigits = when {
+            passCode == null -> null
+            AppLockSecretHash.isHash(passCode) ->
+                preferencesProvider.getInt(PassCodeActivity.PREFERENCE_PASSCODE_LENGTH, passCodeDigits)
+            else -> passCode.length
+        }
+        return savedPassCodeDigits != null && savedPassCodeDigits < passCodeDigits
     }
 
     fun removePassCode() {
         preferencesProvider.removePreference(PassCodeActivity.PREFERENCE_PASSCODE)
+        preferencesProvider.removePreference(PassCodeActivity.PREFERENCE_PASSCODE_LENGTH)
         preferencesProvider.putBoolean(PassCodeActivity.PREFERENCE_SET_PASSCODE, false)
     }
 

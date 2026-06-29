@@ -21,6 +21,7 @@
 package eu.opencloud.android.presentation.viewmodels.security
 
 import eu.opencloud.android.data.providers.SharedPreferencesProvider
+import eu.opencloud.android.presentation.security.AppLockSecretHash
 import eu.opencloud.android.presentation.security.pattern.PatternActivity
 import eu.opencloud.android.presentation.security.pattern.PatternViewModel
 import eu.opencloud.android.presentation.viewmodels.ViewModelTest
@@ -51,7 +52,10 @@ class PatternViewModelTest : ViewModelTest() {
         patternViewModel.setPattern(pattern)
 
         verify(exactly = 1) {
-            preferencesProvider.putString(PatternActivity.PREFERENCE_PATTERN, pattern)
+            preferencesProvider.putString(
+                PatternActivity.PREFERENCE_PATTERN,
+                match { it != pattern && AppLockSecretHash.verify(pattern, it) }
+            )
             preferencesProvider.putBoolean(PatternActivity.PREFERENCE_SET_PATTERN, true)
         }
     }
