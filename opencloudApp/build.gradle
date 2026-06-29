@@ -102,7 +102,7 @@ configurations.all {
     resolutionStrategy {
         force "androidx.test:core:1.6.1"
         force "androidx.test:core-ktx:1.6.1"
-        force "androidx.test:monitor:1.7.2"
+        force "androidx.test:monitor:1.8.0"
         force "androidx.test:runner:1.6.2"
         force "androidx.test:rules:1.6.1"
         force "androidx.test.espresso:espresso-core:3.6.1"
