@@ -46,6 +46,7 @@ import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
 import androidx.test.espresso.matcher.ViewMatchers.withId
 import androidx.test.espresso.matcher.ViewMatchers.withText
 import eu.opencloud.android.R
+import eu.opencloud.android.data.ClientManager
 import eu.opencloud.android.domain.exceptions.NoNetworkConnectionException
 import eu.opencloud.android.domain.exceptions.OpencloudVersionNotSupportedException
 import eu.opencloud.android.domain.exceptions.ServerNotReachableException
@@ -113,6 +114,7 @@ class LoginActivityTest {
     private lateinit var settingsViewModel: SettingsViewModel
     private lateinit var ocContextProvider: ContextProvider
     private lateinit var mdmProvider: MdmProvider
+    private lateinit var clientManager: ClientManager
     private lateinit var context: Context
 
     private lateinit var loginResultLiveData: MutableLiveData<Event<UIResult<String>>>
@@ -130,6 +132,7 @@ class LoginActivityTest {
         settingsViewModel = mockk(relaxUnitFun = true)
         ocContextProvider = mockk(relaxed = true)
         mdmProvider = mockk(relaxed = true)
+        clientManager = mockk(relaxed = true)
         val accountManager = mockk<AccountManager>(relaxed = true)
         every { accountManager.getUserData(any(), any()) } returns null
         every { accountManager.getPassword(any()) } returns null
@@ -171,6 +174,9 @@ class LoginActivityTest {
                     }
                     factory {
                         mdmProvider
+                    }
+                    single {
+                        clientManager
                     }
                 }
             )
