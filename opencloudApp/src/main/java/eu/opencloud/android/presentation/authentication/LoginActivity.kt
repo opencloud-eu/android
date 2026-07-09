@@ -38,8 +38,11 @@ import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.security.KeyChain
+import android.view.View
 import android.view.View.INVISIBLE
 import android.view.WindowManager.LayoutParams.FLAG_SECURE
+import android.widget.PopupMenu
 import androidx.appcompat.app.AppCompatActivity
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.net.toUri
@@ -49,6 +52,7 @@ import androidx.core.widget.doAfterTextChanged
 import eu.opencloud.android.BuildConfig
 import eu.opencloud.android.MainApp.Companion.accountType
 import eu.opencloud.android.R
+import eu.opencloud.android.data.ClientManager
 import eu.opencloud.android.data.authentication.KEY_OIDC_ISSUER
 import eu.opencloud.android.data.authentication.KEY_PREFERRED_USERNAME
 import eu.opencloud.android.data.authentication.KEY_USER_ID
@@ -107,12 +111,24 @@ private const val KEY_AUTH_SERVER_BASE_URL = "KEY_AUTH_SERVER_BASE_URL"
 private const val KEY_AUTH_OIDC_SUPPORTED = "KEY_AUTH_OIDC_SUPPORTED"
 private const val KEY_AUTH_LOGIN_ACTION = "KEY_AUTH_LOGIN_ACTION"
 private const val KEY_AUTH_USER_ACCOUNT = "KEY_AUTH_USER_ACCOUNT"
+private const val KEY_AUTH_MTLS_CERT_ALIAS = "KEY_AUTH_MTLS_CERT_ALIAS"
+
+// KeyChain.choosePrivateKeyAlias: -1 means no port constraint on the host hint.
+private const val KEYCHAIN_NO_PORT = -1
+
+// PopupMenu item ids for the wizard "Connection…" menu.
+private const val MENU_SET_CERT = 1
+private const val MENU_CLEAR_CERT = 2
 
 class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrustedCertListener, SecurityEnforced {
 
     private val authenticationViewModel by viewModel<AuthenticationViewModel>()
     private val contextProvider by inject<ContextProvider>()
     private val mdmProvider by inject<MdmProvider>()
+    private val clientManager by inject<ClientManager>()
+
+    // Alias (from the Android KeyChain) of the client certificate to present for mTLS during login.
+    private var clientCertAlias: String? = null
 
     private var loginAction: Byte = ACTION_CREATE
     private var authTokenType: String? = null
@@ -213,11 +229,15 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
         binding.root.filterTouchesWhenObscured =
             PreferenceUtils.shouldDisallowTouchesWithOtherVisibleWindows(this@LoginActivity)
 
+        restoreClientCertAlias(savedInstanceState)
+
         initBrandableOptionsUI()
 
         binding.thumbnail.setOnClickListener { checkOcServer() }
 
         binding.embeddedCheckServerButton.setOnClickListener { checkOcServer() }
+
+        binding.connectionOptionsButton.setOnClickListener { showConnectionMenu(it) }
 
         binding.loginButton.setOnClickListener {
             if (AccountTypeUtils.getAuthTokenTypeAccessToken(accountType) != authTokenType) { // Basic
@@ -256,6 +276,24 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
 
         // Note: pendingAuthorizationIntent is processed in checkServerType() after
         // getServerInfo() completes (process death recovery flow).
+    }
+
+    /**
+     * Restores the mTLS client certificate alias: from saved state on recreate, from the existing
+     * account on re-login, or none on a fresh login. Keeps [clientManager]'s transient alias in sync
+     * so the login connection (server check + login) presents the right certificate before the
+     * account exists.
+     */
+    private fun restoreClientCertAlias(savedInstanceState: Bundle?) {
+        clientCertAlias = when {
+            savedInstanceState != null -> savedInstanceState.getString(KEY_AUTH_MTLS_CERT_ALIAS)
+            loginAction != ACTION_CREATE -> userAccount?.let {
+                AccountManager.get(this).getUserData(it, AccountUtils.Constants.KEY_MTLS_CERT_ALIAS)
+            }
+            else -> null
+        }
+        clientManager.loginClientCertAlias = clientCertAlias
+        updateClientCertStatus()
     }
 
     /**
@@ -625,6 +663,11 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
         if (serverInfo is ServerInfo.OIDCServer) {
             am.setUserData(account, KEY_OIDC_ISSUER, serverInfo.oidcServerConfiguration.issuer)
         }
+
+        // Persist the mTLS client certificate chosen during login to the account, then clear the
+        // login-time transient so it does not leak into later anonymous clients.
+        am.setUserData(account, AccountUtils.Constants.KEY_MTLS_CERT_ALIAS, clientCertAlias?.takeIf { it.isNotBlank() })
+        clientManager.loginClientCertAlias = null
 
         authenticationViewModel.discoverAccount(accountName = accountName, discoveryNeeded = loginAction == ACTION_CREATE)
         clearAuthState()
@@ -1084,6 +1127,76 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
         }
     }
 
+    /**
+     * Opens the Android KeyChain picker so the user can choose a client certificate for mTLS,
+     * defaulting to the currently selected alias. The chosen alias is applied to the login client
+     * immediately so the next server check / login presents it.
+     */
+    private fun launchClientCertPicker() {
+        KeyChain.choosePrivateKeyAlias(
+            this,
+            { alias -> runOnUiThread { onClientCertPicked(alias) } },
+            null, null, null, KEYCHAIN_NO_PORT, clientCertAlias
+        )
+    }
+
+    private fun onClientCertPicked(alias: String?) {
+        // Null = user cancelled the picker; keep the current selection.
+        if (alias == null) return
+        clientCertAlias = alias
+        clientManager.loginClientCertAlias = alias
+        updateClientCertStatus()
+    }
+
+    private fun updateClientCertStatus() {
+        binding.mtlsStatusText.run {
+            val alias = clientCertAlias
+            if (alias.isNullOrBlank()) {
+                isVisible = false
+            } else {
+                text = getString(R.string.auth_mtls_cert_selected, alias)
+                isVisible = true
+            }
+        }
+    }
+
+    /**
+     * Shows the "Connection…" popup with the client-certificate (mTLS) actions, mirroring the
+     * per-account menu in ManageAccountsDialogFragment. "Remove" only appears once a certificate
+     * is selected, so a fresh login shows just "Set client certificate".
+     */
+    private fun showConnectionMenu(anchor: View) {
+        val hasCert = !clientCertAlias.isNullOrBlank()
+        PopupMenu(this, anchor).apply {
+            menu.add(0, MENU_SET_CERT, 0, getString(R.string.account_mtls_set_cert))
+            if (hasCert) {
+                menu.add(0, MENU_CLEAR_CERT, 1, getString(R.string.account_mtls_clear_cert))
+            }
+            setOnMenuItemClickListener { item ->
+                when (item.itemId) {
+                    MENU_SET_CERT -> {
+                        launchClientCertPicker()
+                        true
+                    }
+                    MENU_CLEAR_CERT -> {
+                        clearClientCert()
+                        true
+                    }
+                    else -> {
+                        false
+                    }
+                }
+            }
+            show()
+        }
+    }
+
+    private fun clearClientCert() {
+        clientCertAlias = null
+        clientManager.loginClientCertAlias = null
+        updateClientCertStatus()
+    }
+
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putString(KEY_AUTH_TOKEN_TYPE, authTokenType)
@@ -1094,6 +1207,7 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
         outState.putString(KEY_CODE_VERIFIER, authenticationViewModel.codeVerifier)
         outState.putString(KEY_CODE_CHALLENGE, authenticationViewModel.codeChallenge)
         outState.putString(KEY_OIDC_STATE, authenticationViewModel.oidcState)
+        outState.putString(KEY_AUTH_MTLS_CERT_ALIAS, clientCertAlias)
     }
 
     override fun finish() {

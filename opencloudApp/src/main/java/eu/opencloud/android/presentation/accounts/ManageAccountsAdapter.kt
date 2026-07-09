@@ -135,6 +135,11 @@ class ManageAccountsAdapter(
                     setImageResource(R.drawable.ic_clean_account)
                     setOnClickListener { accountListener.cleanAccountLocalStorage(account) }
                 }
+                /// bind listener to manage the client certificate (mTLS) of the account
+                holder.binding.mtlsAccountButton.apply {
+                    setImageResource(R.drawable.ic_lock)
+                    setOnClickListener { accountListener.manageClientCertificate(account, it) }
+                }
                 /// bind listener to remove account
                 holder.binding.removeButton.apply {
                     setImageResource(R.drawable.ic_action_delete_grey)
@@ -240,6 +245,7 @@ class ManageAccountsAdapter(
         fun cleanAccountLocalStorage(account: Account)
         fun createAccount()
         fun switchAccount(position: Int)
+        fun manageClientCertificate(account: Account, anchor: View)
     }
 
 }

@@ -28,6 +28,7 @@ import android.content.Context;
 
 import eu.opencloud.android.lib.common.http.logging.LogInterceptor;
 import eu.opencloud.android.lib.common.network.AdvancedX509TrustManager;
+import eu.opencloud.android.lib.common.network.ClientCertificateManager;
 import eu.opencloud.android.lib.common.network.KnownServersHostnameVerifier;
 import eu.opencloud.android.lib.common.network.NetworkUtils;
 import okhttp3.Cookie;
@@ -38,6 +39,7 @@ import okhttp3.Protocol;
 import okhttp3.TlsVersion;
 import timber.log.Timber;
 
+import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
@@ -61,6 +63,10 @@ public class HttpClient {
 
     private OkHttpClient mOkHttpClient = null;
 
+    // Alias (from the Android KeyChain) of the client certificate to present for mTLS on this
+    // client's connections. Resolved per account; null means no client certificate.
+    private String mClientCertAlias = null;
+
     protected HttpClient(Context context) {
         if (context == null) {
             Timber.e("Context may not be NULL!");
@@ -69,14 +75,16 @@ public class HttpClient {
         mContext = context;
     }
 
-    public OkHttpClient getOkHttpClient() {
+    public synchronized OkHttpClient getOkHttpClient() {
         if (mOkHttpClient == null) {
             try {
                 final X509TrustManager trustManager = new AdvancedX509TrustManager(
                         NetworkUtils.getKnownServersStore(mContext));
 
                 final SSLContext sslContext = buildSSLContext();
-                sslContext.init(null, new TrustManager[]{trustManager}, null);
+
+                KeyManager[] keyManagers = ClientCertificateManager.INSTANCE.getKeyManagers(mContext, mClientCertAlias);
+                sslContext.init(keyManagers, new TrustManager[]{trustManager}, null);
                 final SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
 
                 // Automatic cookie handling, NOT PERSISTENT
@@ -92,6 +100,26 @@ public class HttpClient {
             }
         }
         return mOkHttpClient;
+    }
+
+    public synchronized void invalidate() {
+        if (mOkHttpClient != null) {
+            // Drop idle keep-alive connections so the next request renegotiates TLS (e.g. with a
+            // changed client certificate) instead of reusing a connection from the old config.
+            mOkHttpClient.connectionPool().evictAll();
+        }
+        mOkHttpClient = null;
+    }
+
+    /**
+     * Sets the alias (from the Android KeyChain) of the client certificate to present for mTLS.
+     * Invalidates the cached client when the alias changes so it is rebuilt with the new certificate.
+     */
+    public synchronized void setClientCertAlias(String alias) {
+        if ((alias == null) ? (mClientCertAlias != null) : !alias.equals(mClientCertAlias)) {
+            mClientCertAlias = alias;
+            invalidate();
+        }
     }
 
     private SSLContext buildSSLContext() throws NoSuchAlgorithmException {

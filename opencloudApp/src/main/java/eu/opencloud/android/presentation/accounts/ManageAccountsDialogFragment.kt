@@ -29,11 +29,14 @@ import android.app.AlertDialog
 import android.app.Dialog
 import android.content.Intent
 import android.os.Bundle
+import android.security.KeyChain
 import android.view.ContextThemeWrapper
 import android.view.View
 import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.PopupMenu
 import android.widget.ProgressBar
+import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.fragment.app.DialogFragment
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -44,6 +47,8 @@ import eu.opencloud.android.domain.user.model.UserQuota
 import eu.opencloud.android.extensions.avoidScreenshotsIfNeeded
 import eu.opencloud.android.extensions.collectLatestLifecycleFlow
 import eu.opencloud.android.extensions.showErrorInSnackbar
+import eu.opencloud.android.lib.common.SingleSessionManager
+import eu.opencloud.android.lib.common.accounts.AccountUtils as LibAccountUtils
 import eu.opencloud.android.presentation.authentication.AccountUtils
 import eu.opencloud.android.presentation.common.UIResult
 import eu.opencloud.android.ui.activity.FileActivity
@@ -143,6 +148,60 @@ class ManageAccountsDialogFragment : DialogFragment(), ManageAccountsAdapter.Acc
             .create()
         dialog.avoidScreenshotsIfNeeded()
         dialog.show()
+    }
+
+    /**
+     * Lets the user set, change or remove the client certificate (mTLS) presented for [account].
+     * The chosen alias is stored in the account's userData and the cached HTTP clients are
+     * invalidated so the next request uses the updated certificate.
+     */
+    override fun manageClientCertificate(account: Account, anchor: View) {
+        val hasCert = !LibAccountUtils.getClientCertAliasForAccount(requireContext(), account).isNullOrBlank()
+        PopupMenu(requireContext(), anchor).apply {
+            menu.add(0, MENU_SET_CERT, 0, getString(R.string.account_mtls_set_cert))
+            if (hasCert) {
+                menu.add(0, MENU_CLEAR_CERT, 1, getString(R.string.account_mtls_clear_cert))
+            }
+            setOnMenuItemClickListener { item ->
+                when (item.itemId) {
+                    MENU_SET_CERT -> {
+                        launchClientCertPicker(account)
+                        true
+                    }
+                    MENU_CLEAR_CERT -> {
+                        setAccountClientCertAlias(account, null)
+                        true
+                    }
+                    else -> {
+                        false
+                    }
+                }
+            }
+            show()
+        }
+    }
+
+    private fun launchClientCertPicker(account: Account) {
+        val currentAlias = LibAccountUtils.getClientCertAliasForAccount(requireContext(), account)
+        KeyChain.choosePrivateKeyAlias(
+            requireActivity(),
+            // Null = user cancelled; preserve the current selection.
+            { alias -> activity?.runOnUiThread { alias?.let { setAccountClientCertAlias(account, it) } } },
+            null, null, null, KEYCHAIN_NO_PORT, currentAlias
+        )
+    }
+
+    private fun setAccountClientCertAlias(account: Account, alias: String?) {
+        AccountManager.get(requireContext().applicationContext)
+            .setUserData(account, LibAccountUtils.Constants.KEY_MTLS_CERT_ALIAS, alias?.takeIf { it.isNotBlank() })
+        // Drop cached clients so the next request renegotiates TLS with the updated certificate.
+        SingleSessionManager.getDefaultSingleton().invalidateAllClients()
+        val message = if (alias.isNullOrBlank()) {
+            getString(R.string.account_mtls_cert_cleared)
+        } else {
+            getString(R.string.account_mtls_cert_selected, alias)
+        }
+        Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show()
     }
 
     override fun createAccount() {
@@ -276,6 +335,12 @@ class ManageAccountsDialogFragment : DialogFragment(), ManageAccountsAdapter.Acc
     companion object {
         const val MANAGE_ACCOUNTS_DIALOG = "MANAGE_ACCOUNTS_DIALOG"
         const val KEY_CURRENT_ACCOUNT = "KEY_CURRENT_ACCOUNT"
+
+        private const val MENU_SET_CERT = 1
+        private const val MENU_CLEAR_CERT = 2
+
+        // KeyChain.choosePrivateKeyAlias: -1 means no port constraint on the host hint.
+        private const val KEYCHAIN_NO_PORT = -1
 
         fun newInstance(currentAccount: Account?): ManageAccountsDialogFragment {
             val args = Bundle().apply {
