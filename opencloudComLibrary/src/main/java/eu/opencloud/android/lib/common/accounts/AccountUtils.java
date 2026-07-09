@@ -145,6 +145,21 @@ public class AccountUtils {
         return accountMgr.getUserData(account, Constants.KEY_ID);
     }
 
+    /**
+     * Returns the alias (from the Android KeyChain) of the client certificate configured for the
+     * given account, used to present a certificate for mutual TLS authentication.
+     *
+     * @param context Valid Android {@link Context}, needed to access the {@link AccountManager}
+     * @param account A stored openCloud {@link Account}, may be null (e.g. anonymous client)
+     * @return the configured certificate alias, or null when none is set or the account is null
+     */
+    public static String getClientCertAliasForAccount(Context context, Account account) {
+        if (account == null) {
+            return null;
+        }
+        return AccountManager.get(context).getUserData(account, Constants.KEY_MTLS_CERT_ALIAS);
+    }
+
     public static String buildAccountNameOld(Uri serverBaseUrl, String username) {
         if (serverBaseUrl.getScheme() == null) {
             serverBaseUrl = Uri.parse("https://" + serverBaseUrl.toString());
@@ -222,6 +237,12 @@ public class AccountUtils {
          * User's display name
          */
         public static final String KEY_DISPLAY_NAME = "oc_display_name";
+
+        /**
+         * Alias (from the Android KeyChain) of the client certificate to present for mutual TLS
+         * authentication on this account's connections.
+         */
+        public static final String KEY_MTLS_CERT_ALIAS = "oc_mtls_cert_alias";
 
         public static final int ACCOUNT_VERSION = 1;
     }
