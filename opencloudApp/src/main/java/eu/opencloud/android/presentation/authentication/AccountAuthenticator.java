@@ -329,8 +329,7 @@ public class AccountAuthenticator extends AbstractAccountAuthenticator {
             return null;
         }
 
-        Timber.d("Ready to exchange for new tokens. Account: [ %s ], Refresh token: [ %s ]", account.name,
-                refreshToken);
+        Timber.d("Ready to exchange refresh token for new tokens. Account: [ %s ]", account.name);
 
         String baseUrl = accountManager.getUserData(account, AccountUtils.Constants.KEY_OC_BASE_URL);
 
@@ -440,8 +439,7 @@ public class AccountAuthenticator extends AbstractAccountAuthenticator {
             }
             accountManager.setUserData(account, KEY_OAUTH2_REFRESH_TOKEN, refreshTokenToUseFromNowOn);
 
-            Timber.d("Token refreshed successfully. New access token: [ %s ]. New refresh token: [ %s ]",
-                    newAccessToken, refreshTokenToUseFromNowOn);
+            Timber.d("Token refreshed successfully for account [ %s ]", account.name);
 
             return newAccessToken;
         }
