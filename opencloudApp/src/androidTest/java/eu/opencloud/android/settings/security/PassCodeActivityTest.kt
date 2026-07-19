@@ -102,6 +102,7 @@ class PassCodeActivityTest {
         }
 
         every { passCodeViewModel.getPassCode() } returns OC_PASSCODE_4_DIGITS
+        every { passCodeViewModel.getPassCodeLength() } returns OC_PASSCODE_4_DIGITS.length
         every { passCodeViewModel.getNumberOfPassCodeDigits() } returns 4
         every { passCodeViewModel.getNumberOfAttempts() } returns 0
         every { passCodeViewModel.getTimeToUnlockLiveData } returns timeToUnlockLiveData
