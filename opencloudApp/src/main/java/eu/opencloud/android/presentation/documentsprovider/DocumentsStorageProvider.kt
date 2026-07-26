@@ -61,6 +61,7 @@ import eu.opencloud.android.presentation.documentsprovider.cursors.FileCursor
 import eu.opencloud.android.presentation.documentsprovider.cursors.RootCursor
 import eu.opencloud.android.presentation.documentsprovider.cursors.SpaceCursor
 import eu.opencloud.android.presentation.settings.security.SettingsSecurityFragment.Companion.PREFERENCE_LOCK_ACCESS_FROM_DOCUMENT_PROVIDER
+import eu.opencloud.android.presentation.settings.advanced.SettingsAdvancedFragment.Companion.PREFERENCE_PRETEND_LOCAL_STORAGE
 import eu.opencloud.android.usecases.synchronization.SynchronizeFileUseCase
 import eu.opencloud.android.usecases.transfers.downloads.DownloadFileUseCase
 import eu.opencloud.android.usecases.synchronization.SynchronizeFolderUseCase
@@ -350,6 +351,10 @@ class DocumentsStorageProvider : DocumentsProvider() {
         // If access from document provider is not allowed, return empty cursor
         val preferences: SharedPreferencesProvider by inject()
         val lockAccessFromDocumentProvider = preferences.getBoolean(PREFERENCE_LOCK_ACCESS_FROM_DOCUMENT_PROVIDER, false)
+
+        // Get if user selected to pretend local storage
+        val pretendLocal = preferences.getBoolean(PREFERENCE_PRETEND_LOCAL_STORAGE, false)
+
         return if (lockAccessFromDocumentProvider && accounts.isNotEmpty()) {
             result.apply { addProtectedRoot(contextApp) }
         } else {
@@ -362,7 +367,7 @@ class DocumentsStorageProvider : DocumentsProvider() {
                 )
                 val spacesFeatureAllowedForAccount = AccountUtils.isSpacesFeatureAllowedForAccount(contextApp, account, capabilities)
 
-                result.addRoot(account, contextApp, spacesFeatureAllowedForAccount)
+                result.addRoot(account, contextApp, spacesFeatureAllowedForAccount, pretendLocal)
             }
             result
         }
@@ -494,6 +499,34 @@ class DocumentsStorageProvider : DocumentsProvider() {
             if (sourceFile.isFolder) newPath += File.separator
             val newFile = getFileByPathOrException(newPath, targetParentFile.owner)
             return newFile.id.toString()
+        }
+    }
+
+    override fun isChildDocument(parentDocumentId: String, documentId: String): Boolean {
+        Timber.d("isChildDocument($parentDocumentId, $documentId)")
+
+        // If they are the same, Android specs usually consider it a child/match
+        if (parentDocumentId == documentId) return true
+
+        return try {
+            // Parse the child file
+            val childFile = getFileByIdOrException(documentId.toInt())
+            val parentIdInt = parentDocumentId.toIntOrNull()
+
+            if (parentIdInt != null) {
+                // The parent is a standard folder
+                val parentFile = getFileByIdOrException(parentIdInt)
+
+                // Check if the child belongs to the same account and its path sits inside the parent's path
+                childFile.owner == parentFile.owner && childFile.remotePath.startsWith(parentFile.remotePath)
+            } else {
+                // The parentDocumentId is a string, meaning it's the account root (e.g., "user@server.com")
+                // Just verify the child file belongs to this account
+                childFile.owner == parentDocumentId
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "Error evaluating isChildDocument for parent: $parentDocumentId, child: $documentId")
+            false
         }
     }
 
