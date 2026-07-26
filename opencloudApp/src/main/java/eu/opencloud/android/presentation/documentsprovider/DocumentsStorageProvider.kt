@@ -95,6 +95,7 @@ class DocumentsStorageProvider : DocumentsProvider() {
     private var spacesSyncRequired = true
 
     private lateinit var fileToUpload: OCFile
+    private val pendingUploads = ConcurrentHashMap<String, OCFile>()
 
     // Cache to avoid redundant PROPFINDs when apps (e.g. Google Photos) call
     // openDocument many times for the same file. Two layers:
@@ -116,7 +117,7 @@ class DocumentsStorageProvider : DocumentsProvider() {
 
         // If documentId == NONEXISTENT_DOCUMENT_ID only Upload is needed because file does not exist in our database yet.
         var ocFile: OCFile
-        val uploadOnly: Boolean = documentId == NONEXISTENT_DOCUMENT_ID || documentId == "null"
+        val uploadOnly: Boolean = documentId == NONEXISTENT_DOCUMENT_ID || documentId == "null" || documentId.startsWith("pending_")
 
         var accessMode: Int = ParcelFileDescriptor.parseMode(mode)
         val isWrite: Boolean = mode.contains("w")
@@ -198,7 +199,7 @@ class DocumentsStorageProvider : DocumentsProvider() {
                 }
             }
         } else {
-            ocFile = fileToUpload
+            ocFile = pendingUploads[documentId] ?: fileToUpload
             accessMode = accessMode or ParcelFileDescriptor.MODE_CREATE
         }
 
@@ -215,6 +216,8 @@ class DocumentsStorageProvider : DocumentsProvider() {
                     Timber.d("A file with id $documentId has been closed! Time to synchronize it with server.")
                     // If only needs to upload that file
                     if (uploadOnly) {
+                        pendingUploads.remove(documentId)
+
                         ocFile.length = fileToOpen.length()
                         val uploadFilesUseCase: UploadFilesFromSystemUseCase by inject()
                         val uploadFilesUseCaseParams = UploadFilesFromSystemUseCase.Params(
@@ -319,7 +322,13 @@ class DocumentsStorageProvider : DocumentsProvider() {
     override fun queryDocument(documentId: String, projection: Array<String>?): Cursor {
         Timber.d("Query Document: $documentId")
         if (documentId == NONEXISTENT_DOCUMENT_ID) return FileCursor(projection).apply {
-            addFile(fileToUpload)
+            if (this@DocumentsStorageProvider::fileToUpload.isInitialized) addFile(fileToUpload)
+        }
+
+        if (documentId.startsWith("pending_")) {
+            return FileCursor(projection).apply {
+                pendingUploads[documentId]?.let { addFile(it) }
+            }
         }
 
         val fileId = try {
@@ -509,8 +518,15 @@ class DocumentsStorageProvider : DocumentsProvider() {
         if (parentDocumentId == documentId) return true
 
         return try {
-            // Parse the child file
-            val childFile = getFileByIdOrException(documentId.toInt())
+            // Parse the child file. If it's a new un-uploaded file, pull from memory. Otherwise, query DB.
+            val childFile = if (documentId == NONEXISTENT_DOCUMENT_ID && this::fileToUpload.isInitialized) {
+                fileToUpload
+            } else if (documentId.startsWith("pending_")) {
+                pendingUploads[documentId] ?: return false
+            } else {
+                getFileByIdOrException(documentId.toInt())
+            }
+
             val parentIdInt = parentDocumentId.toIntOrNull()
 
             if (parentIdInt != null) {
@@ -563,12 +579,13 @@ class DocumentsStorageProvider : DocumentsProvider() {
         mimeType: String,
         displayName: String,
     ): String {
-        // We just need to return a Document ID, so we'll return an empty one. File does not exist in our db yet.
-        // File will be created at [openDocument] method.
         val tempDir = File(FileStorageUtils.getTemporalPath(parentDocument.owner, parentDocument.spaceId))
         val newFile = File(tempDir, displayName)
         newFile.parentFile?.mkdirs()
-        fileToUpload = OCFile(
+
+        val pendingId = "pending_" + UUID.randomUUID().toString()
+
+        val ocFile = OCFile(
             remotePath = parentDocument.remotePath + displayName,
             mimeType = mimeType,
             parentId = parentDocument.id,
@@ -578,7 +595,9 @@ class DocumentsStorageProvider : DocumentsProvider() {
             storagePath = newFile.path
         }
 
-        return NONEXISTENT_DOCUMENT_ID
+        pendingUploads[pendingId] = ocFile
+
+        return pendingId
     }
 
     /**
