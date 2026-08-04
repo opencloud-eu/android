@@ -60,11 +60,13 @@ import eu.opencloud.android.databinding.AccountSetupBinding
 import eu.opencloud.android.domain.authentication.oauth.model.ClientRegistrationInfo
 import eu.opencloud.android.domain.authentication.oauth.model.ResponseType
 import eu.opencloud.android.domain.authentication.oauth.model.TokenRequest
+import eu.opencloud.android.domain.exceptions.ForbiddenException
 import eu.opencloud.android.domain.exceptions.NoNetworkConnectionException
 import eu.opencloud.android.domain.exceptions.OpencloudVersionNotSupportedException
 import eu.opencloud.android.domain.exceptions.SSLErrorCode
 import eu.opencloud.android.domain.exceptions.SSLErrorException
 import eu.opencloud.android.domain.exceptions.ServerNotReachableException
+import eu.opencloud.android.domain.exceptions.SpecificForbiddenException
 import eu.opencloud.android.domain.exceptions.UnauthorizedException
 import eu.opencloud.android.domain.server.model.ServerInfo
 import eu.opencloud.android.extensions.checkPasscodeEnforced
@@ -112,6 +114,7 @@ private const val KEY_AUTH_OIDC_SUPPORTED = "KEY_AUTH_OIDC_SUPPORTED"
 private const val KEY_AUTH_LOGIN_ACTION = "KEY_AUTH_LOGIN_ACTION"
 private const val KEY_AUTH_USER_ACCOUNT = "KEY_AUTH_USER_ACCOUNT"
 private const val KEY_AUTH_MTLS_CERT_ALIAS = "KEY_AUTH_MTLS_CERT_ALIAS"
+private const val KEY_AUTH_MTLS_CERT_ALIAS_CHANGED = "KEY_AUTH_MTLS_CERT_ALIAS_CHANGED"
 
 // KeyChain.choosePrivateKeyAlias: -1 means no port constraint on the host hint.
 private const val KEYCHAIN_NO_PORT = -1
@@ -129,6 +132,9 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
 
     // Alias (from the Android KeyChain) of the client certificate to present for mTLS during login.
     private var clientCertAlias: String? = null
+
+    /** True once the user picked or removed a certificate on this screen, so null means "removed". */
+    private var clientCertAliasChangedByUser = false
 
     private var loginAction: Byte = ACTION_CREATE
     private var authTokenType: String? = null
@@ -166,8 +172,18 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
         authTokenType = intent.getStringExtra(KEY_AUTH_TOKEN_TYPE)
         userAccount = intent.getParcelableExtra(EXTRA_ACCOUNT)
 
+        // The OAuth redirect intent comes from the browser and carries no extras, so loginAction and
+        // userAccount read above are wrong on the instance that handles it: they default to "create a
+        // new account". Restore the persisted auth state here, before anything downstream reads them,
+        // in particular restoreClientCertAlias() — otherwise the mTLS certificate bound to the account
+        // is never loaded and the /status.php request below goes out without a client certificate.
+        val isOAuthRedirect = isOAuthRedirectIntent(intent)
+        if (isOAuthRedirect && savedInstanceState == null) {
+            restoreAuthState()
+        }
+
         // Get values from savedInstanceState
-        if (savedInstanceState == null && authTokenType == null && userAccount != null) {
+        if (savedInstanceState == null && authTokenType == null && userAccount != null && !isOAuthRedirect) {
             authenticationViewModel.supportsOAuth2((userAccount as Account).name)
         } else if (savedInstanceState != null) {
             authTokenType = savedInstanceState.getString(KEY_AUTH_TOKEN_TYPE)
@@ -202,7 +218,15 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
         }
 
         if (savedInstanceState == null) {
-            if (userAccount != null) {
+            if (isOAuthRedirect) {
+                // serverBaseUrl already came from the restored auth state. Deliberately skip
+                // getBaseUrl(): its observer calls checkOcServer(), which would race with the
+                // redirect handling at the end of onCreate. Fill the url field so the screen stays
+                // usable if the flow below fails.
+                if (::serverBaseUrl.isInitialized) {
+                    binding.hostUrlInput.setText(serverBaseUrl)
+                }
+            } else if (userAccount != null) {
                 authenticationViewModel.getBaseUrl((userAccount as Account).name)
             } else {
                 serverBaseUrl = getString(R.string.server_url).trim()
@@ -259,23 +283,39 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
 
         initLiveDataObservers()
 
-        if (intent.data != null && (intent.data?.getQueryParameter("code") != null || intent.data?.getQueryParameter("error") != null)) {
-            if (savedInstanceState == null) {
-                restoreAuthState()
-            }
-            if (authenticationViewModel.serverInfo.value?.peekContent()?.getStoredData() == null
-                && ::serverBaseUrl.isInitialized && serverBaseUrl.isNotEmpty()) {
-                // Process death: serverInfo is gone. Re-fetch it before processing the OAuth response.
-                // Store the intent as pending — getServerInfoIsSuccess will process it via checkServerType bypass.
-                pendingAuthorizationIntent = intent
-                authenticationViewModel.getServerInfo(serverBaseUrl)
-            } else {
-                handleGetAuthorizationCodeResponse(intent)
-            }
+        if (isOAuthRedirect) {
+            processOAuthRedirect()
         }
+    }
 
-        // Note: pendingAuthorizationIntent is processed in checkServerType() after
-        // getServerInfo() completes (process death recovery flow).
+    /**
+     * Processes the OAuth redirect intent once the UI and the observers are in place: exchanges the
+     * authorization code, or re-fetches the server info first when the process was killed while the
+     * browser was in front.
+     *
+     * Note: pendingAuthorizationIntent is processed in checkServerType() after getServerInfo()
+     * completes (process death recovery flow).
+     */
+    private fun processOAuthRedirect() {
+        val haveServerBaseUrl = ::serverBaseUrl.isInitialized && serverBaseUrl.isNotEmpty()
+        if (!haveServerBaseUrl) {
+            // No persisted auth state, so there is no server to exchange the code against.
+            // Fail visibly instead of crashing later on an uninitialized serverBaseUrl.
+            Timber.e("OAuth redirect received but no server base url was persisted")
+            clearAuthState()
+            binding.serverStatusText.run {
+                text = getString(R.string.auth_oauth_error)
+                setCompoundDrawablesWithIntrinsicBounds(R.drawable.common_error, 0, 0, 0)
+                isVisible = true
+            }
+        } else if (authenticationViewModel.serverInfo.value?.peekContent()?.getStoredData() == null) {
+            // Process death: serverInfo is gone. Re-fetch it before processing the OAuth response.
+            // Store the intent as pending — getServerInfoIsSuccess will process it via checkServerType bypass.
+            pendingAuthorizationIntent = intent
+            authenticationViewModel.getServerInfo(serverBaseUrl)
+        } else {
+            handleGetAuthorizationCodeResponse(intent)
+        }
     }
 
     /**
@@ -285,16 +325,26 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
      * account exists.
      */
     private fun restoreClientCertAlias(savedInstanceState: Bundle?) {
-        clientCertAlias = when {
-            savedInstanceState != null -> savedInstanceState.getString(KEY_AUTH_MTLS_CERT_ALIAS)
-            loginAction != ACTION_CREATE -> userAccount?.let {
+        clientCertAliasChangedByUser =
+            savedInstanceState?.getBoolean(KEY_AUTH_MTLS_CERT_ALIAS_CHANGED) ?: false
+        clientCertAlias = if (savedInstanceState != null) {
+            savedInstanceState.getString(KEY_AUTH_MTLS_CERT_ALIAS)
+        } else {
+            // Keyed on userAccount rather than loginAction: on the OAuth redirect leg the account is
+            // recovered from the persisted auth state, and keying on loginAction there used to drop
+            // the certificate. A fresh login has no account and correctly resolves to null.
+            userAccount?.let {
                 AccountManager.get(this).getUserData(it, AccountUtils.Constants.KEY_MTLS_CERT_ALIAS)
             }
-            else -> null
         }
         clientManager.loginClientCertAlias = clientCertAlias
         updateClientCertStatus()
     }
+
+    /** An OAuth redirect is an intent whose data carries either an authorization code or an error. */
+    private fun isOAuthRedirectIntent(intent: Intent): Boolean =
+        intent.data != null &&
+                (intent.data?.getQueryParameter("code") != null || intent.data?.getQueryParameter("error") != null)
 
     /**
      * If this onCreate is an OAuth redirect, either forward it to the existing instance
@@ -303,8 +353,7 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
      * @return true if onCreate should return early (redirect was forwarded).
      */
     private fun handleOAuthRedirectOnCreate(): Boolean {
-        val hasOAuthData = intent.data != null &&
-            (intent.data?.getQueryParameter("code") != null || intent.data?.getQueryParameter("error") != null)
+        val hasOAuthData = isOAuthRedirectIntent(intent)
 
         if (hasOAuthData) {
             Timber.d("OAuth redirect detected with code or error parameter")
@@ -609,6 +658,21 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
 
     private fun getServerInfoIsError(uiResult: UIResult.Error<ServerInfo>) {
         updateCenteredRefreshButtonVisibility(shouldBeVisible = true)
+
+        // Failing here on the OAuth return leg strands the flow. The authorization code is single-use
+        // and short-lived, so it is already dead: drop it instead of letting checkServerType() replay
+        // it on the next attempt (which would fail with a misleading authorization error), and drop
+        // the persisted auth state so a retry starts a clean browser round trip.
+        if (pendingAuthorizationIntent != null) {
+            Timber.w("Server check failed while handling the OAuth redirect; discarding the authorization code")
+            pendingAuthorizationIntent = null
+            clearAuthState()
+        }
+        // Keep the screen recoverable: the redirect instance may have an empty url field.
+        if (binding.hostUrlInput.text.isNullOrBlank() && ::serverBaseUrl.isInitialized && serverBaseUrl.isNotEmpty()) {
+            binding.hostUrlInput.setText(serverBaseUrl)
+        }
+
         when {
             uiResult.error is CertificateCombinedException ->
                 showUntrustedCertDialog(uiResult.error)
@@ -625,6 +689,13 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
 
             uiResult.error is SSLErrorException && uiResult.error.code == SSLErrorCode.NOT_HTTP_ALLOWED -> binding.serverStatusText.run {
                 text = getString(R.string.ssl_connection_not_secure)
+                setCompoundDrawablesWithIntrinsicBounds(R.drawable.common_error, 0, 0, 0)
+            }
+
+            // A 403 on the status endpoint during login is nearly always a rejected or missing client
+            // certificate (the generic "Permission error" wording is useless here).
+            uiResult.error is ForbiddenException || uiResult.error is SpecificForbiddenException -> binding.serverStatusText.run {
+                text = getString(R.string.auth_forbidden_check_client_cert)
                 setCompoundDrawablesWithIntrinsicBounds(R.drawable.common_error, 0, 0, 0)
             }
 
@@ -665,8 +736,13 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
         }
 
         // Persist the mTLS client certificate chosen during login to the account, then clear the
-        // login-time transient so it does not leak into later anonymous clients.
-        am.setUserData(account, AccountUtils.Constants.KEY_MTLS_CERT_ALIAS, clientCertAlias?.takeIf { it.isNotBlank() })
+        // login-time transient so it does not leak into later anonymous clients. Only write when this
+        // screen actually holds a certificate or the user explicitly changed it: a re-login instance
+        // that failed to resolve the account's alias must not silently wipe it, which would break
+        // every subsequent connection and leave reinstalling as the only way out.
+        if (clientCertAlias != null || clientCertAliasChangedByUser || loginAction == ACTION_CREATE) {
+            am.setUserData(account, AccountUtils.Constants.KEY_MTLS_CERT_ALIAS, clientCertAlias?.takeIf { it.isNotBlank() })
+        }
         clientManager.loginClientCertAlias = null
 
         authenticationViewModel.discoverAccount(accountName = accountName, discoveryNeeded = loginAction == ACTION_CREATE)
@@ -1144,6 +1220,7 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
         // Null = user cancelled the picker; keep the current selection.
         if (alias == null) return
         clientCertAlias = alias
+        clientCertAliasChangedByUser = true
         clientManager.loginClientCertAlias = alias
         updateClientCertStatus()
     }
@@ -1193,6 +1270,7 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
 
     private fun clearClientCert() {
         clientCertAlias = null
+        clientCertAliasChangedByUser = true
         clientManager.loginClientCertAlias = null
         updateClientCertStatus()
     }
@@ -1208,6 +1286,7 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
         outState.putString(KEY_CODE_CHALLENGE, authenticationViewModel.codeChallenge)
         outState.putString(KEY_OIDC_STATE, authenticationViewModel.oidcState)
         outState.putString(KEY_AUTH_MTLS_CERT_ALIAS, clientCertAlias)
+        outState.putBoolean(KEY_AUTH_MTLS_CERT_ALIAS_CHANGED, clientCertAliasChangedByUser)
     }
 
     override fun finish() {
