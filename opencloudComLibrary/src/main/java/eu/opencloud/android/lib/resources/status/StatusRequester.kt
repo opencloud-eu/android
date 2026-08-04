@@ -91,10 +91,14 @@ internal class StatusRequester {
         requestResult: RequestResult,
         baseUrl: String
     ): RemoteOperationResult<RemoteServerInfo> {
+        // Check the status code before touching the body. A failed response is very often not JSON at
+        // all (a reverse proxy error page, an mTLS rejection, a captive portal, an empty body), and
+        // parsing it first would throw and hide the real HTTP error behind INSTANCE_NOT_CONFIGURED.
+        if (!requestResult.status.isSuccess()) {
+            return RemoteOperationResult(requestResult.getMethod)
+        }
         val respJSON = JSONObject(requestResult.getMethod.getResponseBodyAsString())
-        return if (!requestResult.status.isSuccess()) {
-            RemoteOperationResult(requestResult.getMethod)
-        } else if (!respJSON.getBoolean(NODE_INSTALLED)) {
+        return if (!respJSON.getBoolean(NODE_INSTALLED)) {
             RemoteOperationResult(RemoteOperationResult.ResultCode.INSTANCE_NOT_CONFIGURED)
         } else {
             val ocVersion = OpenCloudVersion(respJSON.getString(NODE_VERSION), respJSON.getString(NODE_PRODUCTVERSION))

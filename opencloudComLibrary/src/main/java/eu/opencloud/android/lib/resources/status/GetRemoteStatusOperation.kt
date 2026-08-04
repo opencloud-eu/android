@@ -61,7 +61,9 @@ class GetRemoteStatusOperation : RemoteOperation<RemoteServerInfo>() {
             val requester = StatusRequester()
             val requestResult = requester.request(baseUrl, client)
             val result = requester.handleRequestResult(requestResult, baseUrl)
-            updateClientBaseUrl(client, result.data.baseUrl)
+            // data is only set on success; dereferencing it unconditionally turned every failed
+            // status check into an opaque NPE result instead of the actual HTTP error.
+            result.data?.let { updateClientBaseUrl(client, it.baseUrl) }
             return result
         } catch (e: JSONException) {
             Timber.e(e, "JSON is not correct")
