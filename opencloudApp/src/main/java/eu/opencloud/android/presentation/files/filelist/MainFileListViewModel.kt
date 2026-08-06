@@ -55,6 +55,7 @@ import eu.opencloud.android.presentation.files.SortType.Companion.PREF_FILE_LIST
 import eu.opencloud.android.presentation.settings.advanced.SettingsAdvancedFragment.Companion.PREF_SHOW_HIDDEN_FILES
 import eu.opencloud.android.providers.ContextProvider
 import eu.opencloud.android.providers.CoroutinesDispatcherProvider
+import eu.opencloud.android.usecases.files.ExportFilesToDeviceUseCase
 import eu.opencloud.android.usecases.files.FilterFileMenuOptionsUseCase
 import eu.opencloud.android.usecases.synchronization.SynchronizeFolderUseCase
 import eu.opencloud.android.usecases.synchronization.SynchronizeFolderUseCase.SyncFolderMode.SYNC_CONTENTS
@@ -90,11 +91,27 @@ class MainFileListViewModel(
     private val contextProvider: ContextProvider,
     private val coroutinesDispatcherProvider: CoroutinesDispatcherProvider,
     private val sharedPreferencesProvider: SharedPreferencesProvider,
+    private val exportFilesToDeviceUseCase: ExportFilesToDeviceUseCase,
     initialFolderToDisplay: OCFile,
     fileListOptionParam: FileListOption,
 ) : ViewModel() {
 
     private val showHiddenFiles: Boolean = sharedPreferencesProvider.getBoolean(PREF_SHOW_HIDDEN_FILES, false)
+
+    /**
+     * Enqueues a background export of the given files/folders into the device folder the user
+     * picked through the Storage Access Framework. See opencloud-eu/android#180.
+     */
+    fun exportFilesToDevice(files: List<OCFile>, targetFolderTreeUri: String) {
+        val accountName = files.firstOrNull()?.owner ?: return
+        exportFilesToDeviceUseCase(
+            ExportFilesToDeviceUseCase.Params(
+                accountName = accountName,
+                fileIds = files.mapNotNull { it.id },
+                targetFolderTreeUri = targetFolderTreeUri,
+            )
+        )
+    }
 
     val currentFolderDisplayed: MutableStateFlow<OCFile> = MutableStateFlow(initialFolderToDisplay)
     val fileListOption: MutableStateFlow<FileListOption> = MutableStateFlow(fileListOptionParam)

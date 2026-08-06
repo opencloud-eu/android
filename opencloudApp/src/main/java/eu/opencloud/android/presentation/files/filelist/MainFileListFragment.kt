@@ -43,6 +43,7 @@ import android.view.WindowManager
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.activity.result.contracts.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.ActionMode
@@ -183,6 +184,22 @@ class MainFileListFragment : Fragment(),
 
     private var menu: Menu? = null
     private var checkedFiles: List<OCFile> = emptyList()
+
+    // Files/folders the user chose to export; consumed once the SAF folder picker returns.
+    private var pendingExportFiles: List<OCFile> = emptyList()
+
+    private val exportToDeviceFolderLauncher =
+        registerForActivityResult(ActivityResultContracts.OpenDocumentTree()) { treeUri ->
+            val filesToExport = pendingExportFiles
+            pendingExportFiles = emptyList()
+            if (treeUri != null && filesToExport.isNotEmpty()) {
+                requireContext().contentResolver.takePersistableUriPermission(
+                    treeUri,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                )
+                mainFileListViewModel.exportFilesToDevice(filesToExport, treeUri.toString())
+            }
+        }
     private var filesToRemove: List<OCFile> = emptyList()
     private var fileSingleFile: OCFile? = null
     private var fileOptionsBottomSheetSingleFileLayout: LinearLayout? = null
@@ -716,6 +733,11 @@ class MainFileListFragment : Fragment(),
                         } else {
                             fileActions?.sendDownloadedFile(file)
                         }
+                    }
+
+                    FileMenuOption.EXPORT -> {
+                        pendingExportFiles = listOf(file)
+                        exportToDeviceFolderLauncher.launch(null)
                     }
 
                     FileMenuOption.SET_AV_OFFLINE -> {
@@ -1473,6 +1495,12 @@ class MainFileListFragment : Fragment(),
 
             R.id.action_send_file -> {
                 requireActivity().sendDownloadedFilesByShareSheet(checkedFiles)
+                true
+            }
+
+            R.id.action_export_file -> {
+                pendingExportFiles = checkedFiles
+                exportToDeviceFolderLauncher.launch(null)
                 true
             }
 
