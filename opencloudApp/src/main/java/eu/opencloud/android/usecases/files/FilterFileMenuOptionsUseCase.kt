@@ -135,6 +135,10 @@ class FilterFileMenuOptionsUseCase(
             noFilesDownloadedOrIsSingleFile && sendAllowed) {
             optionsToShow.add(FileMenuOption.SEND)
         }
+        // Export / save to a device folder (files and folders, downloaded if needed)
+        if (!isAnyFileSynchronizing && !onlyAvailableOfflineFiles && !onlySharedByLinkFiles) {
+            optionsToShow.add(FileMenuOption.EXPORT)
+        }
         // Set as available offline
         if (!isAnyFileSynchronizing && anyNotAvailableOfflineFile(files) && !isAnyFileVideoStreaming) {
             optionsToShow.add(FileMenuOption.SET_AV_OFFLINE)

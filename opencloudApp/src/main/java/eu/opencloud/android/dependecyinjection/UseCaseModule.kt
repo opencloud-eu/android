@@ -112,6 +112,7 @@ import eu.opencloud.android.domain.user.usecases.RefreshUserQuotaFromServerAsync
 import eu.opencloud.android.domain.webfinger.usecases.GetOpenCloudInstanceFromWebFingerUseCase
 import eu.opencloud.android.domain.webfinger.usecases.GetOpenCloudInstancesFromAuthenticatedWebFingerUseCase
 import eu.opencloud.android.usecases.accounts.RemoveAccountUseCase
+import eu.opencloud.android.usecases.files.ExportFilesToDeviceUseCase
 import eu.opencloud.android.usecases.files.FilterFileMenuOptionsUseCase
 import eu.opencloud.android.usecases.files.RemoveLocalFilesForAccountUseCase
 import eu.opencloud.android.usecases.files.RemoveLocallyFilesWithLastUsageOlderThanGivenTimeUseCase
@@ -165,6 +166,7 @@ val useCaseModule = module {
     factoryOf(::CreateFolderAsyncUseCase)
     factoryOf(::DisableThumbnailsForFileUseCase)
     factoryOf(::FilterFileMenuOptionsUseCase)
+    factoryOf(::ExportFilesToDeviceUseCase)
     factoryOf(::GetFileByIdAsStreamUseCase)
     factoryOf(::GetFileByIdUseCase)
     factoryOf(::GetFileByRemotePathUseCase)
