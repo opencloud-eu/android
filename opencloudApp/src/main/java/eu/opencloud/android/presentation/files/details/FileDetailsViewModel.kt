@@ -198,6 +198,9 @@ class FileDetailsViewModel(
                 remove(FileMenuOption.DETAILS)
                 remove(FileMenuOption.MOVE)
                 remove(FileMenuOption.COPY)
+                // Exporting to a device folder is offered from the file list (single and
+                // multi-select), not from the details screen, so drop it here.
+                remove(FileMenuOption.EXPORT)
             }
             _menuOptions.update { result }
         }
