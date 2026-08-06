@@ -17,6 +17,9 @@
     <string name="actionbar_settings">Settings</string>
     <string name="actionbar_see_details">Details</string>
     <string name="actionbar_send_file">Send</string>
+    <string name="actionbar_export_file">Save to device</string>
+    <string name="export_files_succeeded_ticker">Files saved to device</string>
+    <string name="export_files_failed_ticker">Could not save some files to device</string>
     <string name="actionbar_descending">Descending</string>
     <string name="actionbar_sort_title">Sort by</string>
     <string name="fab_new_file">New document</string>

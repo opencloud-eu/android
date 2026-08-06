@@ -175,6 +175,11 @@ class FilterFileMenuOptionsUseCase(
         ) {
             optionsToShow.add(FileMenuOption.SEND)
         }
+        if (!state.isAnyFileSynchronizing && !params.onlyAvailableOfflineFiles &&
+            !params.onlySharedByLinkFiles
+        ) {
+            optionsToShow.add(FileMenuOption.EXPORT)
+        }
         if (!state.isAnyFileSynchronizing &&
             anyNotAvailableOfflineFile(files) &&
             !state.isAnyFileVideoStreaming
