@@ -171,8 +171,8 @@ class FilterFileMenuOptionsUseCase(
         ) {
             optionsToShow.add(FileMenuOption.SEND)
         }
-        if (!state.isAnyFileSynchronizing && !params.onlyAvailableOfflineFiles &&
-            !params.onlySharedByLinkFiles
+        if (params.exportAllowed && !state.isAnyFileSynchronizing &&
+            !params.onlyAvailableOfflineFiles && !params.onlySharedByLinkFiles
         ) {
             optionsToShow.add(FileMenuOption.EXPORT)
         }
@@ -250,6 +250,8 @@ class FilterFileMenuOptionsUseCase(
         val onlySharedByLinkFiles: Boolean,
         val shareViaLinkAllowed: Boolean,
         val shareWithUsersAllowed: Boolean,
-        val sendAllowed: Boolean
+        val sendAllowed: Boolean,
+        /** Only the file list handles [FileMenuOption.EXPORT], see MainFileListFragment. */
+        val exportAllowed: Boolean,
     )
 }
