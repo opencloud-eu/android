@@ -60,6 +60,7 @@ class FilterFileMenuOptionsUseCaseTest {
             shareViaLinkAllowed = true,
             shareWithUsersAllowed = true,
             sendAllowed = true,
+            exportAllowed = true,
         )
 
     @Test
