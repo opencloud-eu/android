@@ -167,3 +167,26 @@ def getBranchName() {
     def name = "git rev-parse --abbrev-ref HEAD".execute()
     return name.text.toString().trim()
 }
+
+// === LOCAL android-dav: run its unit tests as part of the app build =================
+// Composite builds only compile an included build's MAIN source, never its tests. When the
+// includeBuild('../android-dav') block in settings.gradle is active, this wires android-dav's
+// own ':test' task into the verification lifecycle of opencloudComLibrary (the module that
+// consumes it), so `./gradlew :opencloudComLibrary:check`, `check` or `build` also run them.
+// It is a no-op when that block is commented out (JitPack artifact in use).
+def includedAndroidDav = gradle.includedBuilds.find { it.name == "android-dav" }
+if (includedAndroidDav != null) {
+    tasks.register("androidDavTest") {
+        group = "verification"
+        description = "Runs the unit tests of the locally included android-dav build."
+        dependsOn includedAndroidDav.task(":test")
+    }
+
+    gradle.projectsEvaluated {
+        def comLib = subprojects.find { it.name == "opencloudComLibrary" }
+        comLib?.tasks?.matching { it.name == "check" }?.configureEach {
+            dependsOn ":androidDavTest"
+        }
+    }
+}
+// === end LOCAL android-dav test wiring ==============================================
