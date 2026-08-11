@@ -68,6 +68,8 @@ class PreviewVideoViewModel(
                     shareViaLinkAllowed = shareViaLinkAllowed,
                     shareWithUsersAllowed = shareWithUsersAllowed,
                     sendAllowed = sendAllowed,
+                    // This screen has no handler for the export action.
+                    exportAllowed = false,
                 )
             )
             _menuOptions.update { result }

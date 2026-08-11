@@ -91,6 +91,8 @@ class PreviewImageViewModel(
                     shareViaLinkAllowed = shareViaLinkAllowed,
                     shareWithUsersAllowed = shareWithUsersAllowed,
                     sendAllowed = sendAllowed,
+                    // This screen has no handler for the export action.
+                    exportAllowed = false,
                 )
             )
             result.apply {
