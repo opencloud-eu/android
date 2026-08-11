@@ -59,6 +59,7 @@ import eu.opencloud.android.usecases.files.ExportFilesToDeviceUseCase
 import eu.opencloud.android.usecases.files.FilterFileMenuOptionsUseCase
 import eu.opencloud.android.usecases.synchronization.SynchronizeFolderUseCase
 import eu.opencloud.android.usecases.synchronization.SynchronizeFolderUseCase.SyncFolderMode.SYNC_CONTENTS
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -101,16 +102,22 @@ class MainFileListViewModel(
     /**
      * Enqueues a background export of the given files/folders into the device folder the user
      * picked through the Storage Access Framework. See opencloud-eu/android#180.
+     *
+     * The selection is persisted before the worker is enqueued, so this runs off the main thread.
+     * It does not run on the ViewModel scope either: the picker returns to an activity that may
+     * already be finishing, and an export the user asked for must not be dropped then.
      */
-    fun exportFilesToDevice(files: List<OCFile>, targetFolderTreeUri: String) {
-        val accountName = files.firstOrNull()?.owner ?: return
-        exportFilesToDeviceUseCase(
-            ExportFilesToDeviceUseCase.Params(
-                accountName = accountName,
-                fileIds = files.mapNotNull { it.id },
-                targetFolderTreeUri = targetFolderTreeUri,
+    fun exportFilesToDevice(fileIds: List<Long>, accountName: String, targetFolderTreeUri: String) {
+        if (fileIds.isEmpty()) return
+        CoroutineScope(coroutinesDispatcherProvider.io).launch {
+            exportFilesToDeviceUseCase(
+                ExportFilesToDeviceUseCase.Params(
+                    accountName = accountName,
+                    fileIds = fileIds,
+                    targetFolderTreeUri = targetFolderTreeUri,
+                )
             )
-        )
+        }
     }
 
     val currentFolderDisplayed: MutableStateFlow<OCFile> = MutableStateFlow(initialFolderToDisplay)
@@ -341,6 +348,8 @@ class MainFileListViewModel(
                     shareViaLinkAllowed = shareViaLinkAllowed,
                     shareWithUsersAllowed = shareWithUsersAllowed,
                     sendAllowed = sendAllowed,
+                    // The file list is the only screen that handles the export action.
+                    exportAllowed = true,
                 )
             )
             if (isMultiselection) {

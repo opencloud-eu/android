@@ -79,6 +79,7 @@ class FilterFileMenuOptionsUseCase(
         val shareViaLinkAllowed = params.shareViaLinkAllowed
         val shareWithUsersAllowed = params.shareWithUsersAllowed
         val sendAllowed = params.sendAllowed
+        val exportAllowed = params.exportAllowed
 
         val noSyncAndPreviewing = !isAnyFileSynchronizing && !isAnyFileVideoPreviewing
         val noSyncAndStreaming = !isAnyFileSynchronizing && !isAnyFileVideoStreaming
@@ -135,8 +136,10 @@ class FilterFileMenuOptionsUseCase(
             noFilesDownloadedOrIsSingleFile && sendAllowed) {
             optionsToShow.add(FileMenuOption.SEND)
         }
-        // Export / save to a device folder (files and folders, downloaded if needed)
-        if (!isAnyFileSynchronizing && !onlyAvailableOfflineFiles && !onlySharedByLinkFiles) {
+        // Export / save to a device folder (files and folders, downloaded if needed).
+        // Only the callers that implement the flow ask for it, the preview screens share this
+        // filter and this menu but have no handler for it.
+        if (exportAllowed && !isAnyFileSynchronizing && !onlyAvailableOfflineFiles && !onlySharedByLinkFiles) {
             optionsToShow.add(FileMenuOption.EXPORT)
         }
         // Set as available offline
@@ -209,6 +212,8 @@ class FilterFileMenuOptionsUseCase(
         val onlySharedByLinkFiles: Boolean,
         val shareViaLinkAllowed: Boolean,
         val shareWithUsersAllowed: Boolean,
-        val sendAllowed: Boolean
+        val sendAllowed: Boolean,
+        /** Only the file list handles [FileMenuOption.EXPORT], see MainFileListFragment. */
+        val exportAllowed: Boolean,
     )
 }
