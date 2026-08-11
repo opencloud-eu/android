@@ -75,10 +75,15 @@ import org.koin.android.ext.android.inject
 import timber.log.Timber
 import java.io.File
 
+// Error snackbars need longer than the default LENGTH_LONG (2.75s) so the user can read a failure
+// and react (retry, reconnect). Passed as a raw millisecond value, which Snackbar.make accepts.
+const val SNACKBAR_DURATION_ERROR_MS = 7000
+
 fun Activity.showErrorInSnackbar(genericErrorMessageId: Int, throwable: Throwable?) =
     throwable?.let {
         showMessageInSnackbar(
-            message = it.parseError(getString(genericErrorMessageId), resources)
+            message = it.parseError(getString(genericErrorMessageId), resources),
+            duration = SNACKBAR_DURATION_ERROR_MS
         )
     }
 

@@ -85,6 +85,7 @@ import eu.opencloud.android.extensions.observeWorkerTillItFinishes
 import eu.opencloud.android.extensions.openOCFile
 import eu.opencloud.android.extensions.parseError
 import eu.opencloud.android.extensions.sendDownloadedFilesByShareSheet
+import eu.opencloud.android.extensions.SNACKBAR_DURATION_ERROR_MS
 import eu.opencloud.android.extensions.showErrorInSnackbar
 import eu.opencloud.android.extensions.showMessageInSnackbar
 import eu.opencloud.android.lib.common.accounts.AccountUtils
@@ -930,7 +931,7 @@ class FileDisplayActivity : FileActivity(),
                     if (synchResult.httpPhrase == "Error: Call to a member function getUID() on null") {
                         showRequestAccountChangeNotice(getString(R.string.auth_failure_snackbar), false)
                     } else {
-                        showMessageInSnackbar(R.id.list_layout, synchResult.httpPhrase)
+                        showMessageInSnackbar(R.id.list_layout, synchResult.httpPhrase, SNACKBAR_DURATION_ERROR_MS)
                     }
                 } else {
                     showRequestAccountChangeNotice(getString(R.string.auth_failure_snackbar), false)
@@ -1430,7 +1431,7 @@ class FileDisplayActivity : FileActivity(),
                     }
 
                     else -> {
-                        showMessageInSnackbar(R.id.list_layout, getString(R.string.sync_fail_ticker))
+                        showMessageInSnackbar(R.id.list_layout, getString(R.string.sync_fail_ticker), SNACKBAR_DURATION_ERROR_MS)
                     }
                 }
             }
@@ -1538,7 +1539,7 @@ class FileDisplayActivity : FileActivity(),
                     }
 
                     else -> {
-                        showMessageInSnackbar(R.id.list_layout, getString(R.string.sync_fail_ticker))
+                        showMessageInSnackbar(R.id.list_layout, getString(R.string.sync_fail_ticker), SNACKBAR_DURATION_ERROR_MS)
                     }
                 }
             }
@@ -1982,7 +1983,11 @@ class FileDisplayActivity : FileActivity(),
                     is UIResult.Error -> {
                         dismissLoadingDialog()
                         if (uiResult.error is FileNotFoundException) {
-                            showMessageInSnackbar(R.id.list_layout, message = getString(R.string.deep_link_user_no_access))
+                            showMessageInSnackbar(
+                                R.id.list_layout,
+                                message = getString(R.string.deep_link_user_no_access),
+                                duration = SNACKBAR_DURATION_ERROR_MS
+                            )
                             changeUser()
                         } else {
                             showMessageInSnackbar(
@@ -1993,7 +1998,8 @@ class FileDisplayActivity : FileActivity(),
                                     } else {
                                         R.string.default_error_msg
                                     }
-                                )
+                                ),
+                                duration = SNACKBAR_DURATION_ERROR_MS
                             )
                         }
                     }

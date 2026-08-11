@@ -56,6 +56,7 @@ import eu.opencloud.android.extensions.filterMenuOptions
 import eu.opencloud.android.extensions.isDownload
 import eu.opencloud.android.extensions.openOCFile
 import eu.opencloud.android.extensions.sendDownloadedFilesByShareSheet
+import eu.opencloud.android.extensions.SNACKBAR_DURATION_ERROR_MS
 import eu.opencloud.android.extensions.showErrorInSnackbar
 import eu.opencloud.android.extensions.showMessageInSnackbar
 import eu.opencloud.android.presentation.authentication.ACTION_UPDATE_EXPIRED_TOKEN
@@ -203,7 +204,7 @@ class FileDetailsFragment : FileFragment() {
                         }
 
                         SynchronizeFileUseCase.SyncType.FileNotFound -> {
-                            showMessageInSnackbar(getString(R.string.sync_file_not_found_msg))
+                            showMessageInSnackbar(getString(R.string.sync_file_not_found_msg), SNACKBAR_DURATION_ERROR_MS)
                         }
 
                         is SynchronizeFileUseCase.SyncType.UploadEnqueued -> {
@@ -211,7 +212,7 @@ class FileDetailsFragment : FileFragment() {
                         }
 
                         null -> {
-                            showMessageInSnackbar(getString(R.string.common_error_unknown))
+                            showMessageInSnackbar(getString(R.string.common_error_unknown), SNACKBAR_DURATION_ERROR_MS)
                         }
                     }
                 }

@@ -40,7 +40,7 @@ import kotlinx.coroutines.launch
 
 fun Fragment.showErrorInSnackbar(genericErrorMessageId: Int, throwable: Throwable?) =
     throwable?.let {
-        showMessageInSnackbar(it.parseError(getString(genericErrorMessageId), resources))
+        showMessageInSnackbar(it.parseError(getString(genericErrorMessageId), resources), SNACKBAR_DURATION_ERROR_MS)
     }
 
 fun Fragment.showMessageInSnackbar(

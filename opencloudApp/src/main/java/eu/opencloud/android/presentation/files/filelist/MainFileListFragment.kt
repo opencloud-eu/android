@@ -85,6 +85,7 @@ import eu.opencloud.android.extensions.collectLatestLifecycleFlow
 import eu.opencloud.android.extensions.filterMenuOptions
 import eu.opencloud.android.extensions.parseError
 import eu.opencloud.android.extensions.sendDownloadedFilesByShareSheet
+import eu.opencloud.android.extensions.SNACKBAR_DURATION_ERROR_MS
 import eu.opencloud.android.extensions.showErrorInSnackbar
 import eu.opencloud.android.extensions.showMessageInSnackbar
 import eu.opencloud.android.extensions.toDrawableRes
@@ -865,7 +866,7 @@ class MainFileListFragment : Fragment(),
 
                 is UIResult.Error -> {
                     fileActivity.dismissLoadingDialog()
-                    showMessageInSnackbar(resources.getString(R.string.common_error_unknown))
+                    showMessageInSnackbar(resources.getString(R.string.common_error_unknown), SNACKBAR_DURATION_ERROR_MS)
                 }
             }
         }
