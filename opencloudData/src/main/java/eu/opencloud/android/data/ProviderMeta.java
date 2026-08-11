@@ -31,13 +31,14 @@ public class ProviderMeta {
 
     public static final String DB_NAME = "filelist";
     public static final String NEW_DB_NAME = "opencloud_database";
-        public static final int DB_VERSION = 49;
+        public static final int DB_VERSION = 50;
 
     private ProviderMeta() {
     }
 
     static public class ProviderTableMeta implements BaseColumns {
         public static final String CAPABILITIES_TABLE_NAME = "capabilities";
+        public static final String EXPORT_JOBS_TABLE_NAME = "export_jobs";
         public static final String FILES_SYNC_TABLE_NAME = "files_sync";
         public static final String FILES_TABLE_NAME = "files";
         public static final String FOLDER_BACKUP_TABLE_NAME = "folder_backup";

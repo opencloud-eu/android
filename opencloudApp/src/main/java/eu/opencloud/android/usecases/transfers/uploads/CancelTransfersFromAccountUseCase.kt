@@ -23,6 +23,7 @@ package eu.opencloud.android.usecases.transfers.uploads
 
 import androidx.work.WorkManager
 import eu.opencloud.android.domain.BaseUseCase
+import eu.opencloud.android.domain.exportjobs.ExportJobRepository
 import eu.opencloud.android.domain.transfers.TransferRepository
 import timber.log.Timber
 
@@ -33,12 +34,16 @@ import timber.log.Timber
 class CancelTransfersFromAccountUseCase(
     private val workManager: WorkManager,
     private val transferRepository: TransferRepository,
+    private val exportJobRepository: ExportJobRepository,
 ) : BaseUseCase<Unit, CancelTransfersFromAccountUseCase.Params>() {
 
     override fun run(params: Params) {
         workManager.cancelAllWorkByTag(params.accountName)
 
         transferRepository.deleteAllTransfersFromAccount(params.accountName)
+        // Exports of the account are cancelled by the tag as well, and a cancelled export never
+        // consumes its job, so the pending selections are removed here.
+        exportJobRepository.deleteExportJobsForAccount(params.accountName)
 
         Timber.i("Uploads and downloads of ${params.accountName} have been cancelled.")
     }

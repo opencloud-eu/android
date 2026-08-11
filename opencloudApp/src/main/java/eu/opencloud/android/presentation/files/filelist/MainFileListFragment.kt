@@ -185,19 +185,23 @@ class MainFileListFragment : Fragment(),
     private var menu: Menu? = null
     private var checkedFiles: List<OCFile> = emptyList()
 
-    // Files/folders the user chose to export; consumed once the SAF folder picker returns.
-    private var pendingExportFiles: List<OCFile> = emptyList()
+    // Files/folders the user chose to export; consumed once the SAF folder picker returns. The
+    // external picker can outlive this fragment, and even this process, so the selection is kept
+    // in the saved instance state and only cleared once the result has been handled.
+    private var pendingExportFileIds: List<Long> = emptyList()
+    private var pendingExportAccountName: String? = null
 
     private val exportToDeviceFolderLauncher =
         registerForActivityResult(ActivityResultContracts.OpenDocumentTree()) { treeUri ->
-            val filesToExport = pendingExportFiles
-            pendingExportFiles = emptyList()
-            if (treeUri != null && filesToExport.isNotEmpty()) {
+            val fileIdsToExport = pendingExportFileIds
+            val accountName = pendingExportAccountName
+            clearPendingExport()
+            if (treeUri != null && fileIdsToExport.isNotEmpty() && accountName != null) {
                 requireContext().contentResolver.takePersistableUriPermission(
                     treeUri,
                     Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
                 )
-                mainFileListViewModel.exportFilesToDevice(filesToExport, treeUri.toString())
+                mainFileListViewModel.exportFilesToDevice(fileIdsToExport, accountName, treeUri.toString())
             }
         }
     private var filesToRemove: List<OCFile> = emptyList()
@@ -333,6 +337,21 @@ class MainFileListFragment : Fragment(),
         }
     }
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        savedInstanceState?.let { savedState ->
+            pendingExportFileIds = savedState.getLongArray(KEY_PENDING_EXPORT_FILE_IDS)?.toList().orEmpty()
+            pendingExportAccountName = savedState.getString(KEY_PENDING_EXPORT_ACCOUNT_NAME)
+        }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        // The SAF folder picker is another app, this fragment may be recreated while it is shown.
+        outState.putLongArray(KEY_PENDING_EXPORT_FILE_IDS, pendingExportFileIds.toLongArray())
+        outState.putString(KEY_PENDING_EXPORT_ACCOUNT_NAME, pendingExportAccountName)
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -359,6 +378,27 @@ class MainFileListFragment : Fragment(),
                 )
             )
         }
+    }
+
+    /**
+     * Remembers what has to be exported and asks the user for the destination folder. The
+     * selection is only consumed once the picker returns, see [exportToDeviceFolderLauncher].
+     */
+    private fun startExportToDeviceFolder(files: List<OCFile>) {
+        val accountName = files.firstOrNull()?.owner
+        val fileIds = files.mapNotNull { it.id }
+        if (accountName == null || fileIds.isEmpty()) {
+            Timber.e("Nothing that could be exported was selected")
+            return
+        }
+        pendingExportFileIds = fileIds
+        pendingExportAccountName = accountName
+        exportToDeviceFolderLauncher.launch(null)
+    }
+
+    private fun clearPendingExport() {
+        pendingExportFileIds = emptyList()
+        pendingExportAccountName = null
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -736,8 +776,7 @@ class MainFileListFragment : Fragment(),
                     }
 
                     FileMenuOption.EXPORT -> {
-                        pendingExportFiles = listOf(file)
-                        exportToDeviceFolderLauncher.launch(null)
+                        startExportToDeviceFolder(listOf(file))
                     }
 
                     FileMenuOption.SET_AV_OFFLINE -> {
@@ -1499,8 +1538,7 @@ class MainFileListFragment : Fragment(),
             }
 
             R.id.action_export_file -> {
-                pendingExportFiles = checkedFiles
-                exportToDeviceFolderLauncher.launch(null)
+                startExportToDeviceFolder(checkedFiles)
                 true
             }
 
@@ -1646,6 +1684,9 @@ class MainFileListFragment : Fragment(),
         private const val DIALOG_CREATE_SHORTCUT = "DIALOG_CREATE_SHORTCUT"
 
         private const val FILE_DOCXF_EXTENSION = "docxf"
+
+        private const val KEY_PENDING_EXPORT_FILE_IDS = "KEY_PENDING_EXPORT_FILE_IDS"
+        private const val KEY_PENDING_EXPORT_ACCOUNT_NAME = "KEY_PENDING_EXPORT_ACCOUNT_NAME"
 
         @JvmStatic
         fun newInstance(
