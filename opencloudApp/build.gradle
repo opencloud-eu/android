@@ -225,6 +225,24 @@ android {
         resources.excludes.add("META-INF/*")
     }
 
+    // Ship the App Bundle as a single self-contained APK instead of per-config splits.
+    // The app has no native libraries (0 ABI cost), uses vector drawables, and only a
+    // handful of small translated locales — measured overhead is ~0.5 MB (~4%). In return,
+    // Play and any mirror that re-hosts the Play artifact (Aurora, APKPure) deliver one
+    // complete APK, so sideloads can't crash with "missing splits / Google Play required"
+    // (see issue #208). Does not affect assembleRelease or the F-Droid build (already universal).
+    bundle {
+        language {
+            enableSplit = false
+        }
+        density {
+            enableSplit = false
+        }
+        abi {
+            enableSplit = false
+        }
+    }
+
     namespace "eu.opencloud.android"
     testNamespace "eu.opencloud.android.test"
 }
