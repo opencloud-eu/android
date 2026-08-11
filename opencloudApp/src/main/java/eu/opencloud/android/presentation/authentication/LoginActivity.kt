@@ -72,6 +72,7 @@ import eu.opencloud.android.extensions.goToUrl
 import eu.opencloud.android.extensions.manageOptionLockSelected
 import eu.opencloud.android.extensions.parseError
 import eu.opencloud.android.extensions.showErrorInToast
+import eu.opencloud.android.extensions.SNACKBAR_DURATION_ERROR_MS
 import eu.opencloud.android.extensions.showMessageInSnackbar
 import eu.opencloud.android.lib.common.accounts.AccountTypeUtils
 import eu.opencloud.android.lib.common.accounts.AccountUtils
@@ -331,7 +332,10 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
             if (getAccounts(baseContext).isNotEmpty()) {
                 launchFileDisplayActivity()
             } else {
-                showMessageInSnackbar(message = baseContext.getString(R.string.uploader_wrn_no_account_title))
+                showMessageInSnackbar(
+                    message = baseContext.getString(R.string.uploader_wrn_no_account_title),
+                    duration = SNACKBAR_DURATION_ERROR_MS
+                )
             }
         }
     }
@@ -806,7 +810,7 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
 
         if (state != authenticationViewModel.oidcState) {
             Timber.e("OAuth: state mismatch (expected=${authenticationViewModel.oidcState}, got=$state). Finishing.")
-            showMessageInSnackbar(message = getString(R.string.auth_oauth_error))
+            showMessageInSnackbar(message = getString(R.string.auth_oauth_error), duration = SNACKBAR_DURATION_ERROR_MS)
             finish()
         } else {
             if (authorizationCode != null) {
