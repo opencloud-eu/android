@@ -60,6 +60,7 @@ import eu.opencloud.android.usecases.files.FilterFileMenuOptionsUseCase
 import eu.opencloud.android.usecases.synchronization.SynchronizeFolderUseCase
 import eu.opencloud.android.usecases.synchronization.SynchronizeFolderUseCase.SyncFolderMode.SYNC_CONTENTS
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -76,6 +77,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import kotlin.coroutines.cancellation.CancellationException
 import eu.opencloud.android.domain.files.usecases.SortType.Companion as SortTypeDomain
 
 class MainFileListViewModel(
@@ -101,13 +103,38 @@ class MainFileListViewModel(
 
     private val showHiddenFiles: Boolean = sharedPreferencesProvider.getBoolean(PREF_SHOW_HIDDEN_FILES, false)
 
-    /** Persists the selection before the external folder picker is launched. */
-    suspend fun prepareExportToDevice(fileIds: List<Long>, accountName: String): Long? =
-        withContext(coroutinesDispatcherProvider.io) {
-            runCatching { exportFilesToDeviceUseCase.prepareExport(accountName, fileIds) }
-                .onFailure { Timber.e(it, "Could not persist the pending export selection") }
-                .getOrNull()
+    /**
+     * Persists the selection before the external folder picker is launched. If the view disappears
+     * while the database write is running, the result cannot be handed to the picker anymore, so
+     * the newly created job is removed before cancellation is propagated.
+     */
+    suspend fun prepareExportToDevice(fileIds: List<Long>, accountName: String): Long? {
+        var preparedJobId: Long? = null
+        return try {
+            withContext(coroutinesDispatcherProvider.io) {
+                try {
+                    exportFilesToDeviceUseCase.prepareExport(accountName, fileIds)
+                        .also { preparedJobId = it }
+                } catch (cancellation: CancellationException) {
+                    throw cancellation
+                } catch (throwable: Throwable) {
+                    Timber.e(throwable, "Could not persist the pending export selection")
+                    null
+                }
+            }
+        } catch (cancellation: CancellationException) {
+            preparedJobId?.let { exportJobId ->
+                try {
+                    withContext(NonCancellable + coroutinesDispatcherProvider.io) {
+                        exportFilesToDeviceUseCase.discardPendingExport(exportJobId)
+                    }
+                } catch (throwable: Throwable) {
+                    Timber.e(throwable, "Could not discard the cancelled pending export $exportJobId")
+                }
+            }
+            throw cancellation
         }
+    }
 
     /**
      * Attaches the selected folder and enqueues the prepared export. This deliberately outlives
