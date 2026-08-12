@@ -28,7 +28,14 @@ import androidx.work.ForegroundInfo
 import androidx.work.WorkerParameters
 import eu.opencloud.android.R
 import eu.opencloud.android.data.executeRemoteOperation
-import eu.opencloud.android.data.providers.LocalStorageProvider
+import eu.opencloud.android.domain.exceptions.NetworkErrorException
+import eu.opencloud.android.domain.exceptions.NoConnectionWithServerException
+import eu.opencloud.android.domain.exceptions.NoNetworkConnectionException
+import eu.opencloud.android.domain.exceptions.ServerConnectionTimeoutException
+import eu.opencloud.android.domain.exceptions.ServerNotReachableException
+import eu.opencloud.android.domain.exceptions.ServerResponseTimeoutException
+import eu.opencloud.android.domain.exceptions.ServiceUnavailableException
+import eu.opencloud.android.domain.exceptions.SpecificServiceUnavailableException
 import eu.opencloud.android.domain.exportjobs.ExportJobRepository
 import eu.opencloud.android.domain.exportjobs.model.OCExportJob
 import eu.opencloud.android.domain.files.model.OCFile
@@ -36,7 +43,6 @@ import eu.opencloud.android.domain.files.usecases.GetFileByIdUseCase
 import eu.opencloud.android.domain.files.usecases.GetFileByRemotePathUseCase
 import eu.opencloud.android.domain.files.usecases.GetRemoteFolderContentUseCase
 import eu.opencloud.android.domain.files.usecases.GetWebDavUrlForSpaceUseCase
-import eu.opencloud.android.domain.files.usecases.SaveFileOrFolderUseCase
 import eu.opencloud.android.lib.common.OpenCloudAccount
 import eu.opencloud.android.lib.common.OpenCloudClient
 import eu.opencloud.android.lib.common.SingleSessionManager
@@ -66,9 +72,10 @@ import java.util.UUID
  *
  * The selection is not passed through the WorkManager input data (it is unbounded and WorkManager
  * only accepts 10 KiB), but persisted as an export job; only the job id is passed here. The job
- * also carries how far the export got, so that a run that the system stopped goes on where it left
- * off instead of exporting everything again, and how often it was started, so that an export that
- * cannot finish is given up and reported instead of being restarted forever.
+ * also carries how far the export got, including completed descendants of a selected folder, so
+ * that a run the system stopped goes on where it left off instead of exporting everything again.
+ * It also carries how often it was started, so that an export that cannot finish is given up and
+ * reported instead of being restarted forever.
  */
 class ExportFilesToDeviceWorker(
     private val appContext: Context,
@@ -80,16 +87,19 @@ class ExportFilesToDeviceWorker(
     private val getFileByRemotePathUseCase: GetFileByRemotePathUseCase by inject()
     private val getRemoteFolderContentUseCase: GetRemoteFolderContentUseCase by inject()
     private val getWebdavUrlForSpaceUseCase: GetWebDavUrlForSpaceUseCase by inject()
-    private val saveFileOrFolderUseCase: SaveFileOrFolderUseCase by inject()
-    private val localStorageProvider: LocalStorageProvider by inject()
 
     private lateinit var account: Account
+    private lateinit var activeExportJob: OCExportJob
     private val listedFolders = mutableMapOf<RemoteFolderKey, List<OCFile>>()
     private val temporaryDownloadRoots = mutableSetOf<File>()
+    private val completedItemKeys = mutableSetOf<String>()
     private val downloadSessionToken = UUID.randomUUID().toString()
+    private var activeAttemptCount = 0
+    private var activeProcessedCount = 0
     private var exportedCount = 0
     private var failedCount = 0
     private var abandonJob = false
+    private var retryJob = false
 
     override suspend fun doWork(): Result {
         val exportJobId = workerParameters.inputData.getLong(KEY_PARAM_EXPORT_JOB_ID, -1)
@@ -113,7 +123,7 @@ class ExportFilesToDeviceWorker(
                 // WorkManager ignores the result of an interrupted worker and reschedules it, so
                 // the job has to survive a stop. It is only consumed when this run really finished,
                 // or when the export was given up.
-                if (!isStopped || abandonJob) {
+                if (abandonJob || (!isStopped && !retryJob)) {
                     exportJobRepository.deleteExportJobById(exportJobId)
                 }
             } finally {
@@ -139,19 +149,24 @@ class ExportFilesToDeviceWorker(
             return Result.failure()
         }
 
+        activeExportJob = exportJob
+        activeAttemptCount = attemptCount
+        activeProcessedCount = exportJob.processedCount.coerceIn(0, exportJob.fileIds.size)
         failedCount = exportJob.failedCount
-        var processedCount = exportJob.processedCount.coerceIn(0, exportJob.fileIds.size)
-        saveProgress(exportJob, attemptCount, processedCount)
+        completedItemKeys.clear()
+        completedItemKeys += exportJob.completedItemKeys
+        saveProgress()
 
         return try {
-            while (processedCount < exportJob.fileIds.size) {
+            while (activeProcessedCount < exportJob.fileIds.size) {
                 if (isStopped) break
-                exportSelectedItem(exportJob.fileIds[processedCount], targetTree)
+                exportSelectedItem(exportJob.fileIds[activeProcessedCount], targetTree)
                 // An item that was interrupted halfway is not marked as done: the next run exports
-                // it again, which is what makes going on where this one stopped safe.
+                // only its descendants that have not reached a checkpoint yet.
                 if (isStopped) break
-                processedCount++
-                saveProgress(exportJob, attemptCount, processedCount)
+                activeProcessedCount++
+                completedItemKeys.clear()
+                saveProgress()
             }
 
             if (isStopped) {
@@ -166,6 +181,13 @@ class ExportFilesToDeviceWorker(
             // reported as a failure instead of a silent partial success. Exports are not chained,
             // so this never keeps another export from running.
             if (failedCount > 0) Result.failure() else Result.success()
+        } catch (retryable: RetryableExportException) {
+            retryJob = true
+            Timber.w(
+                retryable.cause,
+                "A temporary server or network failure interrupted the export; it will be retried",
+            )
+            Result.retry()
         } catch (throwable: Throwable) {
             Timber.e(throwable, "Export to device failed")
             notifyResult(failed = true)
@@ -177,17 +199,18 @@ class ExportFilesToDeviceWorker(
      * Writes how far the export got, so that a run that is stopped and started again does not
      * export everything from the beginning.
      */
-    private fun saveProgress(exportJob: OCExportJob, attemptCount: Int, processedCount: Int) {
+    private fun saveProgress() {
         // A stopped worker must not write the job again: it may have been removed in the meantime,
         // for instance because the account was removed, and inserting it again would leave it
         // behind forever.
         if (isStopped) return
         exportJobRepository.saveExportJob(
-            exportJob.copy(
-                attemptCount = attemptCount,
-                processedCount = processedCount,
+            activeExportJob.copy(
+                attemptCount = activeAttemptCount,
+                processedCount = activeProcessedCount,
                 failedCount = failedCount,
-            ).apply { id = exportJob.id }
+                completedItemKeys = completedItemKeys.toSet(),
+            ).apply { id = activeExportJob.id }
         )
     }
 
@@ -253,7 +276,10 @@ class ExportFilesToDeviceWorker(
                 spaceId = spaceId,
             )
         )
-        result.getThrowableOrNull()?.let { throw it }
+        result.getThrowableOrNull()?.let { throwable ->
+            if (isRetryableRemoteFailure(throwable)) throw RetryableExportException(throwable)
+            throw throwable
+        }
         return result.getDataOrNull().orEmpty().also { listedFolders[key] = it }
     }
 
@@ -286,12 +312,14 @@ class ExportFilesToDeviceWorker(
     }
 
     private fun exportFileOrFolder(ocFile: OCFile, parent: DocumentFile) {
-        if (isStopped) return
+        val itemKey = ocFile.checkpointKey()
+        if (isStopped || itemKey in completedItemKeys) return
         if (ocFile.isFolder) {
             exportFolder(ocFile, parent)
         } else {
             exportSingleFile(ocFile, parent)
         }
+        if (!isStopped && completedItemKeys.add(itemKey)) saveProgress()
     }
 
     private fun exportFolder(ocFolder: OCFile, parent: DocumentFile) {
@@ -314,6 +342,7 @@ class ExportFilesToDeviceWorker(
                 Timber.w("Listing ${ocFolder.remotePath} was interrupted, the folder is exported again")
                 return
             }
+            if (throwable is RetryableExportException) throw throwable
             // Do not export a folder as if it were empty when its content could not be listed.
             Timber.e(throwable, "Could not list the content of ${ocFolder.remotePath}")
             failedCount++
@@ -369,6 +398,8 @@ class ExportFilesToDeviceWorker(
                 // Everything this run left half done is exported again, so it must not be counted
                 // as a file that could not be exported.
                 Timber.w("Export of ${ocFile.remotePath} was interrupted, it is exported again")
+            } else if (throwable is RetryableExportException) {
+                throw throwable
             } else {
                 Timber.e(throwable, "Export failed for ${ocFile.remotePath}")
                 failedCount++
@@ -547,16 +578,15 @@ class ExportFilesToDeviceWorker(
      * has not changed locally since that synchronization. Otherwise exporting the local copy would
      * silently save content that is outdated or has not been uploaded yet.
      *
-     * A download is only kept as the local copy of the file, and written to the database exactly
-     * as DownloadFileWorker does, when it cannot destroy anything. Exporting is a read-only
-     * action, so a local copy carrying changes that are not uploaded yet, or a file in conflict,
-     * is left untouched and the fresh content is exported from a temporary file instead.
+     * Downloads always remain isolated and disposable. Exporting is a read-only action, so it must
+     * not move content into the shared cache or update Room while another download, upload, or
+     * DocumentsProvider writer may be working on the same file.
      */
     private fun obtainCurrentContent(ocFile: OCFile): ContentToExport {
         val currentPath = ocFile.storagePath?.takeUnless { it.isBlank() }
         if (ocFile.isAvailableLocally && currentPath != null && File(currentPath).exists() &&
             !ocFile.etag.isNullOrBlank() && ocFile.etag == ocFile.remoteEtag &&
-            mayReplaceLocalCopy(ocFile, currentPath)
+            mayReuseLocalCopy(ocFile, currentPath)
         ) {
             return ContentToExport(path = currentPath, fileToDiscard = null)
         }
@@ -567,73 +597,47 @@ class ExportFilesToDeviceWorker(
         )
         temporaryDownloadRoots += downloadRoot
         val temporalFolderPath = downloadRoot.absolutePath + File.separator
-        val spaceWebDavUrl = getWebdavUrlForSpaceUseCase(
-            GetWebDavUrlForSpaceUseCase.Params(accountName = account.name, spaceId = ocFile.spaceId)
-        )
-        val downloadOperation = DownloadRemoteFileOperation(ocFile.remotePath, temporalFolderPath, spaceWebDavUrl)
-        // Throws on failure, aborting the export of this file.
-        executeRemoteOperation { downloadOperation.execute(getClient()) }
+        try {
+            val spaceWebDavUrl = getWebdavUrlForSpaceUseCase(
+                GetWebDavUrlForSpaceUseCase.Params(accountName = account.name, spaceId = ocFile.spaceId)
+            )
+            val downloadOperation = DownloadRemoteFileOperation(ocFile.remotePath, temporalFolderPath, spaceWebDavUrl)
+            executeRemoteOperation { downloadOperation.execute(getClient()) }
+        } catch (throwable: Throwable) {
+            if (isRetryableRemoteFailure(throwable)) throw RetryableExportException(throwable)
+            throw throwable
+        }
         val temporalFile = File(temporalFolderPath + ocFile.remotePath)
-
-        // A child discovered only by the read-only server listing has no Room parent. Keep its
-        // download isolated and disposable instead of inserting an incomplete database row.
-        if (ocFile.id == null) {
-            return ContentToExport(path = temporalFile.absolutePath, fileToDiscard = temporalFile)
-        }
-        if (!mayReplaceLocalCopy(ocFile, currentPath)) {
-            Timber.i("The local copy of ${ocFile.remotePath} holds changes that are not uploaded yet, it is kept as it is")
-            return ContentToExport(path = temporalFile.absolutePath, fileToDiscard = temporalFile)
-        }
-        return ContentToExport(path = storeAsLocalCopy(ocFile, temporalFile, currentPath, downloadOperation), fileToDiscard = null)
+        return ContentToExport(path = temporalFile.absolutePath, fileToDiscard = temporalFile)
     }
 
     /**
-     * Whether the downloaded content may be kept as the local copy of [ocFile]. It may not when
+     * Whether the existing local content may be used as the export source. It may not when
      * the file is in conflict, or when the local copy was modified after the last synchronization
      * of its content, which is how SynchronizeFileUseCase detects a local change: those changes
      * only exist on this device and are still waiting to be uploaded.
      */
-    private fun mayReplaceLocalCopy(ocFile: OCFile, currentPath: String?): Boolean {
-        if (currentPath == null || !File(currentPath).exists()) return true
+    private fun mayReuseLocalCopy(ocFile: OCFile, currentPath: String): Boolean {
+        if (!File(currentPath).exists()) return false
         if (ocFile.etagInConflict != null) return false
         return ocFile.localModificationTimestamp <= (ocFile.lastSyncDateForData ?: 0)
     }
 
-    private fun storeAsLocalCopy(
-        ocFile: OCFile,
-        temporalFile: File,
-        currentPath: String?,
-        downloadOperation: DownloadRemoteFileOperation,
-    ): String {
-        val finalPath = currentPath ?: localStorageProvider.getDefaultSavePathFor(
-            accountName = account.name,
-            remotePath = ocFile.remotePath,
-            spaceId = ocFile.spaceId,
-        )
-        val finalFile = File(finalPath)
-        finalFile.parentFile?.mkdirs()
-        if (!temporalFile.renameTo(finalFile)) {
-            temporalFile.copyTo(finalFile, overwrite = true)
-            temporalFile.delete()
-        }
+    /** A checkpoint is scoped to the selected subtree that is currently being exported. */
+    private fun OCFile.checkpointKey(): String = spaceId.orEmpty() + CHECKPOINT_KEY_SEPARATOR + remotePath
 
-        // Same metadata as after a regular download, see DownloadFileWorker. Without the eTags the
-        // freshly downloaded copy would still look outdated on the next export.
-        val currentTime = System.currentTimeMillis()
-        ocFile.apply {
-            val serverEtag = FileEtagNormalizer.normalize(downloadOperation.etag).orEmpty()
-            needsToUpdateThumbnail = true
-            modificationTimestamp = downloadOperation.modificationTimestamp
-            etag = serverEtag
-            remoteEtag = serverEtag
-            storagePath = finalPath
-            length = finalFile.length()
-            lastSyncDateForData = finalFile.lastModified()
-            modifiedAtLastSyncForData = downloadOperation.modificationTimestamp
-            lastUsage = currentTime
-        }
-        saveFileOrFolderUseCase(SaveFileOrFolderUseCase.Params(ocFile))
-        return finalPath
+    private fun isRetryableRemoteFailure(throwable: Throwable?): Boolean {
+        if (throwable == null) return false
+        if (throwable is IOException) return true
+        if (throwable is NoConnectionWithServerException) return true
+        if (throwable is NoNetworkConnectionException) return true
+        if (throwable is ServerNotReachableException) return true
+        if (throwable is ServerConnectionTimeoutException) return true
+        if (throwable is ServerResponseTimeoutException) return true
+        if (throwable is ServiceUnavailableException) return true
+        if (throwable is SpecificServiceUnavailableException) return true
+        if (throwable is NetworkErrorException) return true
+        return throwable.cause?.takeUnless { it === throwable }?.let(::isRetryableRemoteFailure) ?: false
     }
 
     private fun getClient(): OpenCloudClient = SingleSessionManager.getDefaultSingleton()
@@ -694,6 +698,8 @@ class ExportFilesToDeviceWorker(
         val spaceId: String?,
     )
 
+    private class RetryableExportException(cause: Throwable) : Exception(cause)
+
     private fun notificationId(salt: Int): Int =
         ((id.hashCode() xor salt) and Int.MAX_VALUE).coerceAtLeast(1)
 
@@ -709,6 +715,7 @@ class ExportFilesToDeviceWorker(
         private const val MODE_WRITE_TRUNCATE = "wt"
         private const val COPY_BUFFER_SIZE = 8 * 1024
         private const val MAX_EXPORT_ATTEMPTS = 5
+        private const val CHECKPOINT_KEY_SEPARATOR = "\u0000"
         private const val PROGRESS_NOTIFICATION_SALT = 0x20000000
         private const val RESULT_NOTIFICATION_SALT = 0x60000000
     }
