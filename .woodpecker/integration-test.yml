@@ -11,15 +11,15 @@ labels:
   platform: android-emulator
 
 steps:
-  - name: run tests
+  - name: integration tests
     image: *android_image
     commands:
       - adb connect android-emulator-cuda:5555
       - adb devices
-      - curl -L -o adbserver-desktop.jar https://github.com/KasperskyLab/Kaspresso/refs/tags/1.6.0/artifacts/adbserver-desktop.jar
+      - curl -fL -o adbserver-desktop.jar https://raw.githubusercontent.com/KasperskyLab/Kaspresso/v.1.6.0/artifacts/adbserver-desktop.jar
       - java -jar adbserver-desktop.jar &
       - sleep 3
-      - ./gradlew :opencloudApp:connectedOriginalDebugAndroidTest --console=plain
+      - ./gradlew :opencloudApp:connectedOriginalDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.annotation=eu.opencloud.android.IntegrationTest --console=plain
 
   - name: instrumented data tests
     image: *android_image

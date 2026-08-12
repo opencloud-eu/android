@@ -10,7 +10,7 @@ services:
     hostname: android-emulator-cuda
     restart: unless-stopped
     environment:
-      - DISABLE_ANIMATION=false
+      - DISABLE_ANIMATION=true
       - DISABLE_HIDDEN_POLICY=true
       - SKIP_AUTH=false
       - MEMORY=16384

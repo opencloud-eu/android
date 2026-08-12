@@ -13,6 +13,7 @@ import screens.MainScreen
 import screens.ManageAccountsDialog
 import screens.StartScreen
 
+@IntegrationTest
 class LoginTest : TestCase(
     kaspressoBuilder = Kaspresso.Builder.advanced {
         flakySafetyParams = FlakySafetyParams.custom(

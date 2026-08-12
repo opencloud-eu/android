@@ -6,7 +6,12 @@ apply plugin: 'kotlin-parcelize'
 dependencies {
     api 'com.squareup.okhttp3:okhttp:4.9.2'
     implementation libs.kotlin.stdlib
-    api 'com.github.opencloud-eu:android-dav:oc_support_2.1.6'
+    api('com.github.opencloud-eu:android-dav:oc_support_2.1.6') {
+        // xpp3:1.1.6 drags in a stray junit:junit:4.7 at runtime scope, which leaks
+        // into the production classpath and pins the androidTest classpath to
+        // "strictly 4.7" via AGP consistent resolution, breaking androidx.test (junit 4.13.2).
+        exclude group: 'junit', module: 'junit'
+    }
 
     // Androidx
     implementation libs.androidx.core.ktx
