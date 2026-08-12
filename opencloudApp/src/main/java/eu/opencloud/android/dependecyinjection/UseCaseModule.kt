@@ -64,6 +64,7 @@ import eu.opencloud.android.domain.files.usecases.GetFolderContentAsStreamUseCas
 import eu.opencloud.android.domain.files.usecases.GetFolderContentUseCase
 import eu.opencloud.android.domain.files.usecases.GetFolderImagesUseCase
 import eu.opencloud.android.domain.files.usecases.GetPersonalRootFolderForAccountUseCase
+import eu.opencloud.android.domain.files.usecases.GetRemoteFolderContentUseCase
 import eu.opencloud.android.domain.files.usecases.GetSearchFolderContentUseCase
 import eu.opencloud.android.domain.files.usecases.GetSharedByLinkForAccountAsStreamUseCase
 import eu.opencloud.android.domain.files.usecases.GetSharesRootFolderForAccount
@@ -176,6 +177,7 @@ val useCaseModule = module {
     factoryOf(::GetFolderImagesUseCase)
     factoryOf(::IsAnyFileAvailableLocallyAndNotAvailableOfflineUseCase)
     factoryOf(::GetPersonalRootFolderForAccountUseCase)
+    factoryOf(::GetRemoteFolderContentUseCase)
     factoryOf(::GetSearchFolderContentUseCase)
     factoryOf(::GetSharedByLinkForAccountAsStreamUseCase)
     factoryOf(::GetSharesRootFolderForAccount)

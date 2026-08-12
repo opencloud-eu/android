@@ -33,7 +33,8 @@ import eu.opencloud.android.domain.exportjobs.ExportJobRepository
 import eu.opencloud.android.domain.exportjobs.model.OCExportJob
 import eu.opencloud.android.domain.files.model.OCFile
 import eu.opencloud.android.domain.files.usecases.GetFileByIdUseCase
-import eu.opencloud.android.domain.files.usecases.GetFolderContentUseCase
+import eu.opencloud.android.domain.files.usecases.GetFileByRemotePathUseCase
+import eu.opencloud.android.domain.files.usecases.GetRemoteFolderContentUseCase
 import eu.opencloud.android.domain.files.usecases.GetWebDavUrlForSpaceUseCase
 import eu.opencloud.android.domain.files.usecases.SaveFileOrFolderUseCase
 import eu.opencloud.android.lib.common.OpenCloudAccount
@@ -41,11 +42,7 @@ import eu.opencloud.android.lib.common.OpenCloudClient
 import eu.opencloud.android.lib.common.SingleSessionManager
 import eu.opencloud.android.lib.resources.files.DownloadRemoteFileOperation
 import eu.opencloud.android.presentation.authentication.AccountUtils
-import eu.opencloud.android.usecases.synchronization.SynchronizeFolderUseCase
-import eu.opencloud.android.usecases.synchronization.SynchronizeFolderUseCase.SyncFolderMode.REFRESH_FOLDER
 import eu.opencloud.android.utils.DOWNLOAD_NOTIFICATION_CHANNEL_ID
-import eu.opencloud.android.utils.DOWNLOAD_NOTIFICATION_ID_DEFAULT
-import eu.opencloud.android.utils.EXPORT_NOTIFICATION_ID_DEFAULT
 import eu.opencloud.android.utils.FileStorageUtils
 import eu.opencloud.android.utils.NOTIFICATION_TIMEOUT_STANDARD
 import eu.opencloud.android.utils.NotificationUtils
@@ -80,14 +77,16 @@ class ExportFilesToDeviceWorker(
 
     private val exportJobRepository: ExportJobRepository by inject()
     private val getFileByIdUseCase: GetFileByIdUseCase by inject()
-    private val getFolderContentUseCase: GetFolderContentUseCase by inject()
+    private val getFileByRemotePathUseCase: GetFileByRemotePathUseCase by inject()
+    private val getRemoteFolderContentUseCase: GetRemoteFolderContentUseCase by inject()
     private val getWebdavUrlForSpaceUseCase: GetWebDavUrlForSpaceUseCase by inject()
     private val saveFileOrFolderUseCase: SaveFileOrFolderUseCase by inject()
-    private val synchronizeFolderUseCase: SynchronizeFolderUseCase by inject()
     private val localStorageProvider: LocalStorageProvider by inject()
 
     private lateinit var account: Account
-    private val refreshedFolders = mutableMapOf<String, Boolean>()
+    private val listedFolders = mutableMapOf<RemoteFolderKey, List<OCFile>>()
+    private val temporaryDownloadRoots = mutableSetOf<File>()
+    private val downloadSessionToken = UUID.randomUUID().toString()
     private var exportedCount = 0
     private var failedCount = 0
     private var abandonJob = false
@@ -110,11 +109,15 @@ class ExportFilesToDeviceWorker(
             startForeground()
             runExportJob(exportJob)
         } finally {
-            // WorkManager ignores the result of an interrupted worker and reschedules it, so the
-            // job has to survive a stop. It is only consumed when this run really finished, or
-            // when the export was given up.
-            if (!isStopped || abandonJob) {
-                exportJobRepository.deleteExportJobById(exportJobId)
+            try {
+                // WorkManager ignores the result of an interrupted worker and reschedules it, so
+                // the job has to survive a stop. It is only consumed when this run really finished,
+                // or when the export was given up.
+                if (!isStopped || abandonJob) {
+                    exportJobRepository.deleteExportJobById(exportJobId)
+                }
+            } finally {
+                deleteTemporaryDownloads()
             }
         }
     }
@@ -196,56 +199,90 @@ class ExportFilesToDeviceWorker(
             return
         }
 
-        // Selected folders are not refreshed here, listFolderContentFromServer() does it for them.
-        val ocFile = if (storedFile.isFolder) storedFile else refreshedFile(storedFile) ?: return
+        // Selected folders are listed directly from the server when they are traversed.
+        val ocFile = if (storedFile.isFolder) storedFile else currentRemoteFile(storedFile) ?: return
         exportFileOrFolder(ocFile, targetTree)
     }
 
     /**
-     * Returns a directly selected file read again after its folder was refreshed against the
-     * server, or null when it does not exist anymore.
+     * Returns a directly selected file as currently reported by the server, or null when it does
+     * not exist anymore.
      *
      * The database is not authoritative: it only holds what the last refresh of the containing
      * folder reported, so a file changed on another client in the meantime would be exported from
      * an outdated local copy without anybody noticing. Every folder holding a selected file is
-     * therefore refreshed once (a Depth: 1 PROPFIND) before its version is looked at.
+     * therefore listed once with a read-only Depth: 1 PROPFIND before its version is looked at.
      *
-     * Refreshing is best effort though. Saving files that are already on the device is a local
-     * action that has to keep working without a server, so a folder that cannot be refreshed
+     * Listing is best effort though. Saving files that are already on the device is a local action
+     * that has to keep working without a server, so a folder that cannot be listed
      * leaves the stored file as it is; [obtainCurrentContent] then only exports it when the stored
      * version validators prove the local copy to be the current one, and fails it otherwise.
      */
-    private fun refreshedFile(ocFile: OCFile): OCFile? {
-        val parentRemotePath = ocFile.getParentRemotePath()
-        val refreshed = refreshedFolders.getOrPut(parentRemotePath + ocFile.spaceId) {
-            refreshFolder(parentRemotePath, ocFile.spaceId)
-        }
-        if (!refreshed) {
-            Timber.w("The folder holding ${ocFile.remotePath} could not be refreshed, only a local copy that is proven current is exported")
-            return ocFile
+    private fun currentRemoteFile(localFile: OCFile): OCFile? {
+        val parentRemotePath = localFile.getParentRemotePath()
+        val remoteChildren = try {
+            listRemoteFolder(parentRemotePath, localFile.spaceId)
+        } catch (throwable: Throwable) {
+            Timber.w(
+                throwable,
+                "The folder holding ${localFile.remotePath} could not be listed; only a proven-current local copy is exported",
+            )
+            return localFile
         }
 
-        val currentFile = ocFile.id?.let { getFileByIdUseCase(GetFileByIdUseCase.Params(it)).getDataOrNull() }
-        if (currentFile == null) {
-            Timber.e("${ocFile.remotePath} does not exist anymore, it cannot be exported")
-            failedCount++
+        val remoteFile = remoteChildren.firstOrNull { candidate ->
+            candidate.remotePath == localFile.remotePath ||
+                (candidate.remoteId != null && candidate.remoteId == localFile.remoteId)
         }
-        return currentFile
+        if (remoteFile == null) {
+            Timber.e("${localFile.remotePath} does not exist anymore, it cannot be exported")
+            failedCount++
+            return null
+        }
+        return remoteFile.withLocalPropertiesFrom(localFile)
     }
 
-    private fun refreshFolder(remotePath: String, spaceId: String?): Boolean {
-        val refreshResult = synchronizeFolderUseCase(
-            SynchronizeFolderUseCase.Params(
+    private fun listRemoteFolder(remotePath: String, spaceId: String?): List<OCFile> {
+        val key = RemoteFolderKey(remotePath, spaceId)
+        listedFolders[key]?.let { return it }
+
+        val result = getRemoteFolderContentUseCase(
+            GetRemoteFolderContentUseCase.Params(
                 remotePath = remotePath,
                 accountName = account.name,
                 spaceId = spaceId,
-                syncMode = REFRESH_FOLDER,
             )
         )
-        return refreshResult.getThrowableOrNull()?.let {
-            Timber.e(it, "Could not refresh $remotePath")
-            false
-        } ?: true
+        result.getThrowableOrNull()?.let { throw it }
+        return result.getDataOrNull().orEmpty().also { listedFolders[key] = it }
+    }
+
+    private fun OCFile.withLocalPropertiesFrom(localFile: OCFile): OCFile = apply {
+        copyLocalPropertiesFrom(localFile)
+        // The remote model carries the current server eTag in remoteEtag. etag continues to
+        // describe the locally synchronized content, so obtainCurrentContent can compare them.
+        etag = localFile.etag
+        needsToUpdateThumbnail = localFile.needsToUpdateThumbnail
+    }
+
+    private fun localStateFor(remoteFile: OCFile): OCFile {
+        val localFile = getFileByRemotePathUseCase(
+            GetFileByRemotePathUseCase.Params(
+                owner = account.name,
+                remotePath = remoteFile.remotePath,
+                spaceId = remoteFile.spaceId,
+            )
+        ).getDataOrNull()
+        return if (localFile == null) remoteFile else remoteFile.withLocalPropertiesFrom(localFile)
+    }
+
+    private fun deleteTemporaryDownloads() {
+        temporaryDownloadRoots.forEach { root ->
+            if (root.exists() && !root.deleteRecursively()) {
+                Timber.w("Could not remove the export download directory ${root.absolutePath}")
+            }
+        }
+        temporaryDownloadRoots.clear()
     }
 
     private fun exportFileOrFolder(ocFile: OCFile, parent: DocumentFile) {
@@ -297,27 +334,13 @@ class ExportFilesToDeviceWorker(
      * The database is not authoritative here: a folder that was never opened has no children
      * stored, and the descendants of a folder may have changed since the last refresh, so an
      * export driven by the database alone silently omits files. The subtree is therefore walked
-     * folder by folder with the regular refresh (a Depth: 1 PROPFIND per folder, since openCloud
-     * disables Depth: infinity by default) and the content is read afterwards, when the database
-     * holds what the server reported. Lookup failures are thrown so that the folder is reported
-     * as failed instead of exported as an empty one.
+     * folder by folder with a read-only Depth: 1 PROPFIND per folder (openCloud disables Depth:
+     * infinity by default). Local state is merged into matching server entries in memory, without
+     * reconciling Room or deleting anything from local storage. Lookup failures are thrown so that
+     * the folder is reported as failed instead of exported as an empty one.
      */
     private fun listFolderContentFromServer(ocFolder: OCFile): List<OCFile> {
-        val folderId = ocFolder.id ?: throw IOException("Unknown folder ${ocFolder.remotePath}")
-
-        val refreshResult = synchronizeFolderUseCase(
-            SynchronizeFolderUseCase.Params(
-                remotePath = ocFolder.remotePath,
-                accountName = account.name,
-                spaceId = ocFolder.spaceId,
-                syncMode = REFRESH_FOLDER,
-            )
-        )
-        refreshResult.getThrowableOrNull()?.let { throw it }
-
-        val folderContentResult = getFolderContentUseCase(GetFolderContentUseCase.Params(folderId))
-        folderContentResult.getThrowableOrNull()?.let { throw it }
-        return folderContentResult.getDataOrNull().orEmpty()
+        return listRemoteFolder(ocFolder.remotePath, ocFolder.spaceId).map(::localStateFor)
     }
 
     private fun exportSingleFile(ocFile: OCFile, parent: DocumentFile) {
@@ -537,7 +560,12 @@ class ExportFilesToDeviceWorker(
             return ContentToExport(path = currentPath, fileToDiscard = null)
         }
 
-        val temporalFolderPath = FileStorageUtils.getTemporalPath(account.name, ocFile.spaceId)
+        val downloadRoot = File(
+            FileStorageUtils.getTemporalPath(account.name, ocFile.spaceId),
+            "export-$id-$downloadSessionToken",
+        )
+        temporaryDownloadRoots += downloadRoot
+        val temporalFolderPath = downloadRoot.absolutePath + File.separator
         val spaceWebDavUrl = getWebdavUrlForSpaceUseCase(
             GetWebDavUrlForSpaceUseCase.Params(accountName = account.name, spaceId = ocFile.spaceId)
         )
@@ -546,6 +574,11 @@ class ExportFilesToDeviceWorker(
         executeRemoteOperation { downloadOperation.execute(getClient()) }
         val temporalFile = File(temporalFolderPath + ocFile.remotePath)
 
+        // A child discovered only by the read-only server listing has no Room parent. Keep its
+        // download isolated and disposable instead of inserting an incomplete database row.
+        if (ocFile.id == null) {
+            return ContentToExport(path = temporalFile.absolutePath, fileToDiscard = temporalFile)
+        }
         if (!mayReplaceLocalCopy(ocFile, currentPath)) {
             Timber.i("The local copy of ${ocFile.remotePath} holds changes that are not uploaded yet, it is kept as it is")
             return ContentToExport(path = temporalFile.absolutePath, fileToDiscard = temporalFile)
@@ -615,7 +648,7 @@ class ExportFilesToDeviceWorker(
         try {
             setForeground(
                 ForegroundInfo(
-                    EXPORT_NOTIFICATION_ID_DEFAULT,
+                    notificationId(PROGRESS_NOTIFICATION_SALT),
                     buildProgressNotification(),
                     ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC,
                 )
@@ -639,7 +672,7 @@ class ExportFilesToDeviceWorker(
             context = appContext,
             contentTitle = appContext.getString(titleRes),
             notificationChannelId = DOWNLOAD_NOTIFICATION_CHANNEL_ID,
-            notificationId = DOWNLOAD_NOTIFICATION_ID_DEFAULT,
+            notificationId = notificationId(RESULT_NOTIFICATION_SALT),
             intent = null,
             contentText = "",
             timeOut = if (failed) null else NOTIFICATION_TIMEOUT_STANDARD,
@@ -655,6 +688,14 @@ class ExportFilesToDeviceWorker(
         val fileToDiscard: File?,
     )
 
+    private data class RemoteFolderKey(
+        val remotePath: String,
+        val spaceId: String?,
+    )
+
+    private fun notificationId(salt: Int): Int =
+        ((id.hashCode() xor salt) and Int.MAX_VALUE).coerceAtLeast(1)
+
     companion object {
         const val KEY_PARAM_EXPORT_JOB_ID = "KEY_PARAM_EXPORT_JOB_ID"
         private const val MIME_OCTET_STREAM = "application/octet-stream"
@@ -667,5 +708,7 @@ class ExportFilesToDeviceWorker(
         private const val MODE_WRITE_TRUNCATE = "wt"
         private const val COPY_BUFFER_SIZE = 8 * 1024
         private const val MAX_EXPORT_ATTEMPTS = 5
+        private const val PROGRESS_NOTIFICATION_SALT = 0x20000000
+        private const val RESULT_NOTIFICATION_SALT = 0x60000000
     }
 }
