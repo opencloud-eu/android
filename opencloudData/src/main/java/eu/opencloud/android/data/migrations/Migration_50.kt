@@ -14,6 +14,7 @@ val MIGRATION_49_50 = object : Migration(49, 50) {
                 "`attemptCount` INTEGER NOT NULL, " +
                 "`processedCount` INTEGER NOT NULL, " +
                 "`failedCount` INTEGER NOT NULL, " +
+                "`completedItemKeys` TEXT NOT NULL, " +
                 "`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL)"
         )
     }

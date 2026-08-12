@@ -25,8 +25,9 @@ package eu.opencloud.android.domain.exportjobs.model
  * The job also carries the progress of the export, because a worker can be stopped and run again
  * at any time: [attemptCount] is how often it was started, so an export that cannot finish gives
  * up instead of being restarted forever, and [processedCount] is how many of the selected items
- * are done, so a new run continues where the stopped one left off instead of exporting everything
- * again. [failedCount] carries the items that could not be exported over those runs.
+ * are done. [completedItemKeys] checkpoints descendants of the selected item currently being
+ * traversed, so a new run does not restart a large folder from its first child. [failedCount]
+ * carries the items that could not be exported over those runs.
  */
 data class OCExportJob(
     val accountName: String,
@@ -35,5 +36,6 @@ data class OCExportJob(
     val attemptCount: Int = 0,
     val processedCount: Int = 0,
     val failedCount: Int = 0,
+    val completedItemKeys: Set<String> = emptySet(),
     var id: Long? = null,
 )

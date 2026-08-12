@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 50,
-    "identityHash": "6931526bc6b957513dec8697316804fe",
+    "identityHash": "874592f58b975837ec4b339515206b36",
     "entities": [
       {
         "tableName": "app_registry",
@@ -75,7 +75,7 @@
       },
       {
         "tableName": "export_jobs",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`accountName` TEXT NOT NULL, `targetFolderTreeUri` TEXT NOT NULL, `fileIds` TEXT NOT NULL, `attemptCount` INTEGER NOT NULL, `processedCount` INTEGER NOT NULL, `failedCount` INTEGER NOT NULL, `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`accountName` TEXT NOT NULL, `targetFolderTreeUri` TEXT NOT NULL, `fileIds` TEXT NOT NULL, `attemptCount` INTEGER NOT NULL, `processedCount` INTEGER NOT NULL, `failedCount` INTEGER NOT NULL, `completedItemKeys` TEXT NOT NULL, `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL)",
         "fields": [
           {
             "fieldPath": "accountName",
@@ -111,6 +111,12 @@
             "fieldPath": "failedCount",
             "columnName": "failedCount",
             "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "completedItemKeys",
+            "columnName": "completedItemKeys",
+            "affinity": "TEXT",
             "notNull": true
           },
           {
@@ -1274,7 +1280,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '6931526bc6b957513dec8697316804fe')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '874592f58b975837ec4b339515206b36')"
     ]
   }
 }
