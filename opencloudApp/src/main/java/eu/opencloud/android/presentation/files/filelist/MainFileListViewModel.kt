@@ -60,6 +60,7 @@ import eu.opencloud.android.usecases.files.FilterFileMenuOptionsUseCase
 import eu.opencloud.android.usecases.synchronization.SynchronizeFolderUseCase
 import eu.opencloud.android.usecases.synchronization.SynchronizeFolderUseCase.SyncFolderMode.SYNC_CONTENTS
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -74,6 +75,9 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import timber.log.Timber
+import kotlin.coroutines.cancellation.CancellationException
 import eu.opencloud.android.domain.files.usecases.SortType.Companion as SortTypeDomain
 
 class MainFileListViewModel(
@@ -100,23 +104,56 @@ class MainFileListViewModel(
     private val showHiddenFiles: Boolean = sharedPreferencesProvider.getBoolean(PREF_SHOW_HIDDEN_FILES, false)
 
     /**
-     * Enqueues a background export of the given files/folders into the device folder the user
-     * picked through the Storage Access Framework. See opencloud-eu/android#180.
-     *
-     * The selection is persisted before the worker is enqueued, so this runs off the main thread.
-     * It does not run on the ViewModel scope either: the picker returns to an activity that may
-     * already be finishing, and an export the user asked for must not be dropped then.
+     * Persists the selection before the external folder picker is launched. If the view disappears
+     * while the database write is running, the result cannot be handed to the picker anymore, so
+     * the newly created job is removed before cancellation is propagated.
      */
-    fun exportFilesToDevice(fileIds: List<Long>, accountName: String, targetFolderTreeUri: String) {
-        if (fileIds.isEmpty()) return
+    suspend fun prepareExportToDevice(fileIds: List<Long>, accountName: String): Long? {
+        var preparedJobId: Long? = null
+        return try {
+            withContext(coroutinesDispatcherProvider.io) {
+                try {
+                    exportFilesToDeviceUseCase.prepareExport(accountName, fileIds)
+                        .also { preparedJobId = it }
+                } catch (cancellation: CancellationException) {
+                    throw cancellation
+                } catch (throwable: Throwable) {
+                    Timber.e(throwable, "Could not persist the pending export selection")
+                    null
+                }
+            }
+        } catch (cancellation: CancellationException) {
+            preparedJobId?.let { exportJobId ->
+                try {
+                    withContext(NonCancellable + coroutinesDispatcherProvider.io) {
+                        exportFilesToDeviceUseCase.discardPendingExport(exportJobId)
+                    }
+                } catch (throwable: Throwable) {
+                    Timber.e(throwable, "Could not discard the cancelled pending export $exportJobId")
+                }
+            }
+            throw cancellation
+        }
+    }
+
+    /**
+     * Attaches the selected folder and enqueues the prepared export. This deliberately outlives
+     * the ViewModel: the picker can return while its Activity is already finishing.
+     */
+    fun exportFilesToDevice(exportJobId: Long, targetFolderTreeUri: String) {
         CoroutineScope(coroutinesDispatcherProvider.io).launch {
             exportFilesToDeviceUseCase(
                 ExportFilesToDeviceUseCase.Params(
-                    accountName = accountName,
-                    fileIds = fileIds,
+                    exportJobId = exportJobId,
                     targetFolderTreeUri = targetFolderTreeUri,
                 )
             )
+        }
+    }
+
+    fun discardPendingExport(exportJobId: Long) {
+        CoroutineScope(coroutinesDispatcherProvider.io).launch {
+            exportFilesToDeviceUseCase.discardPendingExport(exportJobId)
         }
     }
 
