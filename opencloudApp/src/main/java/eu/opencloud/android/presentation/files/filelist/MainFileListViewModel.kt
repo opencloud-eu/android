@@ -74,6 +74,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import timber.log.Timber
 import eu.opencloud.android.domain.files.usecases.SortType.Companion as SortTypeDomain
 
 class MainFileListViewModel(
@@ -99,24 +101,32 @@ class MainFileListViewModel(
 
     private val showHiddenFiles: Boolean = sharedPreferencesProvider.getBoolean(PREF_SHOW_HIDDEN_FILES, false)
 
+    /** Persists the selection before the external folder picker is launched. */
+    suspend fun prepareExportToDevice(fileIds: List<Long>, accountName: String): Long? =
+        withContext(coroutinesDispatcherProvider.io) {
+            runCatching { exportFilesToDeviceUseCase.prepareExport(accountName, fileIds) }
+                .onFailure { Timber.e(it, "Could not persist the pending export selection") }
+                .getOrNull()
+        }
+
     /**
-     * Enqueues a background export of the given files/folders into the device folder the user
-     * picked through the Storage Access Framework. See opencloud-eu/android#180.
-     *
-     * The selection is persisted before the worker is enqueued, so this runs off the main thread.
-     * It does not run on the ViewModel scope either: the picker returns to an activity that may
-     * already be finishing, and an export the user asked for must not be dropped then.
+     * Attaches the selected folder and enqueues the prepared export. This deliberately outlives
+     * the ViewModel: the picker can return while its Activity is already finishing.
      */
-    fun exportFilesToDevice(fileIds: List<Long>, accountName: String, targetFolderTreeUri: String) {
-        if (fileIds.isEmpty()) return
+    fun exportFilesToDevice(exportJobId: Long, targetFolderTreeUri: String) {
         CoroutineScope(coroutinesDispatcherProvider.io).launch {
             exportFilesToDeviceUseCase(
                 ExportFilesToDeviceUseCase.Params(
-                    accountName = accountName,
-                    fileIds = fileIds,
+                    exportJobId = exportJobId,
                     targetFolderTreeUri = targetFolderTreeUri,
                 )
             )
+        }
+    }
+
+    fun discardPendingExport(exportJobId: Long) {
+        CoroutineScope(coroutinesDispatcherProvider.io).launch {
+            exportFilesToDeviceUseCase.discardPendingExport(exportJobId)
         }
     }
 
