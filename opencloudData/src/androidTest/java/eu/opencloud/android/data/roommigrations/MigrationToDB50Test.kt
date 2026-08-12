@@ -83,17 +83,19 @@ class MigrationToDB50Test : MigrationTest() {
                 "fileIds, " +
                 "attemptCount, " +
                 "processedCount, " +
-                "failedCount" +
+                "failedCount, " +
+                "completedItemKeys" +
                 ")" +
                 " VALUES " +
-                "(?, ?, ?, ?, ?, ?)",
+                "(?, ?, ?, ?, ?, ?, ?)",
             arrayOf(
                 "user@example.com",
                 "content://provider/tree/export",
                 "1,2,3",
                 0,
                 0,
-                0
+                0,
+                "[]"
             )
         )
 
@@ -102,6 +104,7 @@ class MigrationToDB50Test : MigrationTest() {
             assertEquals("user@example.com", cursor.getString(cursor.getColumnIndex("accountName")))
             assertEquals("content://provider/tree/export", cursor.getString(cursor.getColumnIndex("targetFolderTreeUri")))
             assertEquals("1,2,3", cursor.getString(cursor.getColumnIndex("fileIds")))
+            assertEquals("[]", cursor.getString(cursor.getColumnIndex("completedItemKeys")))
             assertTrue(cursor.getLong(cursor.getColumnIndex("id")) > 0)
         }
 
