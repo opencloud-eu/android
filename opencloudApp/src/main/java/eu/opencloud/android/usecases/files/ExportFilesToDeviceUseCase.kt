@@ -32,32 +32,62 @@ import timber.log.Timber
  * device folder the user picked through the Storage Access Framework. Addresses
  * opencloud-eu/android#180.
  *
- * The selection is not bounded (select all has no item limit) and WorkManager rejects input data
- * bigger than 10 KiB, so the selection is persisted as an export job and only the generated job
- * id is passed to the worker. The worker resolves the job, and the files it refers to, from the
- * database and removes the job once it is done.
+ * The selection is not bounded (select all has no item limit), so [prepareExport] persists it
+ * before the Storage Access Framework picker is opened. Only the generated job id survives in the
+ * Fragment state and later travels through WorkManager. Once the picker returns, invoking this use
+ * case attaches the selected tree URI and enqueues the worker.
  */
 class ExportFilesToDeviceUseCase(
     private val workManager: WorkManager,
     private val exportJobRepository: ExportJobRepository,
 ) : BaseUseCase<Unit, ExportFilesToDeviceUseCase.Params>() {
 
-    // Collecting the jobs without work and writing a new one must not interleave, a job would be
-    // taken for abandoned in the moment between it being written and its work being enqueued.
+    /**
+     * Persists an unbounded selection before the external folder picker is launched.
+     */
+    fun prepareExport(accountName: String, fileIds: List<Long>): Long? = synchronized(ENQUEUE_LOCK) {
+        if (fileIds.isEmpty()) return@synchronized null
+
+        deleteAbandonedExportJobs(accountName)
+        exportJobRepository.saveExportJob(
+            OCExportJob(
+                accountName = accountName,
+                targetFolderTreeUri = "",
+                fileIds = fileIds,
+            )
+        )
+    }
+
+    /**
+     * Removes a selection whose picker was cancelled. A job that already has a target URI belongs
+     * to WorkManager and is deliberately left alone.
+     */
+    fun discardPendingExport(exportJobId: Long): Unit = synchronized(ENQUEUE_LOCK) {
+        exportJobRepository.getExportJobById(exportJobId)
+            ?.takeIf { it.targetFolderTreeUri.isBlank() }
+            ?.let { exportJobRepository.deleteExportJobById(exportJobId) }
+        Unit
+    }
+
+    // Collecting jobs without work and attaching work to the prepared job must not interleave.
     override fun run(params: Params): Unit = synchronized(ENQUEUE_LOCK) { enqueueExport(params) }
 
     private fun enqueueExport(params: Params) {
-        if (params.fileIds.isEmpty()) return
+        if (params.targetFolderTreeUri.isBlank()) return
 
-        deleteAbandonedExportJobs(params.accountName)
+        val preparedJob = exportJobRepository.getExportJobById(params.exportJobId) ?: run {
+            Timber.e("The pending export job ${params.exportJobId} does not exist, nothing is enqueued")
+            return
+        }
+        if (preparedJob.fileIds.isEmpty()) return
 
-        val exportJobId = exportJobRepository.saveExportJob(
-            OCExportJob(
-                accountName = params.accountName,
-                targetFolderTreeUri = params.targetFolderTreeUri,
-                fileIds = params.fileIds,
-            )
+        deleteAbandonedExportJobs(preparedJob.accountName, retainedJobId = params.exportJobId)
+
+        exportJobRepository.saveExportJob(
+            preparedJob.copy(targetFolderTreeUri = params.targetFolderTreeUri)
+                .apply { id = preparedJob.id }
         )
+        val exportJobId = params.exportJobId
 
         val inputData = workDataOf(
             ExportFilesToDeviceWorker.KEY_PARAM_EXPORT_JOB_ID to exportJobId,
@@ -65,7 +95,7 @@ class ExportFilesToDeviceUseCase(
 
         val exportWork = OneTimeWorkRequestBuilder<ExportFilesToDeviceWorker>()
             .setInputData(inputData)
-            .addTag(params.accountName)
+            .addTag(preparedJob.accountName)
             // A bare numeric tag is the namespace of the transfer ids (see ClearFailedTransfersUseCase),
             // so the job id is prefixed to keep exports out of it.
             .addTag(EXPORT_JOB_TAG_PREFIX + exportJobId)
@@ -79,7 +109,7 @@ class ExportFilesToDeviceUseCase(
         // name of its own.
         val uniqueWorkName = EXPORT_WORK_NAME_PREFIX + exportJobId
         workManager.enqueueUniqueWork(uniqueWorkName, ExistingWorkPolicy.KEEP, exportWork)
-        Timber.i("Export of ${params.fileIds.size} item(s) to a device folder has been enqueued as job $exportJobId.")
+        Timber.i("Export of ${preparedJob.fileIds.size} item(s) to a device folder has been enqueued as job $exportJobId.")
     }
 
     /**
@@ -90,7 +120,7 @@ class ExportFilesToDeviceUseCase(
      * leaves its job behind. Nothing else prunes them, so they are collected here, where the list
      * is short and no export of this account is being started at the same time.
      */
-    private fun deleteAbandonedExportJobs(accountName: String) {
+    private fun deleteAbandonedExportJobs(accountName: String, retainedJobId: Long? = null) {
         val storedJobIds = exportJobRepository.getExportJobIdsForAccount(accountName)
         if (storedJobIds.isEmpty()) return
 
@@ -106,7 +136,7 @@ class ExportFilesToDeviceUseCase(
             return
         }
 
-        storedJobIds.filterNot { pendingJobIds.contains(it) }.forEach { abandonedJobId ->
+        storedJobIds.filterNot { it == retainedJobId || pendingJobIds.contains(it) }.forEach { abandonedJobId ->
             Timber.i("Export job $abandonedJobId has no work anymore, it is removed")
             exportJobRepository.deleteExportJobById(abandonedJobId)
         }
@@ -116,8 +146,7 @@ class ExportFilesToDeviceUseCase(
         if (startsWith(prefix)) substring(prefix.length) else null
 
     data class Params(
-        val accountName: String,
-        val fileIds: List<Long>,
+        val exportJobId: Long,
         val targetFolderTreeUri: String,
     )
 
