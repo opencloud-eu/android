@@ -18,11 +18,15 @@
 package eu.opencloud.android.data.exportjobs.datasources.implementation
 
 import androidx.annotation.VisibleForTesting
+import com.squareup.moshi.JsonAdapter
+import com.squareup.moshi.Moshi
+import com.squareup.moshi.Types
 import eu.opencloud.android.data.exportjobs.datasources.LocalExportJobDataSource
 import eu.opencloud.android.data.exportjobs.db.ExportJobDao
 import eu.opencloud.android.data.exportjobs.db.ExportJobEntity
 import eu.opencloud.android.data.exportjobs.db.ExportJobEntity.Companion.FILE_IDS_SEPARATOR
 import eu.opencloud.android.domain.exportjobs.model.OCExportJob
+import java.lang.reflect.Type
 
 class OCLocalExportJobDataSource(
     private val exportJobDao: ExportJobDao
@@ -54,6 +58,7 @@ class OCLocalExportJobDataSource(
             attemptCount = attemptCount,
             processedCount = processedCount,
             failedCount = failedCount,
+            completedItemKeys = completedItemKeysAdapter.fromJson(completedItemKeys).orEmpty().toSet(),
             id = id,
         )
 
@@ -65,6 +70,11 @@ class OCLocalExportJobDataSource(
             attemptCount = attemptCount,
             processedCount = processedCount,
             failedCount = failedCount,
+            completedItemKeys = completedItemKeysAdapter.toJson(completedItemKeys.toList()),
         ).apply { this@toEntity.id?.let { this.id = it } }
+
+        private val completedItemKeysType: Type = Types.newParameterizedType(List::class.java, String::class.java)
+        private val completedItemKeysAdapter: JsonAdapter<List<String>> =
+            Moshi.Builder().build().adapter(completedItemKeysType)
     }
 }

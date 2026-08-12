@@ -26,9 +26,9 @@ import eu.opencloud.android.data.ProviderMeta
  * joined by [FILE_IDS_SEPARATOR], so an unbounded selection never has to travel through the
  * 10 KiB WorkManager input data.
  *
- * [attemptCount], [processedCount] and [failedCount] hold the progress of the export, so that a
- * worker that was stopped and started again continues where it left off and gives up after a
- * bounded number of attempts.
+ * [attemptCount], [processedCount], [failedCount] and [completedItemKeys] hold the progress of the
+ * export, so that a worker that was stopped and started again continues inside a selected folder
+ * where it left off and gives up after a bounded number of attempts.
  */
 @Entity(tableName = ProviderMeta.ProviderTableMeta.EXPORT_JOBS_TABLE_NAME)
 data class ExportJobEntity(
@@ -38,6 +38,7 @@ data class ExportJobEntity(
     val attemptCount: Int = 0,
     val processedCount: Int = 0,
     val failedCount: Int = 0,
+    val completedItemKeys: String = "[]",
 ) {
     @PrimaryKey(autoGenerate = true) var id: Long = 0
 
