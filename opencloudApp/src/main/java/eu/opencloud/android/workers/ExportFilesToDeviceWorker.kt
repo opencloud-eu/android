@@ -543,9 +543,9 @@ class ExportFilesToDeviceWorker(
      * it when needed.
      *
      * [OCFile.etag] is the version of the locally synchronized content while [OCFile.remoteEtag]
-     * is the version known for the server, so the local copy is only reused when both match.
-     * Otherwise the server holds another version and exporting the local copy would silently save
-     * an outdated one.
+     * is the version known for the server, so the local copy is only reused when both match and it
+     * has not changed locally since that synchronization. Otherwise exporting the local copy would
+     * silently save content that is outdated or has not been uploaded yet.
      *
      * A download is only kept as the local copy of the file, and written to the database exactly
      * as DownloadFileWorker does, when it cannot destroy anything. Exporting is a read-only
@@ -555,7 +555,8 @@ class ExportFilesToDeviceWorker(
     private fun obtainCurrentContent(ocFile: OCFile): ContentToExport {
         val currentPath = ocFile.storagePath?.takeUnless { it.isBlank() }
         if (ocFile.isAvailableLocally && currentPath != null && File(currentPath).exists() &&
-            !ocFile.etag.isNullOrBlank() && ocFile.etag == ocFile.remoteEtag
+            !ocFile.etag.isNullOrBlank() && ocFile.etag == ocFile.remoteEtag &&
+            mayReplaceLocalCopy(ocFile, currentPath)
         ) {
             return ContentToExport(path = currentPath, fileToDiscard = null)
         }
