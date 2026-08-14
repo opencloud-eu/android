@@ -74,6 +74,7 @@ dependencies {
 
     // Instrumented tests
     androidTestImplementation project(":opencloudTestUtil")
+    androidTestImplementation libs.junit4
     androidTestImplementation libs.androidx.annotation
     androidTestImplementation libs.androidx.arch.core.testing
     androidTestImplementation libs.androidx.test.core
