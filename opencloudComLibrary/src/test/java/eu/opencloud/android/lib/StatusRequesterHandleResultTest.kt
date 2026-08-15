@@ -61,6 +61,14 @@ class StatusRequesterHandleResultTest {
     }
 
     @Test
+    fun `handle request result - ko - bad request with an nginx no-certificate body reports the http error`() {
+        val result = requester.handleRequestResult(requestResult(400, NGINX_MTLS_ERROR_PAGE, HTML), BASE_URL)
+
+        assertEquals(RemoteOperationResult.ResultCode.UNHANDLED_HTTP_CODE, result.code)
+        assertEquals(400, result.httpCode)
+    }
+
+    @Test
     fun `handle request result - ko - bad gateway with an html body reports the http error`() {
         val result = requester.handleRequestResult(requestResult(502, "<html><body>Bad gateway</body></html>", HTML), BASE_URL)
 
@@ -116,5 +124,12 @@ class StatusRequesterHandleResultTest {
         /** What Cloudflare returns when the client certificate is missing on an mTLS-protected host. */
         private const val CLOUDFLARE_MTLS_ERROR_PAGE =
             "<html><head><title>403 Forbidden</title></head><body>No required SSL certificate was sent</body></html>"
+
+        /** What nginx returns in the same situation, verbatim from client.badssl.com. Note the unclosed <hr>. */
+        private const val NGINX_MTLS_ERROR_PAGE =
+            "<html>\n<head><title>400 No required SSL certificate was sent</title></head>\n" +
+                    "<body bgcolor=\"white\">\n<center><h1>400 Bad Request</h1></center>\n" +
+                    "<center>No required SSL certificate was sent</center>\n" +
+                    "<hr><center>nginx/1.10.3 (Ubuntu)</center>\n</body>\n</html>"
     }
 }
