@@ -68,6 +68,7 @@ import eu.opencloud.android.domain.exceptions.SSLErrorException
 import eu.opencloud.android.domain.exceptions.ServerNotReachableException
 import eu.opencloud.android.domain.exceptions.SpecificForbiddenException
 import eu.opencloud.android.domain.exceptions.UnauthorizedException
+import eu.opencloud.android.domain.exceptions.UnhandledHttpCodeException
 import eu.opencloud.android.domain.server.model.ServerInfo
 import eu.opencloud.android.extensions.checkPasscodeEnforced
 import eu.opencloud.android.extensions.goToUrl
@@ -77,6 +78,7 @@ import eu.opencloud.android.extensions.showErrorInToast
 import eu.opencloud.android.extensions.showMessageInSnackbar
 import eu.opencloud.android.lib.common.accounts.AccountTypeUtils
 import eu.opencloud.android.lib.common.accounts.AccountUtils
+import eu.opencloud.android.lib.common.http.HttpConstants
 import eu.opencloud.android.lib.common.network.CertificateCombinedException
 import eu.opencloud.android.presentation.authentication.AccountUtils.getAccounts
 import eu.opencloud.android.presentation.authentication.AccountUtils.getUsernameOfAccount
@@ -122,6 +124,16 @@ private const val KEYCHAIN_NO_PORT = -1
 // PopupMenu item ids for the wizard "Connection…" menu.
 private const val MENU_SET_CERT = 1
 private const val MENU_CLEAR_CERT = 2
+
+// nginx answers a missing or invalid client certificate with 400, or with its own 495/496 when it is
+// configured to surface them. Apache, IIS and Cloudflare answer 403, handled through ForbiddenException.
+private const val HTTP_NGINX_SSL_CERTIFICATE_ERROR = 495
+private const val HTTP_NGINX_SSL_CERTIFICATE_REQUIRED = 496
+private val CLIENT_CERT_REJECTION_HTTP_CODES = setOf(
+    HttpConstants.HTTP_BAD_REQUEST,
+    HTTP_NGINX_SSL_CERTIFICATE_ERROR,
+    HTTP_NGINX_SSL_CERTIFICATE_REQUIRED,
+)
 
 class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrustedCertListener, SecurityEnforced {
 
@@ -692,9 +704,7 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
                 setCompoundDrawablesWithIntrinsicBounds(R.drawable.common_error, 0, 0, 0)
             }
 
-            // A 403 on the status endpoint during login is nearly always a rejected or missing client
-            // certificate (the generic "Permission error" wording is useless here).
-            uiResult.error is ForbiddenException || uiResult.error is SpecificForbiddenException -> binding.serverStatusText.run {
+            isPossibleClientCertRejection(uiResult.error) -> binding.serverStatusText.run {
                 text = getString(R.string.auth_forbidden_check_client_cert)
                 setCompoundDrawablesWithIntrinsicBounds(R.drawable.common_error, 0, 0, 0)
             }
@@ -706,6 +716,17 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
         }
         binding.serverStatusText.isVisible = true
         showOrHideBasicAuthFields(shouldBeVisible = false)
+    }
+
+    /**
+     * A server behind mTLS turns down a request without an accepted client certificate in several ways:
+     * Apache, IIS and Cloudflare answer 403, nginx answers 400 (or 495/496). During login none of these
+     * means anything else in practice, so point at the certificate rather than at a generic HTTP error.
+     */
+    private fun isPossibleClientCertRejection(error: Throwable?): Boolean = when (error) {
+        is ForbiddenException, is SpecificForbiddenException -> true
+        is UnhandledHttpCodeException -> error.httpCode in CLIENT_CERT_REJECTION_HTTP_CODES
+        else -> false
     }
 
     private fun loginIsSuccess(uiResult: UIResult.Success<String>) {
