@@ -21,4 +21,10 @@ package eu.opencloud.android.domain.exceptions
 
 import java.lang.Exception
 
-class UnhandledHttpCodeException : Exception()
+/**
+ * An HTTP status code we have no specific handling for. [httpCode] is 0 when the status is unknown.
+ *
+ * Note: the message is deliberately left null. Throwable.parseError() returns the message verbatim when
+ * there is one, which would show the raw server phrase to the user.
+ */
+class UnhandledHttpCodeException(val httpCode: Int = 0) : Exception()

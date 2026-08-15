@@ -52,6 +52,7 @@ import eu.opencloud.android.domain.exceptions.ServerResponseTimeoutException
 import eu.opencloud.android.domain.exceptions.ServiceUnavailableException
 import eu.opencloud.android.domain.exceptions.SpecificForbiddenException
 import eu.opencloud.android.domain.exceptions.UnauthorizedException
+import eu.opencloud.android.domain.exceptions.UnhandledHttpCodeException
 import eu.opencloud.android.domain.exceptions.validation.FileNameException
 import java.util.Locale
 
@@ -98,6 +99,10 @@ fun Throwable.parseError(
             is ServiceUnavailableException -> resources.getString(R.string.service_unavailable)
             is SpecificForbiddenException -> resources.getString(R.string.uploads_view_upload_status_failed_permission_error)
             is UnauthorizedException -> resources.getString(R.string.auth_unauthorized)
+            // Naming the status beats "unknown error": it is the only clue the user can pass on to an admin.
+            is UnhandledHttpCodeException ->
+                if (httpCode > 0) resources.getString(R.string.error_http_code, httpCode)
+                else resources.getString(R.string.common_error_unknown)
             is NetworkErrorException -> resources.getString(R.string.network_error_message)
             is ResourceLockedException -> resources.getString(R.string.resource_locked_error_message)
             else -> resources.getString(R.string.common_error_unknown)
