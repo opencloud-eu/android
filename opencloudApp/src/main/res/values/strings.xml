@@ -222,6 +222,7 @@
     <string name="common_loading">Loading…</string>
     <string name="common_unknown">unknown</string>
     <string name="common_error_unknown">unknown error</string>
+    <string name="error_http_code">Server returned an unexpected error (HTTP %1$d)</string>
     <string name="common_pending">Pending</string>
     <string name="common_important">Important</string>
     <string name="change_password">Change password</string>

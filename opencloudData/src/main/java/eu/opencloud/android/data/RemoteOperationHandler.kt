@@ -109,7 +109,7 @@ private fun <T> handleRemoteOperationResult(
         RemoteOperationResult.ResultCode.ACCOUNT_NOT_NEW -> throw AccountNotNewException()
         RemoteOperationResult.ResultCode.ACCOUNT_NOT_THE_SAME -> throw AccountNotTheSameException()
         RemoteOperationResult.ResultCode.OK_REDIRECT_TO_NON_SECURE_CONNECTION -> throw RedirectToNonSecureException()
-        RemoteOperationResult.ResultCode.UNHANDLED_HTTP_CODE -> throw UnhandledHttpCodeException()
+        RemoteOperationResult.ResultCode.UNHANDLED_HTTP_CODE -> throw UnhandledHttpCodeException(remoteOperationResult.httpCode)
         RemoteOperationResult.ResultCode.UNKNOWN_ERROR -> throw UnknownErrorException()
         RemoteOperationResult.ResultCode.CANCELLED -> throw CancelledException()
         RemoteOperationResult.ResultCode.INVALID_LOCAL_FILE_NAME -> throw InvalidLocalFileNameException()
