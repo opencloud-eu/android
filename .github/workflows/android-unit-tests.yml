@@ -31,11 +31,15 @@ jobs:
       - name: Generate coverage report
         run: ./gradlew jacocoAggregatedCoverageVerification
 
-      - name: Upload coverage report
+      - name: Upload reports
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: jacoco-coverage-report
+          name: reports
           path: |
-            build/reports/jacoco/jacocoAggregatedReport
-            build/reports/jacoco/jacocoAggregatedCoverageVerification
+            build/reports
+            opencloudApp/build/reports
+            opencloudComLibrary/build/reports
+            opencloudData/build/reports
+            opencloudDomain/build/reports
+            opencloudTestUtil/build/reports
