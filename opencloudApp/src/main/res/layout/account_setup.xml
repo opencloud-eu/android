@@ -161,6 +161,7 @@
                             android:layout_gravity="bottom"
                             android:drawablePadding="5dp"
                             android:hint="@string/auth_host_url"
+                            android:imeOptions="actionGo"
                             android:inputType="textUri"
                             android:paddingEnd="55dp"
                             android:theme="@style/Theme.openCloud.Authenticator.EditText">
