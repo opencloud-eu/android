@@ -335,14 +335,19 @@ class ExportFilesToDeviceWorker(
         // legitimately empty one.
         val children = try {
             listFolderContentFromServer(ocFolder)
-        } catch (throwable: Throwable) {
+        } catch (retryable: RetryableExportException) {
             if (isStopped) {
                 // The export was interrupted, not the listing. Counting it as failed would carry
                 // that over into the run that exports this folder again.
                 Timber.w("Listing ${ocFolder.remotePath} was interrupted, the folder is exported again")
                 return
             }
-            if (throwable is RetryableExportException) throw throwable
+            throw retryable
+        } catch (throwable: Throwable) {
+            if (isStopped) {
+                Timber.w("Listing ${ocFolder.remotePath} was interrupted, the folder is exported again")
+                return
+            }
             // Do not export a folder as if it were empty when its content could not be listed.
             Timber.e(throwable, "Could not list the content of ${ocFolder.remotePath}")
             failedCount++
@@ -368,9 +373,8 @@ class ExportFilesToDeviceWorker(
      * reconciling Room or deleting anything from local storage. Lookup failures are thrown so that
      * the folder is reported as failed instead of exported as an empty one.
      */
-    private fun listFolderContentFromServer(ocFolder: OCFile): List<OCFile> {
-        return listRemoteFolder(ocFolder.remotePath, ocFolder.spaceId).map(::localStateFor)
-    }
+    private fun listFolderContentFromServer(ocFolder: OCFile): List<OCFile> =
+        listRemoteFolder(ocFolder.remotePath, ocFolder.spaceId).map(::localStateFor)
 
     private fun exportSingleFile(ocFile: OCFile, parent: DocumentFile) {
         var downloadToDiscard: File? = null
@@ -393,13 +397,17 @@ class ExportFilesToDeviceWorker(
                 replacePreviousExport(parent, previousExport, mimeType, ocFile.fileName, content.path)
             }
             exportedCount++
-        } catch (throwable: Throwable) {
+        } catch (retryable: RetryableExportException) {
             if (isStopped) {
                 // Everything this run left half done is exported again, so it must not be counted
                 // as a file that could not be exported.
                 Timber.w("Export of ${ocFile.remotePath} was interrupted, it is exported again")
-            } else if (throwable is RetryableExportException) {
-                throw throwable
+            } else {
+                throw retryable
+            }
+        } catch (throwable: Throwable) {
+            if (isStopped) {
+                Timber.w("Export of ${ocFile.remotePath} was interrupted, it is exported again")
             } else {
                 Timber.e(throwable, "Export failed for ${ocFile.remotePath}")
                 failedCount++
@@ -584,7 +592,8 @@ class ExportFilesToDeviceWorker(
      */
     private fun obtainCurrentContent(ocFile: OCFile): ContentToExport {
         val currentPath = ocFile.storagePath?.takeUnless { it.isBlank() }
-        if (ocFile.isAvailableLocally && currentPath != null && File(currentPath).exists() &&
+        // [mayReuseLocalCopy] is what checks that the local copy is actually there and usable.
+        if (ocFile.isAvailableLocally && currentPath != null &&
             !ocFile.etag.isNullOrBlank() && ocFile.etag == ocFile.remoteEtag &&
             mayReuseLocalCopy(ocFile, currentPath)
         ) {
@@ -612,10 +621,10 @@ class ExportFilesToDeviceWorker(
     }
 
     /**
-     * Whether the existing local content may be used as the export source. It may not when
-     * the file is in conflict, or when the local copy was modified after the last synchronization
-     * of its content, which is how SynchronizeFileUseCase detects a local change: those changes
-     * only exist on this device and are still waiting to be uploaded.
+     * Whether the existing local content may be used as the export source. It may not when the
+     * file is not on disk at all, when the file is in conflict, or when the local copy was modified
+     * after the last synchronization of its content, which is how SynchronizeFileUseCase detects a
+     * local change: those changes only exist on this device and are still waiting to be uploaded.
      */
     private fun mayReuseLocalCopy(ocFile: OCFile, currentPath: String): Boolean {
         if (!File(currentPath).exists()) return false

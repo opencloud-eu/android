@@ -50,6 +50,10 @@ class OCLocalExportJobDataSource(
     }
 
     companion object {
+        private val completedItemKeysType: Type = Types.newParameterizedType(List::class.java, String::class.java)
+        private val completedItemKeysAdapter: JsonAdapter<List<String>> =
+            Moshi.Builder().build().adapter(completedItemKeysType)
+
         @VisibleForTesting
         fun ExportJobEntity.toModel() = OCExportJob(
             accountName = accountName,
@@ -72,9 +76,5 @@ class OCLocalExportJobDataSource(
             failedCount = failedCount,
             completedItemKeys = completedItemKeysAdapter.toJson(completedItemKeys.toList()),
         ).apply { this@toEntity.id?.let { this.id = it } }
-
-        private val completedItemKeysType: Type = Types.newParameterizedType(List::class.java, String::class.java)
-        private val completedItemKeysAdapter: JsonAdapter<List<String>> =
-            Moshi.Builder().build().adapter(completedItemKeysType)
     }
 }
