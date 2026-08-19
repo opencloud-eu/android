@@ -39,9 +39,11 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.security.KeyChain
+import android.view.KeyEvent
 import android.view.View
 import android.view.View.INVISIBLE
 import android.view.WindowManager.LayoutParams.FLAG_SECURE
+import android.view.inputmethod.EditorInfo
 import android.widget.PopupMenu
 import androidx.appcompat.app.AppCompatActivity
 import androidx.browser.customtabs.CustomTabsIntent
@@ -273,6 +275,8 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
         binding.thumbnail.setOnClickListener { checkOcServer() }
 
         binding.embeddedCheckServerButton.setOnClickListener { checkOcServer() }
+
+        setupHostUrlEnterAction()
 
         binding.connectionOptionsButton.setOnClickListener { showConnectionMenu(it) }
 
@@ -532,6 +536,23 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
             }
         }
         binding.webfingerStatusText.isVisible = true
+    }
+
+    // ENTER (hardware key) and the soft-keyboard action (Go / Done checkmark) run the ">" check.
+    private fun setupHostUrlEnterAction() {
+        binding.hostUrlInput.setOnEditorActionListener { _, actionId, event ->
+            val imeActionTriggered = actionId == EditorInfo.IME_ACTION_GO ||
+                    actionId == EditorInfo.IME_ACTION_DONE ||
+                    actionId == EditorInfo.IME_ACTION_SEND
+            val hardwareEnterPressed =
+                event?.keyCode == KeyEvent.KEYCODE_ENTER && event.action == KeyEvent.ACTION_DOWN
+            if (imeActionTriggered || hardwareEnterPressed) {
+                checkOcServer()
+                true
+            } else {
+                false
+            }
+        }
     }
 
     private fun checkOcServer() {
