@@ -58,18 +58,10 @@ class FilterFileMenuOptionsUseCase(
         }
         val isAnyFileVideoPreviewing = params.isAnyFileVideoPreviewing
         val isAnyFileVideoStreaming = isAnyFileVideoPreviewing && !anyFileDownloaded(files)
-        val hasRenamePermission: Boolean = if (isSingleSelection(files)) {
-            files.first().hasRenamePermission
-        } else {
-            false
-        }
+        val hasRenamePermission = isSingleSelection(files) && files.first().hasRenamePermission
         val hasMovePermission = files.all { it.hasMovePermission }
         val hasRemovePermission = files.all { it.hasDeletePermission }
-        val hasResharePermission: Boolean = if (isSingleSelection(files)) {
-            files.first().hasResharePermission
-        } else {
-            false
-        }
+        val hasResharePermission = isSingleSelection(files) && files.first().hasResharePermission
         val isPersonalSpace = space?.isPersonal ?: true
         val resharingAllowed = capability?.let { !anyFileSharedWithMe(files) || it.filesSharingResharing.isTrue } ?: false
         val displaySelectAll = params.displaySelectAll

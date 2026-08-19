@@ -62,15 +62,16 @@ class ExportFilesToDeviceUseCase(
      * Removes a selection whose picker was cancelled. A job that already has a target URI belongs
      * to WorkManager and is deliberately left alone.
      */
-    fun discardPendingExport(exportJobId: Long): Unit = synchronized(ENQUEUE_LOCK) {
-        exportJobRepository.getExportJobById(exportJobId)
-            ?.takeIf { it.targetFolderTreeUri.isBlank() }
-            ?.let { exportJobRepository.deleteExportJobById(exportJobId) }
-        Unit
+    fun discardPendingExport(exportJobId: Long) {
+        synchronized(ENQUEUE_LOCK) {
+            exportJobRepository.getExportJobById(exportJobId)
+                ?.takeIf { it.targetFolderTreeUri.isBlank() }
+                ?.let { exportJobRepository.deleteExportJobById(exportJobId) }
+        }
     }
 
     // Collecting jobs without work and attaching work to the prepared job must not interleave.
-    override fun run(params: Params): Unit = synchronized(ENQUEUE_LOCK) { enqueueExport(params) }
+    override fun run(params: Params) = synchronized(ENQUEUE_LOCK) { enqueueExport(params) }
 
     private fun enqueueExport(params: Params) {
         if (params.targetFolderTreeUri.isBlank()) return
