@@ -429,7 +429,7 @@ class MainFileListFragment : Fragment(),
 
         showOrHideFab(requireArguments().getParcelable(ARG_FILE_LIST_OPTION)!!, requireArguments().getParcelable(ARG_INITIAL_FOLDER_TO_DISPLAY)!!)
 
-        setFabMainContentDescription()
+        setFabMainContentDescription(false)
 
         setTextHintRootToolbar()
     }
@@ -1008,6 +1008,7 @@ class MainFileListFragment : Fragment(),
                 (newFileListOption.isSharedByLink() && currentFolder.remotePath != ROOT_PATH)
         if (!isFabSupportedView || isPickingAFolder() ||
             (!currentFolder.hasAddFilePermission && !currentFolder.hasAddSubdirectoriesPermission)) {
+            collapseFab()
             toggleFabVisibility(false)
         } else {
             toggleFabVisibility(true)
@@ -1057,12 +1058,7 @@ class MainFileListFragment : Fragment(),
                 fabMkdir.isFocusable = isFabExpanded()
                 fabNewfile.isFocusable = isFabExpanded()
                 fabNewshortcut.isFocusable = isFabExpanded()
-                if (fabMain.isExpanded) {
-                    binding.fabMain.findViewById<AddFloatingActionButton>(com.getbase.floatingactionbutton.R.id.fab_expand_menu_button)
-                        .contentDescription = getString(R.string.content_description_add_new_content_expanded)
-                } else {
-                    setFabMainContentDescription()
-                }
+                setFabMainContentDescription(fabMain.isExpanded)
             }
         }
     }
@@ -1120,6 +1116,7 @@ class MainFileListFragment : Fragment(),
     }
 
     fun collapseFab() {
+        val binding = _binding ?: return
         binding.apply {
             fabMain.collapse()
             fabUpload.isFocusable = false
@@ -1128,14 +1125,19 @@ class MainFileListFragment : Fragment(),
             fabNewfile.isFocusable = false
             fabNewshortcut.isFocusable = false
         }
-
+        setFabMainContentDescription(false)
     }
 
-    fun isFabExpanded() = binding.fabMain.isExpanded
+    fun isFabExpanded(): Boolean {
+        val binding = _binding ?: return false
+        return binding.fabMain.isVisible && binding.fabMain.isExpanded
+    }
 
-    fun setFabMainContentDescription() {
-        binding.fabMain.findViewById<AddFloatingActionButton>(com.getbase.floatingactionbutton.R.id.fab_expand_menu_button).contentDescription =
-            getString(R.string.content_description_add_new_content)
+    fun setFabMainContentDescription(expanded: Boolean) {
+        val resId = if (expanded) { R.string.content_description_add_new_content_expanded } else { R.string.content_description_add_new_content }
+        binding.fabMain.findViewById<AddFloatingActionButton>(
+            com.getbase.floatingactionbutton.R.id.fab_expand_menu_button
+        ).contentDescription = getString(resId)
     }
 
     private fun openBottomSheetToUploadFiles() {
