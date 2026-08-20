@@ -259,6 +259,7 @@ class OCLocalFileDataSource(
                 etagInConflict = etagInConflict,
                 treeEtag = treeEtag,
                 spaceId = spaceId,
+                hasPreview = hasPreview,
             )
 
         @VisibleForTesting
@@ -289,6 +290,7 @@ class OCLocalFileDataSource(
                 treeEtag = treeEtag,
                 name = fileName,
                 spaceId = spaceId,
+                hasPreview = hasPreview,
             ).apply { this@toEntity.id?.let { modelId -> this.id = modelId } }
     }
 }
