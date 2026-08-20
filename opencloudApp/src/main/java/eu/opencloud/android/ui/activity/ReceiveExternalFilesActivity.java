@@ -55,6 +55,7 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
@@ -187,6 +188,13 @@ public class ReceiveExternalFilesActivity extends FileActivity
 
     private ReceiveExternalFilesViewModel mReceiveExternalFilesViewModel;
 
+    private final OnBackPressedCallback onBackPressedCallback = new OnBackPressedCallback(true) {
+        @Override
+        public void handleOnBackPressed() {
+            handleOnBackPressedInternal();
+        }
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         prepareStreamsToUpload(); //streams need to be prepared before super.onCreate() is called
@@ -210,6 +218,8 @@ public class ReceiveExternalFilesActivity extends FileActivity
         if (mAccountSelected) {
             setAccount(savedInstanceState.getParcelable(FileActivity.EXTRA_ACCOUNT));
         }
+
+        getOnBackPressedDispatcher().addCallback(this, onBackPressedCallback);
 
         // edge-to-edge
         ActivityEdgeToEdgeUtilsKt.enableEdgeToEdgePreSetContentView(this, false);
@@ -458,10 +468,9 @@ public class ReceiveExternalFilesActivity extends FileActivity
         }
     }
 
-    @Override
-    public void onBackPressed() {
+    private void handleOnBackPressedInternal() {
         if (mParents.size() <= 1) {
-            super.onBackPressed();
+            finish();
         } else {
             mParents.pop();
             String full_path = generatePath(mParents);
@@ -787,7 +796,7 @@ public class ReceiveExternalFilesActivity extends FileActivity
         switch (item.getItemId()) {
             case android.R.id.home:
                 if ((mParents.size() > 1)) {
-                    onBackPressed();
+                    getOnBackPressedDispatcher().onBackPressed();
                 } else {
                     mFile = null;
                     initAndShowListOfSpaces();

@@ -120,7 +120,7 @@ class PreviewTextFragment : FileFragment() {
                 file = currentFile
                 requireActivity().invalidateOptionsMenu()
             } else {
-                requireActivity().onBackPressed()
+                requireActivity().onBackPressedDispatcher.onBackPressed()
             }
 
         }
@@ -272,7 +272,7 @@ class PreviewTextFragment : FileFragment() {
     }
 
     private fun finish() {
-        requireActivity().onBackPressed()
+        requireActivity().onBackPressedDispatcher.onBackPressed()
     }
 
     private inner class TextLoadAsyncTask(
