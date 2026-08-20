@@ -50,6 +50,7 @@ import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
@@ -202,6 +203,17 @@ class FileDisplayActivity : FileActivity(),
     private var isLightUser = false
     private var isMultiPersonal = false
 
+    private val onBackPressedCallback = object : OnBackPressedCallback(true) {
+        override fun handleOnBackPressed() {
+            handleBackPressedInternal()
+        }
+    }
+
+    private fun addOnBackPressedCallback() {
+        onBackPressedCallback.remove()
+        onBackPressedDispatcher.addCallback(this, onBackPressedCallback)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         Timber.v("onCreate() start")
 
@@ -306,6 +318,8 @@ class FileDisplayActivity : FileActivity(),
                 bottomMargin = insets.bottom
             }
         }
+
+        addOnBackPressedCallback()
 
         Timber.v("onCreate() end")
     }
@@ -536,6 +550,7 @@ class FileDisplayActivity : FileActivity(),
         transaction.replace(R.id.right_fragment_container, fragment, TAG_SECOND_FRAGMENT)
         transaction.commitNow()
         updateFragmentsVisibility(true)
+        mainFileListFragment?.collapseFab()
     }
 
     private fun showBottomNavBar(show: Boolean) {
@@ -747,7 +762,12 @@ class FileDisplayActivity : FileActivity(),
         fileOperationsViewModel.performOperation(copyOperation)
     }
 
+    // This might not be directly called on some devices, see also onBackPressedCallback.
     override fun onBackPressed() {
+        handleBackPressedInternal()
+    }
+
+    private fun handleBackPressedInternal() {
         val isFabOpen = mainFileListFragment?.isFabExpanded() ?: false
 
         /*
@@ -765,7 +785,6 @@ class FileDisplayActivity : FileActivity(),
         } else if (!isDrawerOpen() && isFabOpen) {
             // close fab
             mainFileListFragment?.collapseFab()
-            mainFileListFragment?.setFabMainContentDescription()
         } else {
             // Every single menu is collapsed. We can navigate up.
             if (secondFragment != null) {
@@ -781,7 +800,7 @@ class FileDisplayActivity : FileActivity(),
                 val currentDirDisplayed = mainFileListFragment?.getCurrentFile()
                 // If current file is null (we are in the spaces list, for example), close the app
                 if (currentDirDisplayed == null) {
-                    finish()
+                    moveTaskToBack(true)
                     return
                 }
                 // If current file is root folder
@@ -793,7 +812,7 @@ class FileDisplayActivity : FileActivity(),
                     }
                     // If current space is not a project space (personal or shares) or it is null ("Files" in oC10), close the app
                     else {
-                        finish()
+                        moveTaskToBack(true)
                         return
                     }
                 } else {
