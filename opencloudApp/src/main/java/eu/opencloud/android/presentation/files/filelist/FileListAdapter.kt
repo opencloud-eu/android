@@ -278,7 +278,7 @@ class FileListAdapter(
                 // Set file icon depending on its mimetype. Ask for thumbnail later.
                 fileIcon.setImageResource(MimetypeIconUtil.getFileTypeIconId(file.mimeType, file.fileName))
 
-                if (file.isImage) {
+                if (file.hasPreview || file.isImage) {
                     account?.let { acc ->
                         fileIcon.load(ThumbnailsRequester.getPreviewUriForFile(fileWithSyncInfo, acc),
                             ThumbnailsRequester.getContentAddressedImageLoader(acc)) {
