@@ -126,7 +126,7 @@ class PreviewAudioFragment : FileFragment() {
                 file = currentFile
                 requireActivity().invalidateOptionsMenu()
             } else {
-                requireActivity().onBackPressed()
+                requireActivity().onBackPressedDispatcher.onBackPressed()
             }
 
         }
@@ -423,7 +423,7 @@ class PreviewAudioFragment : FileFragment() {
      * Finishes the preview
      */
     private fun finish() {
-        activity?.onBackPressed()
+        activity?.onBackPressedDispatcher?.onBackPressed()
     }
 
     companion object {

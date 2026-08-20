@@ -139,11 +139,6 @@ public class WhatsNewActivity extends AppCompatActivity implements ViewPager.OnP
         editor.apply();
     }
 
-    @Override
-    public void onBackPressed() {
-        super.onBackPressed();
-    }
-
     private void updateNextButtonIfNeeded() {
         if (!mProgress.hasNextStep()) {
             mForwardFinishButton.setImageResource(R.drawable.ic_done_white);
