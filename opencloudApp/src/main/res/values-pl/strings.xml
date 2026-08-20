@@ -57,6 +57,8 @@
     <string name="prefs_lock_application_entries_30minutes">Po 30 minutach</string>
     <string name="prefs_lock_access_from_document_provider">Zablokuj dostęp dostawcy dokumentów</string>
     <string name="prefs_lock_access_from_document_provider_summary">Wymagaj kodu PIN</string>
+    <string name="prefs_pretend_local_title">Symuluj pamięć lokalną</string>
+    <string name="prefs_pretend_local_summary">Pozwala aplikacjom innych firm widzieć OpenCloud, gdy ściśle wymagają plików lokalnych. Omija to standardowe ograniczenia Androida, ale może powodować zawieszanie się interfejsu w niektórych aplikacjach, jeśli połączenie sieciowe jest powolne.</string>
     <string name="prefs_touches_with_other_visible_windows">Zezwalaj na dotyk przy innych widocznych oknach</string>
     <string name="prefs_touches_with_other_visible_windows_summary">Zezwalaj na interakcję przy nakładających się oknach</string>
     <string name="confirmation_touches_with_other_windows_title">Czy na pewno chcesz aktywować tę funkcję\?</string>

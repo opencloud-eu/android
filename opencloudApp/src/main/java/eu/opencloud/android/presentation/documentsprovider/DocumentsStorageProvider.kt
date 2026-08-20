@@ -61,6 +61,7 @@ import eu.opencloud.android.presentation.documentsprovider.cursors.FileCursor
 import eu.opencloud.android.presentation.documentsprovider.cursors.RootCursor
 import eu.opencloud.android.presentation.documentsprovider.cursors.SpaceCursor
 import eu.opencloud.android.presentation.settings.security.SettingsSecurityFragment.Companion.PREFERENCE_LOCK_ACCESS_FROM_DOCUMENT_PROVIDER
+import eu.opencloud.android.presentation.settings.advanced.SettingsAdvancedFragment.Companion.PREFERENCE_PRETEND_LOCAL_STORAGE
 import eu.opencloud.android.usecases.synchronization.SynchronizeFileUseCase
 import eu.opencloud.android.usecases.transfers.downloads.DownloadFileUseCase
 import eu.opencloud.android.usecases.synchronization.SynchronizeFolderUseCase
@@ -94,6 +95,7 @@ class DocumentsStorageProvider : DocumentsProvider() {
     private var spacesSyncRequired = true
 
     private lateinit var fileToUpload: OCFile
+    private val pendingUploads = ConcurrentHashMap<String, OCFile>()
 
     // Cache to avoid redundant PROPFINDs when apps (e.g. Google Photos) call
     // openDocument many times for the same file. Two layers:
@@ -115,7 +117,7 @@ class DocumentsStorageProvider : DocumentsProvider() {
 
         // If documentId == NONEXISTENT_DOCUMENT_ID only Upload is needed because file does not exist in our database yet.
         var ocFile: OCFile
-        val uploadOnly: Boolean = documentId == NONEXISTENT_DOCUMENT_ID || documentId == "null"
+        val uploadOnly: Boolean = documentId == NONEXISTENT_DOCUMENT_ID || documentId == "null" || documentId.startsWith("pending_")
 
         var accessMode: Int = ParcelFileDescriptor.parseMode(mode)
         val isWrite: Boolean = mode.contains("w")
@@ -197,7 +199,7 @@ class DocumentsStorageProvider : DocumentsProvider() {
                 }
             }
         } else {
-            ocFile = fileToUpload
+            ocFile = pendingUploads[documentId] ?: fileToUpload
             accessMode = accessMode or ParcelFileDescriptor.MODE_CREATE
         }
 
@@ -214,6 +216,8 @@ class DocumentsStorageProvider : DocumentsProvider() {
                     Timber.d("A file with id $documentId has been closed! Time to synchronize it with server.")
                     // If only needs to upload that file
                     if (uploadOnly) {
+                        pendingUploads.remove(documentId)
+
                         ocFile.length = fileToOpen.length()
                         val uploadFilesUseCase: UploadFilesFromSystemUseCase by inject()
                         val uploadFilesUseCaseParams = UploadFilesFromSystemUseCase.Params(
@@ -318,7 +322,13 @@ class DocumentsStorageProvider : DocumentsProvider() {
     override fun queryDocument(documentId: String, projection: Array<String>?): Cursor {
         Timber.d("Query Document: $documentId")
         if (documentId == NONEXISTENT_DOCUMENT_ID) return FileCursor(projection).apply {
-            addFile(fileToUpload)
+            if (this@DocumentsStorageProvider::fileToUpload.isInitialized) addFile(fileToUpload)
+        }
+
+        if (documentId.startsWith("pending_")) {
+            return FileCursor(projection).apply {
+                pendingUploads[documentId]?.let { addFile(it) }
+            }
         }
 
         val fileId = try {
@@ -350,6 +360,10 @@ class DocumentsStorageProvider : DocumentsProvider() {
         // If access from document provider is not allowed, return empty cursor
         val preferences: SharedPreferencesProvider by inject()
         val lockAccessFromDocumentProvider = preferences.getBoolean(PREFERENCE_LOCK_ACCESS_FROM_DOCUMENT_PROVIDER, false)
+
+        // Get if user selected to pretend local storage
+        val pretendLocal = preferences.getBoolean(PREFERENCE_PRETEND_LOCAL_STORAGE, false)
+
         return if (lockAccessFromDocumentProvider && accounts.isNotEmpty()) {
             result.apply { addProtectedRoot(contextApp) }
         } else {
@@ -362,7 +376,7 @@ class DocumentsStorageProvider : DocumentsProvider() {
                 )
                 val spacesFeatureAllowedForAccount = AccountUtils.isSpacesFeatureAllowedForAccount(contextApp, account, capabilities)
 
-                result.addRoot(account, contextApp, spacesFeatureAllowedForAccount)
+                result.addRoot(account, contextApp, spacesFeatureAllowedForAccount, pretendLocal)
             }
             result
         }
@@ -497,6 +511,41 @@ class DocumentsStorageProvider : DocumentsProvider() {
         }
     }
 
+    override fun isChildDocument(parentDocumentId: String, documentId: String): Boolean {
+        Timber.d("isChildDocument($parentDocumentId, $documentId)")
+
+        // If they are the same, Android specs usually consider it a child/match
+        if (parentDocumentId == documentId) return true
+
+        return try {
+            // Parse the child file. If it's a new un-uploaded file, pull from memory. Otherwise, query DB.
+            val childFile = if (documentId == NONEXISTENT_DOCUMENT_ID && this::fileToUpload.isInitialized) {
+                fileToUpload
+            } else if (documentId.startsWith("pending_")) {
+                pendingUploads[documentId] ?: return false
+            } else {
+                getFileByIdOrException(documentId.toInt())
+            }
+
+            val parentIdInt = parentDocumentId.toIntOrNull()
+
+            if (parentIdInt != null) {
+                // The parent is a standard folder
+                val parentFile = getFileByIdOrException(parentIdInt)
+
+                // Check if the child belongs to the same account and its path sits inside the parent's path
+                childFile.owner == parentFile.owner && childFile.remotePath.startsWith(parentFile.remotePath)
+            } else {
+                // The parentDocumentId is a string, meaning it's the account root (e.g., "user@server.com")
+                // Just verify the child file belongs to this account
+                childFile.owner == parentDocumentId
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "Error evaluating isChildDocument for parent: $parentDocumentId, child: $documentId")
+            false
+        }
+    }
+
     private fun checkUseCaseResult(result: UseCaseResult<Any>, folderToNotify: String) {
         if (!result.isSuccess) {
             Timber.e(result.getThrowableOrNull()!!)
@@ -530,12 +579,13 @@ class DocumentsStorageProvider : DocumentsProvider() {
         mimeType: String,
         displayName: String,
     ): String {
-        // We just need to return a Document ID, so we'll return an empty one. File does not exist in our db yet.
-        // File will be created at [openDocument] method.
         val tempDir = File(FileStorageUtils.getTemporalPath(parentDocument.owner, parentDocument.spaceId))
         val newFile = File(tempDir, displayName)
         newFile.parentFile?.mkdirs()
-        fileToUpload = OCFile(
+
+        val pendingId = "pending_" + UUID.randomUUID().toString()
+
+        val ocFile = OCFile(
             remotePath = parentDocument.remotePath + displayName,
             mimeType = mimeType,
             parentId = parentDocument.id,
@@ -545,7 +595,9 @@ class DocumentsStorageProvider : DocumentsProvider() {
             storagePath = newFile.path
         }
 
-        return NONEXISTENT_DOCUMENT_ID
+        pendingUploads[pendingId] = ocFile
+
+        return pendingId
     }
 
     /**
