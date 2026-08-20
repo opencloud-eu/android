@@ -38,6 +38,7 @@ fun FileMenuOption.toResId() =
         FileMenuOption.SHARE -> R.id.action_share_file
         FileMenuOption.DETAILS -> R.id.action_see_details
         FileMenuOption.SEND -> R.id.action_send_file
+        FileMenuOption.EXPORT -> R.id.action_export_file
         FileMenuOption.SET_AV_OFFLINE -> R.id.action_set_available_offline
         FileMenuOption.UNSET_AV_OFFLINE -> R.id.action_unset_available_offline
     }
@@ -57,6 +58,7 @@ fun FileMenuOption.toStringResId() =
         FileMenuOption.SHARE -> R.string.action_share
         FileMenuOption.DETAILS -> R.string.actionbar_see_details
         FileMenuOption.SEND -> R.string.actionbar_send_file
+        FileMenuOption.EXPORT -> R.string.actionbar_export_file
         FileMenuOption.SET_AV_OFFLINE -> R.string.set_available_offline
         FileMenuOption.UNSET_AV_OFFLINE -> R.string.unset_available_offline
     }
@@ -76,6 +78,7 @@ fun FileMenuOption.toDrawableResId() =
         FileMenuOption.SHARE -> R.drawable.ic_share_generic_white
         FileMenuOption.DETAILS -> R.drawable.ic_info_white
         FileMenuOption.SEND -> R.drawable.ic_send_white
+        FileMenuOption.EXPORT -> R.drawable.ic_action_save_to_device
         FileMenuOption.SET_AV_OFFLINE -> R.drawable.ic_action_set_available_offline
         FileMenuOption.UNSET_AV_OFFLINE -> R.drawable.ic_action_unset_available_offline
     }

@@ -55,9 +55,12 @@ import eu.opencloud.android.presentation.files.SortType.Companion.PREF_FILE_LIST
 import eu.opencloud.android.presentation.settings.advanced.SettingsAdvancedFragment.Companion.PREF_SHOW_HIDDEN_FILES
 import eu.opencloud.android.providers.ContextProvider
 import eu.opencloud.android.providers.CoroutinesDispatcherProvider
+import eu.opencloud.android.usecases.files.ExportFilesToDeviceUseCase
 import eu.opencloud.android.usecases.files.FilterFileMenuOptionsUseCase
 import eu.opencloud.android.usecases.synchronization.SynchronizeFolderUseCase
 import eu.opencloud.android.usecases.synchronization.SynchronizeFolderUseCase.SyncFolderMode.SYNC_CONTENTS
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -72,6 +75,9 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import timber.log.Timber
+import kotlin.coroutines.cancellation.CancellationException
 import eu.opencloud.android.domain.files.usecases.SortType.Companion as SortTypeDomain
 
 class MainFileListViewModel(
@@ -90,6 +96,7 @@ class MainFileListViewModel(
     private val contextProvider: ContextProvider,
     private val coroutinesDispatcherProvider: CoroutinesDispatcherProvider,
     private val sharedPreferencesProvider: SharedPreferencesProvider,
+    private val exportFilesToDeviceUseCase: ExportFilesToDeviceUseCase,
     initialFolderToDisplay: OCFile,
     fileListOptionParam: FileListOption,
 ) : ViewModel() {
@@ -324,6 +331,8 @@ class MainFileListViewModel(
                     shareViaLinkAllowed = shareViaLinkAllowed,
                     shareWithUsersAllowed = shareWithUsersAllowed,
                     sendAllowed = sendAllowed,
+                    // The file list is the only screen that handles the export action.
+                    exportAllowed = true,
                 )
             )
             if (isMultiselection) {
@@ -331,6 +340,60 @@ class MainFileListViewModel(
             } else {
                 _menuOptionsSingleFile.emit(result)
             }
+        }
+    }
+
+    /**
+     * Persists the selection before the external folder picker is launched. If the view disappears
+     * while the database write is running, the result cannot be handed to the picker anymore, so
+     * the newly created job is removed before cancellation is propagated.
+     */
+    suspend fun prepareExportToDevice(fileIds: List<Long>, accountName: String): Long? {
+        var preparedJobId: Long? = null
+        return try {
+            withContext(coroutinesDispatcherProvider.io) {
+                try {
+                    exportFilesToDeviceUseCase.prepareExport(accountName, fileIds)
+                        .also { preparedJobId = it }
+                } catch (cancellation: CancellationException) {
+                    throw cancellation
+                } catch (throwable: Throwable) {
+                    Timber.e(throwable, "Could not persist the pending export selection")
+                    null
+                }
+            }
+        } catch (cancellation: CancellationException) {
+            preparedJobId?.let { exportJobId ->
+                try {
+                    withContext(NonCancellable + coroutinesDispatcherProvider.io) {
+                        exportFilesToDeviceUseCase.discardPendingExport(exportJobId)
+                    }
+                } catch (throwable: Throwable) {
+                    Timber.e(throwable, "Could not discard the cancelled pending export $exportJobId")
+                }
+            }
+            throw cancellation
+        }
+    }
+
+    /**
+     * Attaches the selected folder and enqueues the prepared export. This deliberately outlives
+     * the ViewModel: the picker can return while its Activity is already finishing.
+     */
+    fun exportFilesToDevice(exportJobId: Long, targetFolderTreeUri: String) {
+        CoroutineScope(coroutinesDispatcherProvider.io).launch {
+            exportFilesToDeviceUseCase(
+                ExportFilesToDeviceUseCase.Params(
+                    exportJobId = exportJobId,
+                    targetFolderTreeUri = targetFolderTreeUri,
+                )
+            )
+        }
+    }
+
+    fun discardPendingExport(exportJobId: Long) {
+        CoroutineScope(coroutinesDispatcherProvider.io).launch {
+            exportFilesToDeviceUseCase.discardPendingExport(exportJobId)
         }
     }
 

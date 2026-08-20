@@ -43,6 +43,7 @@ import android.view.WindowManager
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.ActionMode
@@ -54,6 +55,7 @@ import androidx.core.view.isVisible
 import androidx.core.widget.doOnTextChanged
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import coil.load
@@ -123,6 +125,7 @@ import eu.opencloud.android.utils.DisplayUtils
 import eu.opencloud.android.utils.MimetypeIconUtil
 import eu.opencloud.android.utils.PreferenceUtils
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okio.Path.Companion.toPath
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
@@ -184,6 +187,37 @@ class MainFileListFragment : Fragment(),
 
     private var menu: Menu? = null
     private var checkedFiles: List<OCFile> = emptyList()
+
+    // The unbounded selection itself lives in Room before the external picker is opened. Only its
+    // fixed-size job id is kept in Fragment state while the picker outlives this process.
+    private var pendingExportJobId: Long? = null
+    private var isPreparingExport = false
+
+    private val exportToDeviceFolderLauncher =
+        registerForActivityResult(ActivityResultContracts.OpenDocumentTree()) { treeUri ->
+            val exportJobId = pendingExportJobId
+            clearPendingExport()
+            if (exportJobId != null) {
+                if (treeUri == null) {
+                    mainFileListViewModel.discardPendingExport(exportJobId)
+                } else {
+                    val permissionTaken = runCatching {
+                        requireContext().contentResolver.takePersistableUriPermission(
+                            treeUri,
+                            Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                        )
+                    }.onFailure {
+                        Timber.e(it, "Could not retain access to the selected export folder")
+                    }.isSuccess
+
+                    if (permissionTaken) {
+                        mainFileListViewModel.exportFilesToDevice(exportJobId, treeUri.toString())
+                    } else {
+                        mainFileListViewModel.discardPendingExport(exportJobId)
+                    }
+                }
+            }
+        }
     private var filesToRemove: List<OCFile> = emptyList()
     private var fileSingleFile: OCFile? = null
     private var fileOptionsBottomSheetSingleFileLayout: LinearLayout? = null
@@ -317,6 +351,24 @@ class MainFileListFragment : Fragment(),
         }
     }
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        savedInstanceState?.let { savedState ->
+            pendingExportJobId = if (savedState.containsKey(KEY_PENDING_EXPORT_JOB_ID)) {
+                savedState.getLong(KEY_PENDING_EXPORT_JOB_ID)
+            } else {
+                null
+            }
+        }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        // The SAF folder picker is another app, this fragment may be recreated while it is shown.
+        pendingExportJobId?.let { outState.putLong(KEY_PENDING_EXPORT_JOB_ID, it) }
+            ?: outState.remove(KEY_PENDING_EXPORT_JOB_ID)
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -343,6 +395,42 @@ class MainFileListFragment : Fragment(),
                 )
             )
         }
+    }
+
+    /**
+     * Persists what has to be exported and only then asks the user for the destination folder.
+     * The selection is consumed once the picker returns, see [exportToDeviceFolderLauncher].
+     */
+    private fun startExportToDeviceFolder(files: List<OCFile>) {
+        val accountName = files.firstOrNull()?.owner
+        val fileIds = files.mapNotNull { it.id }
+        if (accountName == null || fileIds.isEmpty()) {
+            Timber.e("Nothing that could be exported was selected")
+            return
+        }
+        if (pendingExportJobId != null || isPreparingExport) {
+            Timber.w("An export selection is already waiting for a device folder")
+            return
+        }
+
+        isPreparingExport = true
+        viewLifecycleOwner.lifecycleScope.launch {
+            val exportJobId = try {
+                mainFileListViewModel.prepareExportToDevice(fileIds, accountName)
+            } finally {
+                isPreparingExport = false
+            }
+            if (exportJobId == null) {
+                Timber.e("The export selection could not be persisted")
+            } else {
+                pendingExportJobId = exportJobId
+                exportToDeviceFolderLauncher.launch(null)
+            }
+        }
+    }
+
+    private fun clearPendingExport() {
+        pendingExportJobId = null
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -717,6 +805,10 @@ class MainFileListFragment : Fragment(),
                         } else {
                             fileActions?.sendDownloadedFile(file)
                         }
+                    }
+
+                    FileMenuOption.EXPORT -> {
+                        startExportToDeviceFolder(listOf(file))
                     }
 
                     FileMenuOption.SET_AV_OFFLINE -> {
@@ -1477,6 +1569,11 @@ class MainFileListFragment : Fragment(),
                 true
             }
 
+            R.id.action_export_file -> {
+                startExportToDeviceFolder(checkedFiles)
+                true
+            }
+
             R.id.action_move -> {
                 val action = Intent(activity, FolderPickerActivity::class.java)
                 action.putParcelableArrayListExtra(FolderPickerActivity.EXTRA_FILES, checkedFiles)
@@ -1619,6 +1716,8 @@ class MainFileListFragment : Fragment(),
         private const val DIALOG_CREATE_SHORTCUT = "DIALOG_CREATE_SHORTCUT"
 
         private const val FILE_DOCXF_EXTENSION = "docxf"
+
+        private const val KEY_PENDING_EXPORT_JOB_ID = "KEY_PENDING_EXPORT_JOB_ID"
 
         @JvmStatic
         fun newInstance(
