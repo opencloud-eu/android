@@ -1013,16 +1013,19 @@ class MainFileListFragment : Fragment(),
             toggleFabVisibility(true)
             if (!currentFolder.hasAddFilePermission) {
                 binding.fabUpload.isVisible = false
+                binding.fabTakePhoto.isVisible = false
                 binding.fabNewfile.isVisible = false
             } else if (!currentFolder.hasAddSubdirectoriesPermission) {
                 binding.fabMkdir.isVisible = false
             }
             registerFabMainListener()
             registerFabUploadListener()
+            registerFabTakePhotoListener()
             registerFabMkDirListener()
             registerFabNewShortcutListener()
             binding.apply {
                 fabUpload.isFocusable = false
+                fabTakePhoto.isFocusable = false
                 fabMkdir.isFocusable = false
                 fabNewfile.isFocusable = false
                 fabNewshortcut.isFocusable = false
@@ -1041,6 +1044,7 @@ class MainFileListFragment : Fragment(),
     private fun toggleFabVisibility(shouldBeShown: Boolean) {
         binding.fabMain.isVisible = shouldBeShown
         binding.fabUpload.isVisible = shouldBeShown
+        binding.fabTakePhoto.isVisible = shouldBeShown
         binding.fabMkdir.isVisible = shouldBeShown
     }
 
@@ -1049,6 +1053,7 @@ class MainFileListFragment : Fragment(),
             fabMain.findViewById<View>(R.id.fab_expand_menu_button).setOnClickListener {
                 fabMain.toggle()
                 fabUpload.isFocusable = isFabExpanded()
+                fabTakePhoto.isFocusable = isFabExpanded()
                 fabMkdir.isFocusable = isFabExpanded()
                 fabNewfile.isFocusable = isFabExpanded()
                 fabNewshortcut.isFocusable = isFabExpanded()
@@ -1068,6 +1073,16 @@ class MainFileListFragment : Fragment(),
     private fun registerFabUploadListener() {
         binding.fabUpload.setOnClickListener {
             openBottomSheetToUploadFiles()
+            collapseFab()
+        }
+    }
+
+    /**
+     * Registers [android.view.View.OnClickListener] on the 'Take a photo' mini FAB for the linked action.
+     */
+    private fun registerFabTakePhotoListener() {
+        binding.fabTakePhoto.setOnClickListener {
+            uploadActions?.uploadFromCamera()
             collapseFab()
         }
     }
@@ -1108,6 +1123,7 @@ class MainFileListFragment : Fragment(),
         binding.apply {
             fabMain.collapse()
             fabUpload.isFocusable = false
+            fabTakePhoto.isFocusable = false
             fabMkdir.isFocusable = false
             fabNewfile.isFocusable = false
             fabNewshortcut.isFocusable = false
