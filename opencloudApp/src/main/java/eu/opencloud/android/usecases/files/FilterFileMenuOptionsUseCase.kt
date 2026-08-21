@@ -151,6 +151,10 @@ class FilterFileMenuOptionsUseCase(
         if (!isAnyFileSynchronizing && !onlyAvailableOfflineFiles && !onlySharedByLinkFiles && hasRemovePermission) {
             optionsToShow.add(FileMenuOption.REMOVE)
         }
+        // Add to Home screen
+        if (isSingleSelection(files) && anyFolder(files)) {
+            optionsToShow.add(FileMenuOption.ADD_TO_HOME_SCREEN)
+        }
 
         return optionsToShow
     }
