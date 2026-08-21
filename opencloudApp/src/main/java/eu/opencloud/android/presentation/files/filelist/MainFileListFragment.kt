@@ -107,6 +107,8 @@ import eu.opencloud.android.presentation.files.SortType
 import eu.opencloud.android.presentation.files.ViewType
 import eu.opencloud.android.presentation.files.createfolder.CreateFolderDialogFragment
 import eu.opencloud.android.presentation.files.createshortcut.CreateShortcutDialogFragment
+import eu.opencloud.android.presentation.files.addtohomescreen.AddToHomeScreenDialogFragment
+import eu.opencloud.android.presentation.files.addtohomescreen.FolderShortcutHelper
 import eu.opencloud.android.presentation.files.operations.FileOperation
 import eu.opencloud.android.presentation.files.operations.FileOperationsViewModel
 import eu.opencloud.android.presentation.files.removefile.RemoveFilesDialogFragment
@@ -138,7 +140,8 @@ class MainFileListFragment : Fragment(),
     SortDialogListener,
     SortOptionsView.CreateFolderListener,
     SortOptionsView.SortOptionsListener,
-    CreateShortcutDialogFragment.CreateShortcutListener {
+    CreateShortcutDialogFragment.CreateShortcutListener,
+    AddToHomeScreenDialogFragment.AddToHomeScreenListener {
 
     private val mainFileListViewModel by viewModel<MainFileListViewModel> {
         parametersOf(
@@ -737,6 +740,13 @@ class MainFileListFragment : Fragment(),
                     FileMenuOption.UNSET_AV_OFFLINE -> {
                         fileOperationsViewModel.performOperation(FileOperation.UnsetFilesAsAvailableOffline(listOf(file)))
                     }
+
+                    FileMenuOption.ADD_TO_HOME_SCREEN -> {
+                        if (file.isFolder) {
+                            val dialog = AddToHomeScreenDialogFragment.newInstance(file)
+                            dialog.show(childFragmentManager, DIALOG_ADD_TO_HOME_SCREEN)
+                        }
+                    }
                 }
                 dialog.hide()
                 dialog.dismiss()
@@ -1260,6 +1270,10 @@ class MainFileListFragment : Fragment(),
         uploadActions?.uploadShortcutFileFromApp(arrayOf(shortcutFilePath))
     }
 
+    override fun onAddToHomeScreen(shortcutName: String, folder: OCFile) {
+        FolderShortcutHelper.createPinnedShortcut(requireContext(), folder, shortcutName)
+    }
+
     override fun onFolderNameSet(newFolderName: String, parentFolder: OCFile) {
         fileOperationsViewModel.performOperation(FileOperation.CreateFolder(newFolderName, parentFolder))
         fileOperationsViewModel.createFolder.observe(viewLifecycleOwner, Event.EventObserver { uiResult: UIResult<Unit> ->
@@ -1617,6 +1631,7 @@ class MainFileListFragment : Fragment(),
 
         private const val DIALOG_CREATE_FOLDER = "DIALOG_CREATE_FOLDER"
         private const val DIALOG_CREATE_SHORTCUT = "DIALOG_CREATE_SHORTCUT"
+        private const val DIALOG_ADD_TO_HOME_SCREEN = "DIALOG_ADD_TO_HOME_SCREEN"
 
         private const val FILE_DOCXF_EXTENSION = "docxf"
 
