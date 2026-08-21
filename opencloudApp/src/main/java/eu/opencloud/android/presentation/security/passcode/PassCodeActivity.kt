@@ -114,7 +114,7 @@ class PassCodeActivity : AppCompatActivity(), NumberKeyboardListener, EnableBiom
             showMessageInSnackbar(message = getString(R.string.biometric_not_available))
         }
 
-        numberOfPasscodeDigits = passCodeViewModel.getPassCode()?.length ?: passCodeViewModel.getNumberOfPassCodeDigits()
+        numberOfPasscodeDigits = passCodeViewModel.getPassCodeLength()
         passCodeEditTexts = arrayOfNulls(numberOfPasscodeDigits)
 
         // Allow or disallow touches with other visible windows
@@ -195,7 +195,7 @@ class PassCodeActivity : AppCompatActivity(), NumberKeyboardListener, EnableBiom
 
     private fun inflatePasscodeTxtLine() {
         val layoutCode = findViewById<LinearLayout>(R.id.layout_code)
-        val numberOfPasscodeDigits = (passCodeViewModel.getPassCode()?.length ?: passCodeViewModel.getNumberOfPassCodeDigits())
+        val numberOfPasscodeDigits = passCodeViewModel.getPassCodeLength()
         for (i in 0 until numberOfPasscodeDigits) {
             val txt = layoutInflater.inflate(R.layout.passcode_edit_text, layoutCode, false) as EditText
             layoutCode.addView(txt)
@@ -484,6 +484,7 @@ class PassCodeActivity : AppCompatActivity(), NumberKeyboardListener, EnableBiom
         // NOTE: PREFERENCE_SET_PASSCODE must have the same value as settings_security.xml-->android:key for passcode preference
         const val PREFERENCE_SET_PASSCODE = "set_pincode"
         const val PREFERENCE_PASSCODE = "PrefPinCode"
+        const val PREFERENCE_PASSCODE_LENGTH = "PrefPinCodeLength"
         const val PREFERENCE_MIGRATION_REQUIRED = "PrefMigrationRequired"
 
         // NOTE: This is required to read the legacy pin code format

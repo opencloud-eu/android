@@ -183,7 +183,7 @@ class PatternActivity : AppCompatActivity(), EnableBiometrics {
             }
 
             override fun onProgress(list: List<Dot>) {
-                Timber.d("Pattern Progress %s", PatternLockUtils.patternToString(binding.patternLockView, list))
+                Timber.d("Pattern drawing in progress")
             }
 
             override fun onComplete(list: List<Dot>) {
@@ -205,7 +205,7 @@ class PatternActivity : AppCompatActivity(), EnableBiometrics {
                 } else {
                     patternValue = PatternLockUtils.patternToString(binding.patternLockView, list)
                 }
-                Timber.d("Pattern %s", PatternLockUtils.patternToString(binding.patternLockView, list))
+                Timber.d("Pattern drawing completed")
                 processPattern()
             }
 
