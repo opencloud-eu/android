@@ -63,8 +63,10 @@ class ReadRemoteFolderOperation(
             PropertyRegistry.register(OCShareTypes.Factory())
             PropertyRegistry.register(OCChecksums.Factory())
 
+            val finalWebDavUrl = getFinalWebDavUrl()
+            Timber.d("PROPFIND $remotePath -> url=$finalWebDavUrl, spaceWebDavUrl=$spaceWebDavUrl")
             val propfindMethod = PropfindMethod(
-                getFinalWebDavUrl(),
+                finalWebDavUrl,
                 DavConstants.DEPTH_1,
                 DavUtils.allPropSet
             )
@@ -96,7 +98,7 @@ class ReadRemoteFolderOperation(
                 // Result of the operation
                 RemoteOperationResult<ArrayList<RemoteFile>>(ResultCode.OK).apply {
                     data = mFolderAndFiles
-                    Timber.i("Synchronized $remotePath with ${mFolderAndFiles.size} files. - HTTP status code: $status")
+                    Timber.i("Synchronized $remotePath ($finalWebDavUrl) with ${mFolderAndFiles.size} files. - HTTP status code: $status")
                 }
             } else { // synchronization failed
                 RemoteOperationResult<ArrayList<RemoteFile>>(propfindMethod).also {
