@@ -64,10 +64,22 @@ class AddToHomeScreenDialogFragment : DialogFragment() {
 
             okButton.setOnClickListener {
                 val name = inputText.text.toString().trim()
-                if (name.isNotBlank()) {
-                    listener.onAddToHomeScreen(name, folder)
+                val error = when {
+                    name.isBlank() -> getString(R.string.add_to_home_screen_dialog_error_empty)
+                    name.length > MAX_FILENAME_LENGTH -> String.format(
+                        getString(R.string.uploader_upload_text_dialog_filename_error_length_max),
+                        MAX_FILENAME_LENGTH
+                    )
+                    forbiddenChars.any { name.contains(it) } -> getString(R.string.filename_forbidden_characters)
+                    else -> null
                 }
-                alertDialog.dismiss()
+
+                if (error == null) {
+                    listener.onAddToHomeScreen(name, folder)
+                    alertDialog.dismiss()
+                } else {
+                    inputLayout.error = error
+                }
             }
         }
 
