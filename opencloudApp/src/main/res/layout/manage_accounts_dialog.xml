@@ -33,7 +33,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:padding="@dimen/activity_horizontal_margin"
-            app:cardBackgroundColor="@color/background_color"
+            app:cardBackgroundColor="?attr/colorSurface"
             app:cardCornerRadius="@dimen/standard_margin"
             app:cardElevation="0dp"
             app:cardUseCompatPadding="true">
@@ -59,7 +59,7 @@
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent"
-                        app:tint="@color/white" />
+                        app:tint="?attr/colorOnPrimary" />
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -68,7 +68,7 @@
                         android:gravity="center"
                         android:maxLines="1"
                         android:text="@string/drawer_manage_accounts"
-                        android:textColor="@color/white"
+                        android:textColor="?attr/colorOnPrimary"
                         android:textSize="18sp"
                         android:textStyle="bold"
                         app:layout_constraintBottom_toBottomOf="parent"
