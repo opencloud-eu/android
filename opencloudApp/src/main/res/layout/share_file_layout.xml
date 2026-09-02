@@ -51,7 +51,7 @@
                 android:ellipsize="middle"
                 android:singleLine="true"
                 android:text="@string/placeholder_filename"
-                android:textColor="@color/black"
+                android:textColor="?attr/colorOnSurface"
                 android:textSize="16sp" />
 
             <TextView
@@ -63,7 +63,7 @@
                 android:layout_marginStart="4dp"
                 android:layout_toEndOf="@+id/shareFileIcon"
                 android:text="@string/placeholder_filesize"
-                android:textColor="@color/list_item_lastmod_and_filesize_text"
+                android:textColor="?attr/colorOnSurfaceVariant"
                 android:textSize="12sp" />
 
             <ImageButton
@@ -104,7 +104,7 @@
                     android:paddingStart="@dimen/standard_half_padding"
                     android:text="@string/share_with_user_section_title"
                     android:textAllCaps="true"
-                    android:textColor="@color/white"
+                    android:textColor="?attr/colorOnPrimary"
                     android:textStyle="bold"
                     android:accessibilityHeading="true"/>
 
@@ -159,7 +159,7 @@
                     android:paddingStart="@dimen/standard_half_padding"
                     android:text="@string/share_via_link_section_title"
                     android:textAllCaps="true"
-                    android:textColor="@color/white"
+                    android:textColor="?attr/colorOnPrimary"
                     android:textStyle="bold"
                     android:accessibilityHeading="true"/>
 
