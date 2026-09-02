@@ -362,6 +362,9 @@ class MainFileListFragment : Fragment(),
             } else {
                 null
             }
+            // The picker outlives this process, so the restored selection is claimed again before
+            // anything else of this account can collect it.
+            pendingExportJobId?.let { mainFileListViewModel.retainPendingExport(it) }
         }
     }
 

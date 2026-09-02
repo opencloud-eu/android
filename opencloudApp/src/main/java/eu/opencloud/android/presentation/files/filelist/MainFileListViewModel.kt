@@ -376,6 +376,12 @@ class MainFileListViewModel(
         }
     }
 
+    // Not dispatched, unlike its neighbours: the claim has to be in place before the picker
+    // result arrives, and it only writes to memory.
+    fun retainPendingExport(exportJobId: Long) {
+        exportFilesToDeviceUseCase.retainPendingExport(exportJobId)
+    }
+
     /**
      * Attaches the selected folder and enqueues the prepared export. This deliberately outlives
      * the ViewModel: the picker can return while its Activity is already finishing.
