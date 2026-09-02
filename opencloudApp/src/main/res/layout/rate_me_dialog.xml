@@ -67,7 +67,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:background="@color/color_accent"
-            android:textColor="@color/white"
+            android:textColor="?attr/colorOnPrimary"
             android:textSize="12sp"
             android:text="@string/button_no_thanks_name" />
 
@@ -79,7 +79,7 @@
             android:layout_marginStart="8dp"
             android:layout_marginEnd="8dp"
             android:background="@color/color_accent"
-            android:textColor="@color/white"
+            android:textColor="?attr/colorOnPrimary"
             android:textSize="12sp"
             android:text="@string/button_later_name" />
 
@@ -89,7 +89,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:background="@color/color_accent"
-            android:textColor="@color/white"
+            android:textColor="?attr/colorOnPrimary"
             android:textSize="12sp"
             android:text="@string/button_rate_now_name" />
     </LinearLayout>
