@@ -137,7 +137,7 @@
         android:visibility="visible"
         fab:fab_addButtonColorNormal="@color/primary_button_background_color"
         fab:fab_addButtonColorPressed="@color/opencloud_petrol"
-        fab:fab_addButtonPlusIconColor="@color/white"
+        fab:fab_addButtonPlusIconColor="?attr/colorOnPrimary"
         fab:fab_labelStyle="@style/menu_labels_style"
         fab:layout_dodgeInsetEdges="bottom">
 
