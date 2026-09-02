@@ -49,7 +49,7 @@
             android:layout_marginEnd="4dp"
             android:ellipsize="middle"
             android:singleLine="true"
-            android:textColor="@color/textColor"
+            android:textColor="?attr/colorOnSurface"
             android:textSize="16dip" />
 
         <LinearLayout
@@ -64,7 +64,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Size MB"
-                android:textColor="@color/list_item_lastmod_and_filesize_text"
+                android:textColor="?attr/colorOnSurfaceVariant"
                 android:textSize="@dimen/two_line_secondary_text_size" />
 
             <TextView
@@ -73,7 +73,7 @@
                 android:layout_height="wrap_content"
                 android:gravity="end"
                 android:text=", "
-                android:textColor="@color/list_item_lastmod_and_filesize_text"
+                android:textColor="?attr/colorOnSurfaceVariant"
                 android:textSize="@dimen/two_line_secondary_text_size" />
 
             <TextView
@@ -82,7 +82,7 @@
                 android:layout_height="wrap_content"
                 android:gravity="end"
                 android:text="Mod Date"
-                android:textColor="@color/list_item_lastmod_and_filesize_text"
+                android:textColor="?attr/colorOnSurfaceVariant"
                 android:textSize="@dimen/two_line_secondary_text_size" />
 
         </LinearLayout>
