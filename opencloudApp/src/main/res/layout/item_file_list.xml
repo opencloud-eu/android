@@ -5,6 +5,7 @@
     android:id="@+id/file_list_constraint_layout"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:background="?attr/colorSurface"
     android:minHeight="@dimen/item_file_list_min_height">
 
     <androidx.constraintlayout.widget.ConstraintLayout

@@ -64,6 +64,15 @@ class FileListAdapter(
     private var fileListOption: FileListOption = FileListOption.ALL_FILES
     private val disallowTouchesWithOtherWindows =
         PreferenceUtils.shouldDisallowTouchesWithOtherVisibleWindows(context)
+    private val colorSurface by lazy {
+        context.obtainStyledAttributes(intArrayOf(R.attr.colorSurface)).run {
+            try {
+                getColor(0, Color.TRANSPARENT)
+            } finally {
+                recycle()
+            }
+        }
+    }
 
     init {
         setHasStableIds(true)
@@ -255,7 +264,7 @@ class FileListAdapter(
                     position = adapterPosition
                 )
             }
-            holder.itemView.setBackgroundColor(Color.WHITE)
+            holder.itemView.setBackgroundColor(colorSurface)
 
             val checkBoxV = holder.itemView.findViewById<ImageView>(R.id.custom_checkbox).apply {
                 isVisible = hasActiveSelection
@@ -265,7 +274,7 @@ class FileListAdapter(
                 holder.itemView.setBackgroundColor(ContextCompat.getColor(context, R.color.selected_item_background))
                 checkBoxV.setImageResource(R.drawable.ic_checkbox_marked)
             } else {
-                holder.itemView.setBackgroundColor(Color.WHITE)
+                holder.itemView.setBackgroundColor(colorSurface)
                 checkBoxV.setImageResource(R.drawable.ic_checkbox_blank_outline)
             }
 
