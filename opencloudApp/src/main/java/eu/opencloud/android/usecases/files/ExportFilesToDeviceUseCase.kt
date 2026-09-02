@@ -17,6 +17,7 @@
  */
 package eu.opencloud.android.usecases.files
 
+import androidx.annotation.VisibleForTesting
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
@@ -26,6 +27,7 @@ import eu.opencloud.android.domain.exportjobs.ExportJobRepository
 import eu.opencloud.android.domain.exportjobs.model.OCExportJob
 import eu.opencloud.android.workers.ExportFilesToDeviceWorker
 import timber.log.Timber
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * Enqueues an [ExportFilesToDeviceWorker] that copies the selected files and folders into a
@@ -55,7 +57,19 @@ class ExportFilesToDeviceUseCase(
                 targetFolderTreeUri = "",
                 fileIds = fileIds,
             )
-        )
+        ).also { LIVE_JOB_IDS.add(it) }
+    }
+
+    /**
+     * Claims a selection again whose picker was opened before this process was started.
+     */
+    fun retainPendingExport(exportJobId: Long) {
+        LIVE_JOB_IDS.add(exportJobId)
+    }
+
+    @VisibleForTesting
+    fun forgetLiveJobs() {
+        LIVE_JOB_IDS.clear()
     }
 
     /**
@@ -66,7 +80,10 @@ class ExportFilesToDeviceUseCase(
         synchronized(ENQUEUE_LOCK) {
             exportJobRepository.getExportJobById(exportJobId)
                 ?.takeIf { it.targetFolderTreeUri.isBlank() }
-                ?.let { exportJobRepository.deleteExportJobById(exportJobId) }
+                ?.let {
+                    exportJobRepository.deleteExportJobById(exportJobId)
+                    LIVE_JOB_IDS.remove(exportJobId)
+                }
         }
     }
 
@@ -77,12 +94,13 @@ class ExportFilesToDeviceUseCase(
         if (params.targetFolderTreeUri.isBlank()) return
 
         val preparedJob = exportJobRepository.getExportJobById(params.exportJobId) ?: run {
+            LIVE_JOB_IDS.remove(params.exportJobId)
             Timber.e("The pending export job ${params.exportJobId} does not exist, nothing is enqueued")
             return
         }
         if (preparedJob.fileIds.isEmpty()) return
 
-        deleteAbandonedExportJobs(preparedJob.accountName, retainedJobId = params.exportJobId)
+        deleteAbandonedExportJobs(preparedJob.accountName)
 
         exportJobRepository.saveExportJob(
             preparedJob.copy(targetFolderTreeUri = params.targetFolderTreeUri)
@@ -110,6 +128,9 @@ class ExportFilesToDeviceUseCase(
         // name of its own.
         val uniqueWorkName = EXPORT_WORK_NAME_PREFIX + exportJobId
         workManager.enqueueUniqueWork(uniqueWorkName, ExistingWorkPolicy.KEEP, exportWork)
+        // In WorkManager 2.8.1 enqueueUniqueWork and getWorkInfosByTag go to the same serial task
+        // executor, so from here on deleteAbandonedExportJobs sees the work of this job.
+        LIVE_JOB_IDS.remove(exportJobId)
         Timber.i("Export of ${preparedJob.fileIds.size} item(s) to a device folder has been enqueued as job $exportJobId.")
     }
 
@@ -118,10 +139,11 @@ class ExportFilesToDeviceUseCase(
      *
      * A job is normally consumed by the worker itself, but work that is cancelled before it ever
      * runs (or while it runs, which the worker survives on purpose so that it can be run again)
-     * leaves its job behind. Nothing else prunes them, so they are collected here, where the list
-     * is short and no export of this account is being started at the same time.
+     * leaves its job behind. Nothing else prunes them, so they are collected here. Missing work
+     * alone does not make a job abandoned, though: one that is still waiting for the folder picker
+     * never had any, so [LIVE_JOB_IDS] has to say which jobs are still being used.
      */
-    private fun deleteAbandonedExportJobs(accountName: String, retainedJobId: Long? = null) {
+    private fun deleteAbandonedExportJobs(accountName: String) {
         val storedJobIds = exportJobRepository.getExportJobIdsForAccount(accountName)
         if (storedJobIds.isEmpty()) return
 
@@ -137,7 +159,7 @@ class ExportFilesToDeviceUseCase(
             return
         }
 
-        storedJobIds.filterNot { it == retainedJobId || pendingJobIds.contains(it) }.forEach { abandonedJobId ->
+        storedJobIds.filterNot { LIVE_JOB_IDS.contains(it) || pendingJobIds.contains(it) }.forEach { abandonedJobId ->
             Timber.i("Export job $abandonedJobId has no work anymore, it is removed")
             exportJobRepository.deleteExportJobById(abandonedJobId)
         }
@@ -155,5 +177,9 @@ class ExportFilesToDeviceUseCase(
         private const val EXPORT_JOB_TAG_PREFIX = "export_job_"
         private const val EXPORT_WORK_NAME_PREFIX = "export_to_device_"
         private val ENQUEUE_LOCK = Any()
+
+        // The use case is injected per use, so this has to be static. Row ids are AUTOINCREMENT,
+        // so a leftover entry can only ever protect a job that is gone anyway.
+        private val LIVE_JOB_IDS: MutableSet<Long> = ConcurrentHashMap.newKeySet()
     }
 }
