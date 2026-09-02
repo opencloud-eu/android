@@ -26,7 +26,7 @@
          To apply directly only on Activities that cannot extend ToolbarActivity;
          otherwise, prefer Theme.openCloud.Toolbar -->
     <style name="Theme.openCloud" parent="Theme.AppCompat.DayNight.DarkActionBar">
-        <item name="android:windowBackground">?attr/colorBackground</item>
+        <item name="android:windowBackground">?android:attr/colorBackground</item>
 
         <!-- theme for the app bar (both for old actionbar and new toolbar) -->
         <item name="actionBarTheme">@style/openCloud.Appbar</item>
@@ -39,7 +39,7 @@
         <item name="colorPrimary">@color/primary</item>
         <item name="colorPrimaryDark">@color/actionbar_start_color</item>
         <item name="colorAccent">@color/color_accent</item>
-        <item name="colorBackground">@color/theme_color_background</item>
+        <item name="android:colorBackground">@color/theme_color_background</item>
         <item name="colorSurface">@color/theme_color_surface</item>
         <item name="colorOnSurface">@color/theme_color_on_surface</item>
         <item name="colorOnSurfaceVariant">@color/theme_color_on_surface_variant</item>
