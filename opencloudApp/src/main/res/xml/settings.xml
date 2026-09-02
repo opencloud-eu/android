@@ -18,7 +18,15 @@
 <PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto"
     app:key="settings_screen">
 
+    <ListPreference
+        app:defaultValue="SYSTEM"
+        app:dialogTitle="@string/prefs_appearance"
+        app:iconSpaceReserved="false"
+        app:key="appearance_mode"
+        app:title="@string/prefs_appearance" />
+
     <Preference
+        app:allowDividerAbove="true"
         app:fragment="eu.opencloud.android.presentation.settings.security.SettingsSecurityFragment"
         app:icon="@drawable/ic_lock_colored"
         app:key="security_subsection"

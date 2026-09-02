@@ -24,7 +24,9 @@ import android.content.ClipboardManager
 import android.content.Context
 import androidx.fragment.app.testing.FragmentScenario
 import androidx.fragment.app.testing.launchFragmentInContainer
+import androidx.preference.ListPreference
 import androidx.preference.Preference
+import androidx.preference.PreferenceManager
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.assertion.ViewAssertions.matches
@@ -38,6 +40,7 @@ import eu.opencloud.android.R
 import eu.opencloud.android.presentation.releasenotes.ReleaseNotesActivity
 import eu.opencloud.android.presentation.settings.privacypolicy.PrivacyPolicyActivity
 import eu.opencloud.android.presentation.settings.SettingsFragment
+import eu.opencloud.android.presentation.settings.AppearanceMode
 import eu.opencloud.android.presentation.releasenotes.ReleaseNotesViewModel
 import eu.opencloud.android.presentation.settings.more.SettingsMoreViewModel
 import eu.opencloud.android.presentation.settings.SettingsViewModel
@@ -61,6 +64,7 @@ class SettingsFragmentTest {
     private lateinit var fragmentScenario: FragmentScenario<SettingsFragment>
 
     private var subsectionSecurity: Preference? = null
+    private var prefAppearance: ListPreference? = null
     private var subsectionLogging: Preference? = null
     private var subsectionPictureUploads: Preference? = null
     private var subsectionVideoUploads: Preference? = null
@@ -79,6 +83,7 @@ class SettingsFragmentTest {
     @Before
     fun setUp() {
         context = InstrumentationRegistry.getInstrumentation().targetContext
+        PreferenceManager.getDefaultSharedPreferences(context).edit().remove(AppearanceMode.PREFERENCE_KEY).commit()
         settingsViewModel = mockk(relaxed = true)
         moreViewModel = mockk(relaxed = true)
         releaseNotesViewModel = mockk(relaxed = true)
@@ -134,6 +139,7 @@ class SettingsFragmentTest {
         fragmentScenario = launchFragmentInContainer(themeResId = R.style.Theme_openCloud)
         fragmentScenario.onFragment { fragment ->
             subsectionSecurity = fragment.findPreference(SUBSECTION_SECURITY)
+            prefAppearance = fragment.findPreference(AppearanceMode.PREFERENCE_KEY)
             subsectionLogging = fragment.findPreference(SUBSECTION_LOGGING)
             subsectionPictureUploads = fragment.findPreference(SUBSECTION_PICTURE_UPLOADS)
             subsectionVideoUploads = fragment.findPreference(SUBSECTION_VIDEO_UPLOADS)
@@ -147,6 +153,24 @@ class SettingsFragmentTest {
     @Test
     fun settingsViewCommon() {
         launchTest(attachedAccount = false)
+
+        assertEquals(
+            listOf(
+                context.getString(R.string.prefs_appearance_system),
+                context.getString(R.string.prefs_appearance_light),
+                context.getString(R.string.prefs_appearance_dark)
+            ),
+            prefAppearance?.entries?.toList()
+        )
+        assertEquals(AppearanceMode.entries.map { it.name }, prefAppearance?.entryValues?.map { it.toString() })
+        assertEquals(AppearanceMode.SYSTEM.name, prefAppearance?.value)
+        prefAppearance?.verifyPreference(
+            keyPref = AppearanceMode.PREFERENCE_KEY,
+            titlePref = context.getString(R.string.prefs_appearance),
+            summaryPref = context.getString(R.string.prefs_appearance_system),
+            visible = true,
+            enabled = true
+        )
 
         subsectionSecurity?.verifyPreference(
             keyPref = SUBSECTION_SECURITY,
