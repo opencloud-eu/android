@@ -95,9 +95,9 @@
     <!-- DIALOG THEMES: styles for DIALOGs -->
 
     <!-- DEFAULT (via Theme.openCloud), and explicitly used ONCE, in Preference "behaviour" for instant uploads - NO MORE, not needed, it's default -->
-    <style name="Theme.openCloud.AlertDialog" parent="Theme.AppCompat.Light.Dialog.Alert">
+    <style name="Theme.openCloud.AlertDialog" parent="Theme.AppCompat.DayNight.Dialog.Alert">
         <item name="colorAccent">@color/color_accent</item>
-        <item name="android:textColorPrimary">@color/primary</item>
+        <item name="android:textColorPrimary">?attr/colorOnSurface</item>
         <item name="searchViewStyle">@style/openCloud.SearchView</item>
         <item name="buttonBarButtonStyle">@style/Theme.openCloud.Dialog.ButtonBar.Button</item>
         <item name="buttonBarStyle">@style/Theme.openCloud.Dialog.ButtonBar</item>

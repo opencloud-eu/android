@@ -30,7 +30,6 @@ import android.app.Dialog
 import android.content.Intent
 import android.os.Bundle
 import android.security.KeyChain
-import android.view.ContextThemeWrapper
 import android.view.View
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -79,7 +78,7 @@ class ManageAccountsDialogFragment : DialogFragment(), ManageAccountsAdapter.Acc
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        val builder = AlertDialog.Builder(ContextThemeWrapper(requireContext(), R.style.Theme_AppCompat_Dialog_Alert))
+        val builder = AlertDialog.Builder(requireContext())
         val inflater = this.layoutInflater
         dialogView = inflater.inflate(R.layout.manage_accounts_dialog, null)
         builder.setView(dialogView)
