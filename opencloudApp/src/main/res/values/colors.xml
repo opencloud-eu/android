@@ -31,6 +31,7 @@
     <color name="theme_color_on_surface_variant">#525757</color>
     <color name="theme_color_outline">#707575</color>
     <color name="theme_color_on_primary">#FFFFFF</color>
+    <color name="theme_color_selection">#D6E6EC</color>
 
     <!-- Colors -->
     <color name="opencloud_petrol">#21434F</color>

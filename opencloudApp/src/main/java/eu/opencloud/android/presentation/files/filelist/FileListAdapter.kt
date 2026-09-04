@@ -32,7 +32,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.LinearLayout
-import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
@@ -66,6 +65,15 @@ class FileListAdapter(
         PreferenceUtils.shouldDisallowTouchesWithOtherVisibleWindows(context)
     private val colorSurface by lazy {
         context.obtainStyledAttributes(intArrayOf(R.attr.colorSurface)).run {
+            try {
+                getColor(0, Color.TRANSPARENT)
+            } finally {
+                recycle()
+            }
+        }
+    }
+    private val colorSelection by lazy {
+        context.obtainStyledAttributes(intArrayOf(R.attr.colorSelection)).run {
             try {
                 getColor(0, Color.TRANSPARENT)
             } finally {
@@ -271,7 +279,7 @@ class FileListAdapter(
             }
 
             if (isSelected(position)) {
-                holder.itemView.setBackgroundColor(ContextCompat.getColor(context, R.color.selected_item_background))
+                holder.itemView.setBackgroundColor(colorSelection)
                 checkBoxV.setImageResource(R.drawable.ic_checkbox_marked)
             } else {
                 holder.itemView.setBackgroundColor(colorSurface)

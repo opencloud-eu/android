@@ -8,4 +8,5 @@
     <color name="theme_color_on_surface_variant">#E0E0E0</color>
     <color name="theme_color_outline">#A5ABAF</color>
     <color name="theme_color_on_primary">#FFFFFF</color>
+    <color name="theme_color_selection">#31515D</color>
 </resources>

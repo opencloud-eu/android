@@ -46,6 +46,7 @@
         <item name="colorOutline">@color/theme_color_outline</item>
         <item name="colorOnPrimary">@color/theme_color_on_primary</item>
         <item name="colorOnBackground">@color/theme_color_on_surface</item>
+        <item name="colorSelection">@color/theme_color_selection</item>
 
         <!-- default theme for alert dialogs -->
         <item name="alertDialogTheme">@style/Theme.openCloud.AlertDialog</item>
