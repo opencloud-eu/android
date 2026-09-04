@@ -105,10 +105,12 @@ class MainApp : Application() {
 
         appContext = applicationContext
 
-        val appearanceMode = AppearanceMode.fromPreferenceValue(
-            androidx.preference.PreferenceManager.getDefaultSharedPreferences(appContext)
-                .getString(AppearanceMode.PREFERENCE_KEY, AppearanceMode.SYSTEM.name)
-        )
+        val appearancePreferences = androidx.preference.PreferenceManager.getDefaultSharedPreferences(appContext)
+        val storedAppearanceMode = appearancePreferences.getString(AppearanceMode.PREFERENCE_KEY, null)
+        val appearanceMode = AppearanceMode.fromPreferenceValue(storedAppearanceMode)
+        if (storedAppearanceMode != appearanceMode.name) {
+            appearancePreferences.edit().putString(AppearanceMode.PREFERENCE_KEY, appearanceMode.name).apply()
+        }
         AppCompatDelegate.setDefaultNightMode(appearanceMode.nightMode)
 
         // Ensure Logcat shows Timber logs in debug builds

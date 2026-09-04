@@ -36,4 +36,12 @@ class AppearanceModeTest {
         assertEquals(AppearanceMode.SYSTEM, AppearanceMode.fromPreferenceValue(null))
         assertEquals(AppearanceMode.SYSTEM, AppearanceMode.fromPreferenceValue("INVALID"))
     }
+
+    @Test
+    fun `uses the mode name as its canonical persisted value`() {
+        assertEquals("SYSTEM", AppearanceMode.fromPreferenceValue(null).name)
+        assertEquals("SYSTEM", AppearanceMode.fromPreferenceValue("INVALID").name)
+        assertEquals("LIGHT", AppearanceMode.fromPreferenceValue("LIGHT").name)
+        assertEquals("DARK", AppearanceMode.fromPreferenceValue("DARK").name)
+    }
 }

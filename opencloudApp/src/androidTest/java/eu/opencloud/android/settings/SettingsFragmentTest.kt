@@ -220,6 +220,24 @@ class SettingsFragmentTest {
     }
 
     @Test
+    fun invalidAppearanceModeIsNormalizedToSystem() {
+        PreferenceManager.getDefaultSharedPreferences(context)
+            .edit()
+            .putString(AppearanceMode.PREFERENCE_KEY, "INVALID")
+            .commit()
+
+        launchTest(attachedAccount = false)
+
+        assertEquals(AppearanceMode.SYSTEM.name, prefAppearance?.value)
+        assertEquals(context.getString(R.string.prefs_appearance_system), prefAppearance?.summary)
+        assertEquals(
+            AppearanceMode.SYSTEM.name,
+            PreferenceManager.getDefaultSharedPreferences(context)
+                .getString(AppearanceMode.PREFERENCE_KEY, null)
+        )
+    }
+
+    @Test
     fun settingsViewNoAccountAttached() {
         launchTest(attachedAccount = false)
 

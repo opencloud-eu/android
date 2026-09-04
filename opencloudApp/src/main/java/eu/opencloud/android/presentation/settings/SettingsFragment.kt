@@ -69,6 +69,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
                 getString(R.string.prefs_appearance_dark)
             )
             entryValues = AppearanceMode.entries.map { it.name }.toTypedArray()
+            value = AppearanceMode.fromPreferenceValue(value).name
             summary = entry
             setOnPreferenceChangeListener { preference, newValue ->
                 val appearanceMode = AppearanceMode.fromPreferenceValue(newValue as String)
