@@ -1979,10 +1979,11 @@ class FileDisplayActivity : FileActivity(),
     }
 
     private fun handleShortcutIntent() {
-        if (intent?.action != eu.opencloud.android.presentation.files.addtohomescreen.FolderShortcutHelper.ACTION_OPEN_SHORTCUT) return
+        val sc = eu.opencloud.android.presentation.files.addtohomescreen.FolderShortcutHelper
+        if (intent?.action != sc.ACTION_OPEN_SHORTCUT) return
 
-        val shortcutRemotePath = intent?.getStringExtra(eu.opencloud.android.presentation.files.addtohomescreen.FolderShortcutHelper.EXTRA_SHORTCUT_FOLDER_REMOTE_PATH)
-        val shortcutSpaceId = intent?.getStringExtra(eu.opencloud.android.presentation.files.addtohomescreen.FolderShortcutHelper.EXTRA_SHORTCUT_FOLDER_SPACE_ID)
+        val shortcutRemotePath = intent?.getStringExtra(sc.EXTRA_SHORTCUT_FOLDER_REMOTE_PATH)
+        val shortcutSpaceId = intent?.getStringExtra(sc.EXTRA_SHORTCUT_FOLDER_SPACE_ID)
         if (shortcutRemotePath != null) {
             val file = storageManager.getFileByPath(shortcutRemotePath, shortcutSpaceId)
             if (file != null) {
@@ -1991,9 +1992,9 @@ class FileDisplayActivity : FileActivity(),
                 showMessageInSnackbar(R.id.list_layout, getString(R.string.default_error_msg))
             }
         }
-        intent?.removeExtra(eu.opencloud.android.presentation.files.addtohomescreen.FolderShortcutHelper.EXTRA_SHORTCUT_FOLDER_REMOTE_ID)
-        intent?.removeExtra(eu.opencloud.android.presentation.files.addtohomescreen.FolderShortcutHelper.EXTRA_SHORTCUT_FOLDER_REMOTE_PATH)
-        intent?.removeExtra(eu.opencloud.android.presentation.files.addtohomescreen.FolderShortcutHelper.EXTRA_SHORTCUT_FOLDER_SPACE_ID)
+        intent?.removeExtra(sc.EXTRA_SHORTCUT_FOLDER_REMOTE_ID)
+        intent?.removeExtra(sc.EXTRA_SHORTCUT_FOLDER_REMOTE_PATH)
+        intent?.removeExtra(sc.EXTRA_SHORTCUT_FOLDER_SPACE_ID)
     }
 
     private fun onDeepLinkManaged() {
