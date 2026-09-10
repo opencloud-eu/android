@@ -1008,6 +1008,7 @@ class MainFileListFragment : Fragment(),
                 (newFileListOption.isSharedByLink() && currentFolder.remotePath != ROOT_PATH)
         if (!isFabSupportedView || isPickingAFolder() ||
             (!currentFolder.hasAddFilePermission && !currentFolder.hasAddSubdirectoriesPermission)) {
+            collapseFab()
             toggleFabVisibility(false)
         } else {
             toggleFabVisibility(true)
@@ -1128,10 +1129,9 @@ class MainFileListFragment : Fragment(),
             fabNewfile.isFocusable = false
             fabNewshortcut.isFocusable = false
         }
-
     }
 
-    fun isFabExpanded() = binding.fabMain.isExpanded
+    fun isFabExpanded() = binding.fabMain.isVisible && binding.fabMain.isExpanded
 
     fun setFabMainContentDescription() {
         binding.fabMain.findViewById<AddFloatingActionButton>(com.getbase.floatingactionbutton.R.id.fab_expand_menu_button).contentDescription =
