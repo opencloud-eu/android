@@ -24,6 +24,7 @@
 package eu.opencloud.android.data.files.datasources.implementation
 
 import eu.opencloud.android.data.files.datasources.implementation.OCLocalFileDataSource.Companion.toEntity
+import eu.opencloud.android.data.files.datasources.implementation.OCLocalFileDataSource.Companion.toModel
 import eu.opencloud.android.data.files.db.FileDao
 import eu.opencloud.android.data.files.db.OCFileEntity
 import eu.opencloud.android.domain.availableoffline.model.AvailableOfflineStatus
@@ -655,5 +656,25 @@ class OCLocalFileDataSourceTest {
         ocLocalFileDataSource.cleanWorkersUuid(OC_FILE_ENTITY.id)
 
         verify(exactly = 1) { fileDao.updateSyncStatusForFile(OC_FILE_ENTITY.id, null) }
+    }
+
+    @Test
+    fun `getSearchFilesForAccount returns matching files`() {
+        every { fileDao.getSearchFilesForAccount(OC_ACCOUNT_NAME, "image") } returns listOf(OC_FILE_ENTITY)
+
+        val result = ocLocalFileDataSource.getSearchFilesForAccount(OC_ACCOUNT_NAME, "image")
+
+        assertEquals(listOf(OC_FILE_ENTITY.toModel()), result)
+        verify(exactly = 1) { fileDao.getSearchFilesForAccount(OC_ACCOUNT_NAME, "image") }
+    }
+
+    @Test
+    fun `getFileWithSyncInfoById returns file with sync info`() {
+        every { fileDao.getFileWithSyncInfoById(OC_FILE_ENTITY.id) } returns OC_FILE_AND_FILE_SYNC
+
+        val result = ocLocalFileDataSource.getFileWithSyncInfoById(OC_FILE_ENTITY.id)
+
+        assertEquals(OC_FILE_AND_FILE_SYNC.toModel(), result)
+        verify(exactly = 1) { fileDao.getFileWithSyncInfoById(OC_FILE_ENTITY.id) }
     }
 }

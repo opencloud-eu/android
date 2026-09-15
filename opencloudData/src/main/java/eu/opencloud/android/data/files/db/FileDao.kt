@@ -82,6 +82,12 @@ interface FileDao {
         search: String
     ): List<OCFileEntity>
 
+    @Query(SELECT_FILTERED_FILES_FOR_ACCOUNT)
+    fun getSearchFilesForAccount(
+        accountName: String,
+        search: String,
+    ): List<OCFileEntity>
+
     @Query(SELECT_FILTERED_AVAILABLE_OFFLINE_FOLDER_CONTENT)
     fun getSearchAvailableOfflineFolderContent(
         folderId: Long,
@@ -530,6 +536,12 @@ interface FileDao {
             SELECT *
             FROM ${ProviderMeta.ProviderTableMeta.FILES_TABLE_NAME}
             WHERE parentId = :folderId AND remotePath LIKE '%' || :search || '%'
+        """
+
+        private const val SELECT_FILTERED_FILES_FOR_ACCOUNT = """
+            SELECT *
+            FROM ${ProviderMeta.ProviderTableMeta.FILES_TABLE_NAME}
+            WHERE owner = :accountName AND remotePath LIKE '%' || :search || '%'
         """
 
         private const val SELECT_FILTERED_AVAILABLE_OFFLINE_FOLDER_CONTENT = """

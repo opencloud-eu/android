@@ -5,7 +5,7 @@
     <string name="global_name">Name</string>
     <string name="global_date">Datum</string>
     <string name="global_size">Größe</string>
-    <string name="actionbar_search">Diesen Ordner durchsuchen</string>
+    <string name="actionbar_search">Dateien durchsuchen</string>
     <string name="actionbar_search_space">Spaces durchsuchen</string>
     <string name="actionbar_sync">Konto aktualisieren</string>
     <string name="actionbar_upload">Hochladen</string>

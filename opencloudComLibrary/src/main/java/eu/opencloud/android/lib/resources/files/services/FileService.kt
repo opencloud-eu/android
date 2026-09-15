@@ -89,4 +89,10 @@ interface FileService : Service {
         fileId: String,
     ): RemoteOperationResult<RemoteMetaFile>
 
+    fun searchFiles(
+        searchQuery: String,
+        spaceId: String? = null,
+        limit: Int = 100,
+    ): RemoteOperationResult<ArrayList<RemoteFile>>
+
 }

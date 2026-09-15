@@ -540,6 +540,56 @@ class OCFileRepository(
         localFileDataSource.cleanWorkersUuid(fileId)
     }
 
+    override fun searchFiles(
+        searchQuery: String,
+        accountName: String,
+        spaceId: String?,
+    ): List<OCFileWithSyncInfo> {
+        val files: List<OCFile> = try {
+            val remoteFiles = remoteFileDataSource.searchFiles(
+                searchQuery = searchQuery,
+                accountName = accountName,
+                spaceId = spaceId,
+            )
+            remoteFiles.map { remoteFile ->
+                val localFile = localFileDataSource.getFileByRemotePath(
+                    remotePath = remoteFile.remotePath,
+                    owner = remoteFile.owner,
+                    spaceId = remoteFile.spaceId,
+                )
+                if (localFile != null) {
+                    remoteFile.copyLocalPropertiesFrom(localFile)
+                    localFileDataSource.saveFile(remoteFile)
+                    remoteFile
+                } else {
+                    localFileDataSource.saveFile(remoteFile)
+                    localFileDataSource.getFileByRemotePath(
+                        remotePath = remoteFile.remotePath,
+                        owner = remoteFile.owner,
+                        spaceId = remoteFile.spaceId,
+                    ) ?: remoteFile
+                }
+            }
+        } catch (e: Exception) {
+            Timber.w(e, "Remote search failed, falling back to local files")
+            localFileDataSource.getSearchFilesForAccount(accountName, searchQuery)
+        }
+
+        return files.map { file ->
+            val syncInfo = file.id?.let { localFileDataSource.getFileWithSyncInfoById(it) }
+            val space = file.spaceId?.let { sId ->
+                localSpacesDataSource.getSpaceByIdForAccount(spaceId = sId, accountName = accountName)
+            }
+            OCFileWithSyncInfo(
+                file = file,
+                uploadWorkerUuid = syncInfo?.uploadWorkerUuid,
+                downloadWorkerUuid = syncInfo?.downloadWorkerUuid,
+                isSynchronizing = syncInfo?.isSynchronizing ?: false,
+                space = space,
+            )
+        }
+    }
+
     private fun getFinalRemotePath(
         replace: List<Boolean?>,
         expectedRemotePath: String,

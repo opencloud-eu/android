@@ -5,7 +5,7 @@
     <string name="global_name">Naam</string>
     <string name="global_date">Datum</string>
     <string name="global_size">Grootte</string>
-    <string name="actionbar_search">Deze map doorzoeken</string>
+    <string name="actionbar_search">Bestanden zoeken</string>
     <string name="actionbar_search_space">Ruimtes doorzoeken</string>
     <string name="actionbar_sync">Account vernieuwen</string>
     <string name="actionbar_upload">Uploaden</string>

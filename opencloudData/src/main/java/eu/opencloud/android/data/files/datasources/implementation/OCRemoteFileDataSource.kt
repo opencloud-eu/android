@@ -212,6 +212,17 @@ class OCRemoteFileDataSource(
             clientManager.getFileService(accountName).getMetaFileInfo(fileId)
         }.toModel()
 
+    override fun searchFiles(
+        searchQuery: String,
+        accountName: String,
+        spaceId: String?,
+    ): List<OCFile> = executeRemoteOperation {
+        clientManager.getFileService(accountName).searchFiles(
+            searchQuery = searchQuery,
+            spaceId = spaceId,
+        )
+    }.map { it.toModel() }
+
     companion object {
         @VisibleForTesting
         fun RemoteFile.toModel(): OCFile =
@@ -237,6 +248,7 @@ class OCRemoteFileDataSource(
                 privateLink = privateLink,
                 sharedWithSharee = sharedWithSharee,
                 sharedByLink = sharedByLink,
+                spaceId = spaceId,
             )
 
         @VisibleForTesting

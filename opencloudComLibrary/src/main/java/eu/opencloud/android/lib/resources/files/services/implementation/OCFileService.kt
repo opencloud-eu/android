@@ -37,6 +37,7 @@ import eu.opencloud.android.lib.resources.files.RemoteFile
 import eu.opencloud.android.lib.resources.files.RemoteMetaFile
 import eu.opencloud.android.lib.resources.files.RemoveRemoteFileOperation
 import eu.opencloud.android.lib.resources.files.RenameRemoteFileOperation
+import eu.opencloud.android.lib.resources.files.SearchRemoteFilesOperation
 import eu.opencloud.android.lib.resources.files.services.FileService
 
 class OCFileService(override val client: OpenCloudClient) : FileService {
@@ -147,4 +148,15 @@ class OCFileService(override val client: OpenCloudClient) : FileService {
         fileId: String,
     ): RemoteOperationResult<RemoteMetaFile> =
         GetRemoteMetaFileOperation(fileId).execute(client)
+
+    override fun searchFiles(
+        searchQuery: String,
+        spaceId: String?,
+        limit: Int,
+    ): RemoteOperationResult<ArrayList<RemoteFile>> =
+        SearchRemoteFilesOperation(
+            searchQuery = searchQuery,
+            spaceId = spaceId,
+            limit = limit,
+        ).execute(client)
 }
