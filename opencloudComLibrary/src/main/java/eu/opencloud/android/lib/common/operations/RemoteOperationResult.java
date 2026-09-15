@@ -320,9 +320,6 @@ public class RemoteOperationResult<T>
                 case HttpConstants.HTTP_LOCKED:                          // 423
                     mCode = ResultCode.RESOURCE_LOCKED;
                     break;
-                case HttpConstants.HTTP_INTERNAL_SERVER_ERROR:           // 500
-                    mCode = ResultCode.UNHANDLED_HTTP_CODE;         // treat as generic server error
-                    break;
                 case HttpConstants.HTTP_SERVICE_UNAVAILABLE:             // 503
                     mCode = ResultCode.SERVICE_UNAVAILABLE;
                     break;

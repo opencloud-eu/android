@@ -56,6 +56,7 @@ class GetBaseUrlRemoteOperation : RemoteOperation<String?>() {
                     data = propFindMethod.getFinalUrl().toString()
                 }
             } else {
+                Timber.e("Could not get base URL from $stringUrl, PROPFIND finished with HTTP status $status")
                 RemoteOperationResult<String?>(propFindMethod).apply {
                     data = null
                 }
