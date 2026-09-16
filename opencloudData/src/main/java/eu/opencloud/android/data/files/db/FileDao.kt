@@ -36,6 +36,7 @@ import eu.opencloud.android.domain.availableoffline.model.AvailableOfflineStatus
 import eu.opencloud.android.domain.extensions.isOneOf
 import eu.opencloud.android.domain.files.model.OCFile
 import eu.opencloud.android.domain.files.model.OCFile.Companion.ROOT_PARENT_ID
+import eu.opencloud.android.domain.files.model.OCFile.Companion.ROOT_PATH
 import kotlinx.coroutines.flow.Flow
 import java.io.File.separatorChar
 import java.util.UUID
@@ -70,6 +71,14 @@ interface FileDao {
         remotePath: String,
         spaceId: String?,
     ): OCFileEntity?
+
+    @Query(DELETE_DUPLICATE_FILES)
+    fun deleteDuplicateFiles(
+        owner: String,
+        remotePath: String,
+        spaceId: String?,
+        keepId: Long,
+    )
 
     @Query(SELECT_FILE_WITH_REMOTE_ID)
     fun getFileByRemoteId(
@@ -216,18 +225,63 @@ interface FileDao {
         folder: OCFileEntity,
         folderContent: List<OCFileEntity>,
     ): List<OCFileEntity> {
-        var folderId = insertOrIgnore(folder)
-        // If it was already in database
-        if (folderId == -1L) {
+        var folderId: Long
+        if (folder.id > 0L) {
             updateFile(folder)
             folderId = folder.id
+        } else {
+            val existingFolder = getFileByOwnerAndRemotePath(folder.owner, folder.remotePath, folder.spaceId)
+            if (existingFolder != null) {
+                folder.id = existingFolder.id
+                if (folder.parentId == null || (folder.parentId == ROOT_PARENT_ID && folder.remotePath != ROOT_PATH)) {
+                    folder.parentId = existingFolder.parentId
+                }
+                updateFile(folder)
+                folderId = existingFolder.id
+            } else {
+                folderId = insertOrIgnore(folder)
+                if (folderId == -1L) {
+                    updateFile(folder)
+                    folderId = folder.id
+                }
+            }
         }
+        deleteDuplicateFiles(folder.owner, folder.remotePath, folder.spaceId, folderId)
 
         folderContent.forEach { fileToInsert ->
-            upsert(fileToInsert.apply {
+            val resolvedChild = if (fileToInsert.id <= 0L) {
+                val existingChild = getFileByOwnerAndRemotePath(
+                    fileToInsert.owner,
+                    fileToInsert.remotePath,
+                    fileToInsert.spaceId,
+                )
+                if (existingChild != null) {
+                    fileToInsert.copy(
+                        storagePath = fileToInsert.storagePath ?: existingChild.storagePath
+                    ).apply {
+                        id = existingChild.id
+                    }
+                } else {
+                    fileToInsert
+                }
+            } else {
+                fileToInsert
+            }
+            upsert(resolvedChild.apply {
                 parentId = folderId
-                availableOfflineStatus = getNewAvailableOfflineStatus(folder.availableOfflineStatus, fileToInsert.availableOfflineStatus)
+                availableOfflineStatus = getNewAvailableOfflineStatus(
+                    folder.availableOfflineStatus,
+                    resolvedChild.availableOfflineStatus,
+                )
             })
+            if (resolvedChild.id > 0L) {
+                deleteDuplicateFiles(
+                    resolvedChild.owner,
+                    resolvedChild.remotePath,
+                    resolvedChild.spaceId,
+                    resolvedChild.id,
+                )
+            }
         }
         val folderContentLocal = getFolderContent(folderId)
 
@@ -513,6 +567,14 @@ interface FileDao {
             SELECT *
             FROM ${ProviderMeta.ProviderTableMeta.FILES_TABLE_NAME}
             WHERE owner = :owner AND remotePath = :remotePath AND spaceId IS :spaceId
+            ORDER BY CASE WHEN parentId IS NOT NULL AND parentId != 0 THEN 0 ELSE 1 END, id DESC
+            LIMIT 1
+        """
+
+        private const val DELETE_DUPLICATE_FILES = """
+            DELETE
+            FROM ${ProviderMeta.ProviderTableMeta.FILES_TABLE_NAME}
+            WHERE owner = :owner AND remotePath = :remotePath AND spaceId IS :spaceId AND id != :keepId
         """
 
         private const val DELETE_FILE_WITH_ID = """

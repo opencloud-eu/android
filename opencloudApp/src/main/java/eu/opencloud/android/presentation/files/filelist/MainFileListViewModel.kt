@@ -223,7 +223,7 @@ class MainFileListViewModel(
         viewModelScope.launch(coroutinesDispatcherProvider.io) {
             val currentFolder = currentFolderDisplayed.value
             val parentId = currentFolder.parentId
-            val parentDir: OCFile?
+            var parentDir: OCFile? = null
 
             // browsing back to not shared by link or av offline should update to root
             if (parentId != null && parentId != ROOT_PARENT_ID) {
@@ -237,8 +237,12 @@ class MainFileListViewModel(
                     FileListOption.SHARED_BY_LINK -> {
                         val fileById = fileByIdResult.getDataOrNull()
                         parentDir =
-                            if (fileById != null && (!fileById.sharedByLink || fileById.sharedWithSharee != true) && fileById.spaceId == null) {
-                                getFileByRemotePathUseCase(GetFileByRemotePathUseCase.Params(fileById.owner, ROOT_PATH)).getDataOrNull()
+                            if (fileById != null && (!fileById.sharedByLink || fileById.sharedWithSharee != true) &&
+                                fileById.spaceId == null
+                            ) {
+                                getFileByRemotePathUseCase(
+                                    GetFileByRemotePathUseCase.Params(fileById.owner, ROOT_PATH)
+                                ).getDataOrNull()
                             } else {
                                 fileById
                             }
@@ -247,14 +251,16 @@ class MainFileListViewModel(
                     FileListOption.AV_OFFLINE -> {
                         val fileById = fileByIdResult.getDataOrNull()
                         parentDir = if (fileById != null && (!fileById.isAvailableOffline)) {
-                            getFileByRemotePathUseCase(GetFileByRemotePathUseCase.Params(fileById.owner, ROOT_PATH)).getDataOrNull()
+                            getFileByRemotePathUseCase(
+                                GetFileByRemotePathUseCase.Params(fileById.owner, ROOT_PATH)
+                            ).getDataOrNull()
                         } else {
                             fileById
                         }
                     }
 
                     FileListOption.SPACES_LIST -> {
-                        parentDir = TODO("Move it to usecase if possible")
+                        parentDir = null
                     }
                 }
             } else if (parentId == ROOT_PARENT_ID) {
@@ -263,12 +269,35 @@ class MainFileListViewModel(
                     GetFileByRemotePathUseCase.Params(
                         remotePath = ROOT_PATH,
                         owner = currentFolder.owner,
+                        spaceId = currentFolder.spaceId,
                     )
                 )
                 parentDir = rootFolderForAccountResult.getDataOrNull()
-            } else {
-                // Browsing to non existing parent folder.
-                TODO()
+            }
+
+            // Fallback: If parent was not resolved by ID (e.g. parentId was null, 0, or not found in DB)
+            if (parentDir == null) {
+                if (currentFolder.remotePath != ROOT_PATH) {
+                    val parentRemotePath = currentFolder.getParentRemotePath()
+                    parentDir = getFileByRemotePathUseCase(
+                        GetFileByRemotePathUseCase.Params(
+                            remotePath = parentRemotePath,
+                            owner = currentFolder.owner,
+                            spaceId = currentFolder.spaceId,
+                        )
+                    ).getDataOrNull()
+                }
+
+                // If still null or at root, fallback to space/personal root folder
+                if (parentDir == null) {
+                    parentDir = getFileByRemotePathUseCase(
+                        GetFileByRemotePathUseCase.Params(
+                            remotePath = ROOT_PATH,
+                            owner = currentFolder.owner,
+                            spaceId = currentFolder.spaceId,
+                        )
+                    ).getDataOrNull()
+                }
             }
 
             parentDir?.let { updateFolderToDisplay(it) }

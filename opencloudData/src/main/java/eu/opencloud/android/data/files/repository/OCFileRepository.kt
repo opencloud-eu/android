@@ -39,6 +39,7 @@ import eu.opencloud.android.domain.files.model.FileListOption
 import eu.opencloud.android.domain.files.model.MIME_DIR
 import eu.opencloud.android.domain.files.model.OCFile
 import eu.opencloud.android.domain.files.model.OCFile.Companion.PATH_SEPARATOR
+import eu.opencloud.android.domain.files.model.OCFile.Companion.ROOT_PARENT_ID
 import eu.opencloud.android.domain.files.model.OCFile.Companion.ROOT_PATH
 import eu.opencloud.android.domain.files.model.OCFileWithSyncInfo
 import kotlinx.coroutines.flow.Flow
@@ -358,10 +359,16 @@ class OCFileRepository(
 
         // If folder doesn't exists in database, insert everything. Easy path
         if (localFolderByRemotePath == null) {
+            if (remoteFolder.remotePath == ROOT_PATH) {
+                remoteFolder.parentId = ROOT_PARENT_ID
+            }
             folderContentUpdated.addAll(remoteFolderContent.map { it.apply { needsToUpdateThumbnail = !it.isFolder } })
         } else {
             // Keep the current local properties or we will miss relevant things.
             remoteFolder.copyLocalPropertiesFrom(localFolderByRemotePath)
+            if (remoteFolder.parentId == null && remoteFolder.remotePath == ROOT_PATH) {
+                remoteFolder.parentId = ROOT_PARENT_ID
+            }
 
             // Folder already exists in database, get database content to update files accordingly
             val localFolderContent = localFileDataSource.getFolderContent(folderId = localFolderByRemotePath.id!!)
@@ -562,6 +569,17 @@ class OCFileRepository(
                     localFileDataSource.saveFile(remoteFile)
                     remoteFile
                 } else {
+                    if (remoteFile.parentId == null && remoteFile.remotePath != ROOT_PATH) {
+                        val parentRemotePath = remoteFile.getParentRemotePath()
+                        val localParent = localFileDataSource.getFileByRemotePath(
+                            remotePath = parentRemotePath,
+                            owner = remoteFile.owner,
+                            spaceId = remoteFile.spaceId,
+                        )
+                        if (localParent != null) {
+                            remoteFile.parentId = localParent.id
+                        }
+                    }
                     localFileDataSource.saveFile(remoteFile)
                     localFileDataSource.getFileByRemotePath(
                         remotePath = remoteFile.remotePath,

@@ -62,7 +62,7 @@ data class OCFile(
 ) : Parcelable {
 
     val fileName: String
-        get() = File(remotePath).name.let { it.ifBlank { ROOT_PATH } }
+        get() = remotePath.trimEnd(PATH_SEPARATOR).substringAfterLast(PATH_SEPARATOR).ifBlank { ROOT_PATH }
 
     /**
      * Use this to find out if this file is a folder.
@@ -196,8 +196,13 @@ data class OCFile(
      * @return remote path
      */
     fun getParentRemotePath(): String {
-        val parentPath: String = File(remotePath).parent ?: throw IllegalArgumentException("Parent path is null")
-        return if (parentPath.endsWith("$PATH_SEPARATOR")) parentPath else "$parentPath$PATH_SEPARATOR"
+        val normalized = remotePath.trimEnd(PATH_SEPARATOR)
+        val lastSlash = normalized.lastIndexOf(PATH_SEPARATOR)
+        if (lastSlash == -1) {
+            return ROOT_PATH
+        }
+        val parent = normalized.substring(0, lastSlash + 1)
+        return if (parent.isEmpty()) ROOT_PATH else parent
     }
 
     fun copyLocalPropertiesFrom(sourceFile: OCFile) {

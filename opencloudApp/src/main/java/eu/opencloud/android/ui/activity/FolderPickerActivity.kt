@@ -190,7 +190,7 @@ open class FolderPickerActivity : FileActivity(),
             return
         }
         // If current file is root folder
-        else if (currentDirDisplayed.parentId == OCFile.ROOT_PARENT_ID) {
+        else if (currentDirDisplayed.remotePath == OCFile.ROOT_PATH) {
             // If we are not in COPY or CAMERA_FOLDER mode, or if we are in COPY or CAMERA_FOLDER mode and spaces are not allowed, close the activity
             if (pickerModeIsNotCopyAndCameraFolder() ||
                 (pickerMode == PickerMode.COPY && currentDirDisplayed.spaceId == null) ||

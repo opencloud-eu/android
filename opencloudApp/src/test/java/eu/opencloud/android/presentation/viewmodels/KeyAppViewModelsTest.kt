@@ -31,6 +31,7 @@ import eu.opencloud.android.domain.automaticuploads.usecases.SaveVideoUploadsCon
 import eu.opencloud.android.domain.files.model.FileListOption
 import eu.opencloud.android.domain.files.usecases.CreateFolderAsyncUseCase
 import eu.opencloud.android.domain.files.usecases.GetFileByIdUseCase
+import eu.opencloud.android.domain.files.usecases.GetFileByRemotePathUseCase
 import eu.opencloud.android.domain.files.usecases.GetFolderContentAsStreamUseCase
 import eu.opencloud.android.domain.files.usecases.SearchFilesUseCase
 import eu.opencloud.android.domain.files.usecases.SortFilesWithSyncInfoUseCase
@@ -410,4 +411,83 @@ class KeyAppViewModelsTest : ViewModelTest() {
 
         job.cancel()
     }
+
+    @Test
+    fun `MainFileListViewModel manageBrowseUp resolves parent via remote path when parentId is null`() =
+        runTest(testCoroutineDispatcher) {
+            val sharedPreferencesProvider = mockk<SharedPreferencesProvider>(relaxed = true)
+            every { sharedPreferencesProvider.getBoolean(any(), any()) } returns false
+            every { sharedPreferencesProvider.getInt(PREF_FILE_LIST_SORT_TYPE, any()) } returns
+                SortType.SORT_TYPE_BY_NAME.ordinal
+            every { sharedPreferencesProvider.getInt(PREF_FILE_LIST_SORT_ORDER, any()) } returns
+                SortOrder.SORT_ORDER_ASCENDING.ordinal
+
+            val parentFolder = OC_ROOT_FOLDER.copy(
+                id = 10L,
+                remotePath = "/ebooks/",
+            )
+            val currentFolderWithNullParent = OC_ROOT_FOLDER.copy(
+                id = 20L,
+                parentId = null,
+                remotePath = "/ebooks/Öko Test/",
+            )
+
+            val getFileByRemotePathUseCase = mockk<GetFileByRemotePathUseCase>()
+            every {
+                getFileByRemotePathUseCase(
+                    GetFileByRemotePathUseCase.Params(
+                        owner = currentFolderWithNullParent.owner,
+                        remotePath = "/ebooks/",
+                        spaceId = currentFolderWithNullParent.spaceId,
+                    )
+                )
+            } returns UseCaseResult.Success(parentFolder)
+
+            val getFolderContentAsStreamUseCase = mockk<GetFolderContentAsStreamUseCase>()
+            every { getFolderContentAsStreamUseCase(any()) } returns flowOf(emptyList())
+
+            val getAppRegistryWhichAllowCreationAsStreamUseCase =
+                mockk<GetAppRegistryWhichAllowCreationAsStreamUseCase>()
+            every { getAppRegistryWhichAllowCreationAsStreamUseCase(any()) } returns flowOf(emptyList())
+
+            val getSpaceWithSpecialsByIdForAccountUseCase = mockk<GetSpaceWithSpecialsByIdForAccountUseCase>()
+            every { getSpaceWithSpecialsByIdForAccountUseCase(any()) } returns OC_SPACE_PERSONAL
+
+            val viewModel = MainFileListViewModel(
+                getFolderContentAsStreamUseCase = getFolderContentAsStreamUseCase,
+                getSharedByLinkForAccountAsStreamUseCase = mockk(relaxed = true),
+                getFilesAvailableOfflineFromAccountAsStreamUseCase = mockk(relaxed = true),
+                getFileByIdUseCase = mockk(relaxed = true),
+                getFileByRemotePathUseCase = getFileByRemotePathUseCase,
+                getSpaceWithSpecialsByIdForAccountUseCase = getSpaceWithSpecialsByIdForAccountUseCase,
+                sortFilesWithSyncInfoUseCase = SortFilesWithSyncInfoUseCase(),
+                synchronizeFolderUseCase = mockk(relaxed = true),
+                searchFilesUseCase = mockk(relaxed = true),
+                getAppRegistryWhichAllowCreationAsStreamUseCase = getAppRegistryWhichAllowCreationAsStreamUseCase,
+                getAppRegistryForMimeTypeAsStreamUseCase = mockk(relaxed = true),
+                getUrlToOpenInWebUseCase = mockk(relaxed = true),
+                filterFileMenuOptionsUseCase = mockk(relaxed = true),
+                contextProvider = contextProvider,
+                coroutinesDispatcherProvider = coroutineDispatcherProvider,
+                sharedPreferencesProvider = sharedPreferencesProvider,
+                initialFolderToDisplay = currentFolderWithNullParent,
+                fileListOptionParam = FileListOption.ALL_FILES,
+            )
+
+            assertEquals(currentFolderWithNullParent, viewModel.getFile())
+
+            viewModel.manageBrowseUp()
+            testScheduler.advanceUntilIdle()
+
+            assertEquals(parentFolder, viewModel.getFile())
+            verify {
+                getFileByRemotePathUseCase(
+                    GetFileByRemotePathUseCase.Params(
+                        owner = currentFolderWithNullParent.owner,
+                        remotePath = "/ebooks/",
+                        spaceId = currentFolderWithNullParent.spaceId,
+                    )
+                )
+            }
+        }
 }

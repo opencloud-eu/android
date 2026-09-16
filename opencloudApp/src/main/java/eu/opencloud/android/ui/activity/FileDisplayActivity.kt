@@ -73,7 +73,6 @@ import eu.opencloud.android.domain.exceptions.SSLRecoverablePeerUnverifiedExcept
 import eu.opencloud.android.domain.exceptions.UnauthorizedException
 import eu.opencloud.android.domain.files.model.FileListOption
 import eu.opencloud.android.domain.files.model.OCFile
-import eu.opencloud.android.domain.files.model.OCFile.Companion.ROOT_PARENT_ID
 import eu.opencloud.android.domain.spaces.model.OCSpace
 import eu.opencloud.android.domain.utils.Event
 import eu.opencloud.android.extensions.checkPasscodeEnforced
@@ -785,7 +784,7 @@ class FileDisplayActivity : FileActivity(),
                     return
                 }
                 // If current file is root folder
-                else if (currentDirDisplayed.parentId == ROOT_PARENT_ID) {
+                else if (currentDirDisplayed.remotePath == OCFile.ROOT_PATH) {
                     // If current space is a project space or personal in a multi-personal account, navigate back to the spaces list
                     if (mainFileListFragment?.getCurrentSpace()?.isProject == true ||
                         (mainFileListFragment?.getCurrentSpace()?.isPersonal == true && isMultiPersonal)) {
