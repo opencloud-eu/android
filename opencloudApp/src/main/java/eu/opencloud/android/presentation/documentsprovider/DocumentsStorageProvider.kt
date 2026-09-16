@@ -579,11 +579,10 @@ class DocumentsStorageProvider : DocumentsProvider() {
         mimeType: String,
         displayName: String,
     ): String {
+        val pendingId = "pending_${UUID.randomUUID()}"
         val tempDir = File(FileStorageUtils.getTemporalPath(parentDocument.owner, parentDocument.spaceId))
-        val newFile = File(tempDir, displayName)
+        val newFile = File(File(tempDir, pendingId), displayName)
         newFile.parentFile?.mkdirs()
-
-        val pendingId = "pending_" + UUID.randomUUID().toString()
 
         val ocFile = OCFile(
             remotePath = parentDocument.remotePath + displayName,
