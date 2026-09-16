@@ -91,12 +91,17 @@ class FileListAdapter(
         )
         val diffResult = DiffUtil.calculateDiff(diffUtilCallback)
 
+        val searchStateChanged = this.isSearchActive != isSearchActive
         files.clear()
         files.addAll(listWithFooter)
         this.fileListOption = fileListOption
         this.isSearchActive = isSearchActive
 
-        diffResult.dispatchUpdatesTo(this)
+        if (searchStateChanged) {
+            notifyDataSetChanged()
+        } else {
+            diffResult.dispatchUpdatesTo(this)
+        }
     }
 
     override fun getItemId(position: Int): Long {
