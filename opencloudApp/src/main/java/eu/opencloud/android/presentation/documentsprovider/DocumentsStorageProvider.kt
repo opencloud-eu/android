@@ -533,8 +533,8 @@ class DocumentsStorageProvider : DocumentsProvider() {
                 // The parent is a standard folder
                 val parentFile = getFileByIdOrException(parentIdInt)
 
-                // Check if the child belongs to the same account and its path sits inside the parent's path
-                childFile.owner == parentFile.owner && childFile.remotePath.startsWith(parentFile.remotePath)
+                // Check if the child belongs to the same account and its path sits inside the parent's path and space
+                childFile.owner == parentFile.owner && childFile.spaceId == parentFile.spaceId && childFile.remotePath.startsWith(parentFile.remotePath)
             } else {
                 // The parentDocumentId is a string, meaning it's the account root (e.g., "user@server.com")
                 // Just verify the child file belongs to this account
