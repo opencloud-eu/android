@@ -62,6 +62,7 @@ import eu.opencloud.android.databinding.AccountSetupBinding
 import eu.opencloud.android.domain.authentication.oauth.model.ClientRegistrationInfo
 import eu.opencloud.android.domain.authentication.oauth.model.ResponseType
 import eu.opencloud.android.domain.authentication.oauth.model.TokenRequest
+import eu.opencloud.android.domain.authentication.oauth.model.TokenResponse
 import eu.opencloud.android.domain.exceptions.ForbiddenException
 import eu.opencloud.android.domain.exceptions.NoNetworkConnectionException
 import eu.opencloud.android.domain.exceptions.OpencloudVersionNotSupportedException
@@ -72,6 +73,7 @@ import eu.opencloud.android.domain.exceptions.SpecificForbiddenException
 import eu.opencloud.android.domain.exceptions.UnauthorizedException
 import eu.opencloud.android.domain.exceptions.UnhandledHttpCodeException
 import eu.opencloud.android.domain.server.model.ServerInfo
+import eu.opencloud.android.domain.utils.Event
 import eu.opencloud.android.extensions.checkPasscodeEnforced
 import eu.opencloud.android.extensions.goToUrl
 import eu.opencloud.android.extensions.manageOptionLockSelected
@@ -493,6 +495,12 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
                 )
             }
         }
+
+        // Registered once, and with EventObserver so the result is consumed: a re-delivered or
+        // doubly-observed token response would otherwise start a second parallel login.
+        authenticationViewModel.requestToken.observe(this, Event.EventObserver { uiResult ->
+            onRequestTokenResult(uiResult)
+        })
 
         authenticationViewModel.baseUrl.observe(this) { event ->
             when (val uiResult = event.peekContent()) {
@@ -1011,60 +1019,66 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
         )
 
         authenticationViewModel.requestToken(requestToken)
+    }
 
-        authenticationViewModel.requestToken.observe(this) {
-            when (val uiResult = it.peekContent()) {
-                is UIResult.Loading -> {}
-                is UIResult.Success -> {
-                    Timber.d("Tokens received ${uiResult.data}, trying to login, creating account and adding it to account manager")
-                    val tokenResponse = uiResult.data ?: return@observe
+    /**
+     * Handles the result of the token request. Registered once in [initLiveDataObservers].
+     */
+    private fun onRequestTokenResult(uiResult: UIResult<TokenResponse>) {
+        val clientRegistrationInfo = authenticationViewModel.registerClient.value?.peekContent()?.getStoredData()
+        val serverInfo = authenticationViewModel.serverInfo.value?.peekContent()?.getStoredData()
 
-                    // Extract preferred_username from id_token for login_hint on re-login
-                    preferredUsername = extractPreferredUsernameFromIdToken(tokenResponse.idToken)
-                    Timber.d("Preferred username from id_token: $preferredUsername")
+        when (uiResult) {
+            is UIResult.Loading -> {}
+            is UIResult.Success -> {
+                Timber.d("Tokens received ${uiResult.data}, trying to login, creating account and adding it to account manager")
+                val tokenResponse = uiResult.data ?: return
 
-                    // When webfinger provides a client_id without dynamic registration,
-                    // store it so AccountAuthenticator can use it for token refresh
-                    val effectiveClientRegistrationInfo = clientRegistrationInfo
-                        ?: (serverInfo as? ServerInfo.OIDCServer)?.webFingerClientId?.let { wfClientId ->
-                            ClientRegistrationInfo(
-                                clientId = wfClientId,
-                                clientSecret = null,
-                                clientIdIssuedAt = null,
-                                clientSecretExpiration = 0,
-                            )
-                        }
+                // Extract preferred_username from id_token for login_hint on re-login
+                preferredUsername = extractPreferredUsernameFromIdToken(tokenResponse.idToken)
+                Timber.d("Preferred username from id_token: $preferredUsername")
 
-                    // Scope priority: webfinger scopes > MDM/string-resource > token response
-                    val webFingerScopes = if (serverInfo is ServerInfo.OIDCServer) {
-                        serverInfo.webFingerScopes
-                    } else {
-                        null
-                    }
-                    val effectiveScope = if (!oidcSupported) {
-                        tokenResponse.scope
-                    } else if (webFingerScopes != null) {
-                        webFingerScopes.joinToString(" ")
-                    } else {
-                        mdmProvider.getBrandingString(CONFIGURATION_OAUTH2_OPEN_ID_SCOPE, R.string.oauth2_openid_scope)
+                // When webfinger provides a client_id without dynamic registration,
+                // store it so AccountAuthenticator can use it for token refresh
+                val effectiveClientRegistrationInfo = clientRegistrationInfo
+                    ?: (serverInfo as? ServerInfo.OIDCServer)?.webFingerClientId?.let { wfClientId ->
+                        ClientRegistrationInfo(
+                            clientId = wfClientId,
+                            clientSecret = null,
+                            clientIdIssuedAt = null,
+                            clientSecretExpiration = 0,
+                        )
                     }
 
-                    authenticationViewModel.loginOAuth(
-                        serverBaseUrl = serverBaseUrl,
-                        username = tokenResponse.additionalParameters?.get(KEY_USER_ID).orEmpty(),
-                        authTokenType = OAUTH_TOKEN_TYPE,
-                        accessToken = tokenResponse.accessToken,
-                        refreshToken = tokenResponse.refreshToken.orEmpty(),
-                        scope = effectiveScope,
-                        updateAccountWithUsername = if (loginAction != ACTION_CREATE) userAccount?.name else null,
-                        clientRegistrationInfo = effectiveClientRegistrationInfo
-                    )
+                // Scope priority: webfinger scopes > MDM/string-resource > token response
+                val webFingerScopes = if (serverInfo is ServerInfo.OIDCServer) {
+                    serverInfo.webFingerScopes
+                } else {
+                    null
+                }
+                val effectiveScope = if (!oidcSupported) {
+                    tokenResponse.scope
+                } else if (webFingerScopes != null) {
+                    webFingerScopes.joinToString(" ")
+                } else {
+                    mdmProvider.getBrandingString(CONFIGURATION_OAUTH2_OPEN_ID_SCOPE, R.string.oauth2_openid_scope)
                 }
 
-                is UIResult.Error -> {
-                    Timber.e(uiResult.error, "OAuth request to exchange authorization code for tokens failed")
-                    updateOAuthStatusIconAndText(uiResult.error)
-                }
+                authenticationViewModel.loginOAuth(
+                    serverBaseUrl = serverBaseUrl,
+                    username = tokenResponse.additionalParameters?.get(KEY_USER_ID).orEmpty(),
+                    authTokenType = OAUTH_TOKEN_TYPE,
+                    accessToken = tokenResponse.accessToken,
+                    refreshToken = tokenResponse.refreshToken.orEmpty(),
+                    scope = effectiveScope,
+                    updateAccountWithUsername = if (loginAction != ACTION_CREATE) userAccount?.name else null,
+                    clientRegistrationInfo = effectiveClientRegistrationInfo
+                )
+            }
+
+            is UIResult.Error -> {
+                Timber.e(uiResult.error, "OAuth request to exchange authorization code for tokens failed")
+                updateOAuthStatusIconAndText(uiResult.error)
             }
         }
     }
