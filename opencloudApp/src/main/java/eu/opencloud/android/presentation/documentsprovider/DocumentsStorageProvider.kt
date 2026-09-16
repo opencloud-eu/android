@@ -26,6 +26,7 @@
 
 package eu.opencloud.android.presentation.documentsprovider
 
+import android.content.Context
 import android.content.res.AssetFileDescriptor
 import android.database.Cursor
 import android.database.MatrixCursor
@@ -35,6 +36,7 @@ import android.os.CancellationSignal
 import android.os.Handler
 import android.os.ParcelFileDescriptor
 import android.provider.DocumentsContract
+import org.json.JSONObject
 import android.provider.DocumentsProvider
 import eu.opencloud.android.MainApp
 import eu.opencloud.android.R
@@ -95,7 +97,9 @@ class DocumentsStorageProvider : DocumentsProvider() {
     private var spacesSyncRequired = true
 
     private lateinit var fileToUpload: OCFile
-    private val pendingUploads = ConcurrentHashMap<String, OCFile>()
+    private val pendingUploadsPrefs by lazy {
+        context!!.getSharedPreferences("saf_pending_uploads", Context.MODE_PRIVATE)
+    }
 
     // Cache to avoid redundant PROPFINDs when apps (e.g. Google Photos) call
     // openDocument many times for the same file. Two layers:
@@ -107,6 +111,59 @@ class DocumentsStorageProvider : DocumentsProvider() {
     private val inFlightDownloads = ConcurrentHashMap<Long, CompletableFuture<Boolean>>()
     private var propfindCacheFileId: Long? = null
     private var propfindCacheTimestamp: Long = 0
+
+    private fun savePendingDocument(pendingId: String, ocFile: OCFile) {
+        val json = JSONObject().apply {
+            put("remotePath", ocFile.remotePath)
+            put("mimeType", ocFile.mimeType)
+            put("owner", ocFile.owner)
+            if (ocFile.parentId != null) put("parentId", ocFile.parentId)
+            if (ocFile.spaceId != null) put("spaceId", ocFile.spaceId)
+            put("storagePath", ocFile.storagePath)
+        }
+        pendingUploadsPrefs.edit().putString(pendingId, json.toString()).apply()
+    }
+
+    private fun getPendingDocument(pendingId: String): OCFile? {
+        val jsonString = pendingUploadsPrefs.getString(pendingId, null) ?: return null
+        val json = JSONObject(jsonString)
+
+        if (json.has("dbId")) {
+            val dbId = json.getLong("dbId")
+            return try {
+                getFileByIdOrException(dbId.toInt())
+            } catch (_: Exception) {
+                null
+            }
+        }
+
+        val remotePath = json.getString("remotePath")
+        val owner = json.getString("owner")
+        val spaceId = if (json.has("spaceId")) json.getString("spaceId") else null
+
+        return try {
+            val fileFromDb = getFileByPathOrException(remotePath, owner, spaceId)
+            json.put("dbId", fileFromDb.id)
+            pendingUploadsPrefs.edit().putString(pendingId, json.toString()).apply()
+            fileFromDb
+        } catch (_: Exception) {
+            OCFile(
+                remotePath = remotePath,
+                mimeType = json.getString("mimeType"),
+                parentId = if (json.has("parentId")) json.getLong("parentId") else null,
+                owner = owner,
+                spaceId = spaceId,
+                modificationTimestamp = 0,
+                length = 0
+            ).apply {
+                storagePath = json.getString("storagePath")
+                val localFile = File(storagePath ?: "")
+                if (localFile.exists()) {
+                    length = localFile.length()
+                }
+            }
+        }
+    }
 
     override fun openDocument(
         documentId: String,
@@ -199,11 +256,11 @@ class DocumentsStorageProvider : DocumentsProvider() {
                 }
             }
         } else {
-            ocFile = pendingUploads[documentId] ?: fileToUpload
+            ocFile = getPendingDocument(documentId) ?: fileToUpload
             accessMode = accessMode or ParcelFileDescriptor.MODE_CREATE
         }
 
-        val fileToOpen = File(ocFile.storagePath)
+        val fileToOpen = File(ocFile.storagePath ?: "")
 
         return if (!isWrite) {
             ParcelFileDescriptor.open(fileToOpen, accessMode)
@@ -216,8 +273,6 @@ class DocumentsStorageProvider : DocumentsProvider() {
                     Timber.d("A file with id $documentId has been closed! Time to synchronize it with server.")
                     // If only needs to upload that file
                     if (uploadOnly) {
-                        pendingUploads.remove(documentId)
-
                         ocFile.length = fileToOpen.length()
                         val uploadFilesUseCase: UploadFilesFromSystemUseCase by inject()
                         val uploadFilesUseCaseParams = UploadFilesFromSystemUseCase.Params(
@@ -322,12 +377,12 @@ class DocumentsStorageProvider : DocumentsProvider() {
     override fun queryDocument(documentId: String, projection: Array<String>?): Cursor {
         Timber.d("Query Document: $documentId")
         if (documentId == NONEXISTENT_DOCUMENT_ID) return FileCursor(projection).apply {
-            if (this@DocumentsStorageProvider::fileToUpload.isInitialized) addFile(fileToUpload)
+            if (this@DocumentsStorageProvider::fileToUpload.isInitialized) addFile(fileToUpload, documentId)
         }
 
         if (documentId.startsWith("pending_")) {
             return FileCursor(projection).apply {
-                pendingUploads[documentId]?.let { addFile(it) }
+                getPendingDocument(documentId)?.let { addFile(it, documentId) }
             }
         }
 
@@ -390,7 +445,7 @@ class DocumentsStorageProvider : DocumentsProvider() {
         // To do: Show thumbnail for spaces
         val file = getFileByIdOrException(documentId.toInt())
 
-        val realFile = File(file.storagePath)
+        val realFile = File(file.storagePath ?: "")
 
         return AssetFileDescriptor(
             ParcelFileDescriptor.open(realFile, ParcelFileDescriptor.MODE_READ_ONLY), 0, AssetFileDescriptor.UNKNOWN_LENGTH
@@ -522,7 +577,7 @@ class DocumentsStorageProvider : DocumentsProvider() {
             val childFile = if (documentId == NONEXISTENT_DOCUMENT_ID && this::fileToUpload.isInitialized) {
                 fileToUpload
             } else if (documentId.startsWith("pending_")) {
-                pendingUploads[documentId] ?: return false
+                getPendingDocument(documentId) ?: return false
             } else {
                 getFileByIdOrException(documentId.toInt())
             }
@@ -534,7 +589,9 @@ class DocumentsStorageProvider : DocumentsProvider() {
                 val parentFile = getFileByIdOrException(parentIdInt)
 
                 // Check if the child belongs to the same account and its path sits inside the parent's path and space
-                childFile.owner == parentFile.owner && childFile.spaceId == parentFile.spaceId && childFile.remotePath.startsWith(parentFile.remotePath)
+                childFile.owner == parentFile.owner &&
+                    childFile.spaceId == parentFile.spaceId &&
+                    childFile.remotePath.startsWith(parentFile.remotePath)
             } else {
                 // The parentDocumentId is a string, meaning it's the account root (e.g., "user@server.com")
                 // Just verify the child file belongs to this account
@@ -589,12 +646,14 @@ class DocumentsStorageProvider : DocumentsProvider() {
             mimeType = mimeType,
             parentId = parentDocument.id,
             owner = parentDocument.owner,
-            spaceId = parentDocument.spaceId
+            spaceId = parentDocument.spaceId,
+            modificationTimestamp = 0,
+            length = 0
         ).apply {
             storagePath = newFile.path
         }
 
-        pendingUploads[pendingId] = ocFile
+        savePendingDocument(pendingId, ocFile)
 
         return pendingId
     }
