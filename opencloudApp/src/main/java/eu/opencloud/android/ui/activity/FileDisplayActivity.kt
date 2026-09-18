@@ -217,7 +217,6 @@ class FileDisplayActivity : FileActivity(),
         localBroadcastManager = LocalBroadcastManager.getInstance(this)
 
         handleDeepLink()
-        handleShortcutIntent()
 
         /// Load of saved instance state
         if (savedInstanceState != null) {
@@ -255,6 +254,8 @@ class FileDisplayActivity : FileActivity(),
         binding = ActivityMainBinding.inflate(layoutInflater)
         val view = binding.root
         setContentView(view)
+
+        handleShortcutIntent()
 
         // setup toolbar
         setupRootToolbar(
@@ -1989,7 +1990,10 @@ class FileDisplayActivity : FileActivity(),
             if (file != null) {
                 shortcutFolderToNavigate = file
             } else {
-                showMessageInSnackbar(R.id.list_layout, getString(R.string.default_error_msg))
+                showMessageInSnackbar(
+                    R.id.list_layout,
+                    getString(R.string.add_to_home_screen_shortcut_folder_missing)
+                )
             }
         }
         intent?.removeExtra(sc.EXTRA_SHORTCUT_FOLDER_REMOTE_ID)
