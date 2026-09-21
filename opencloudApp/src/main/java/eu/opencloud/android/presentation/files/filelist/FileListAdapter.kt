@@ -62,6 +62,7 @@ class FileListAdapter(
     var files = mutableListOf<Any>()
     private var account: Account? = AccountUtils.getCurrentOpenCloudAccount(context)
     private var fileListOption: FileListOption = FileListOption.ALL_FILES
+    private var isSearchActive: Boolean = false
     private val disallowTouchesWithOtherWindows =
         PreferenceUtils.shouldDisallowTouchesWithOtherVisibleWindows(context)
 
@@ -69,7 +70,11 @@ class FileListAdapter(
         setHasStableIds(true)
     }
 
-    fun updateFileList(filesToAdd: List<OCFileWithSyncInfo>, fileListOption: FileListOption) {
+    fun updateFileList(
+        filesToAdd: List<OCFileWithSyncInfo>,
+        fileListOption: FileListOption,
+        isSearchActive: Boolean = false,
+    ) {
 
         val listWithFooter = mutableListOf<Any>()
         listWithFooter.addAll(filesToAdd)
@@ -86,11 +91,17 @@ class FileListAdapter(
         )
         val diffResult = DiffUtil.calculateDiff(diffUtilCallback)
 
+        val searchStateChanged = this.isSearchActive != isSearchActive
         files.clear()
         files.addAll(listWithFooter)
         this.fileListOption = fileListOption
+        this.isSearchActive = isSearchActive
 
-        diffResult.dispatchUpdatesTo(this)
+        if (searchStateChanged) {
+            notifyDataSetChanged()
+        } else {
+            diffResult.dispatchUpdatesTo(this)
+        }
     }
 
     override fun getItemId(position: Int): Long {
@@ -328,7 +339,10 @@ class FileListAdapter(
                     it.fileListLastMod.text = DisplayUtils.getRelativeTimestamp(context, file.modificationTimestamp)
                     it.threeDotMenu.isVisible = !hasActiveSelection
                     it.threeDotMenu.contentDescription = context.getString(R.string.content_description_file_operations, file.fileName)
-                    if (fileListOption.isAvailableOffline() || (fileListOption.isSharedByLink() && fileWithSyncInfo.space == null)) {
+                    val showSpacePath = fileListOption.isAvailableOffline() ||
+                        (fileListOption.isSharedByLink() && fileWithSyncInfo.space == null) ||
+                        isSearchActive
+                    if (showSpacePath) {
                         it.spacePathLine.path.apply {
                             text = file.getParentRemotePath()
                             isVisible = true

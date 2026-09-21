@@ -402,4 +402,32 @@ class OCRemoteFileDataSourceTest {
             ocFileService.getMetaFileInfo(OC_FILE.remoteId!!)
         }
     }
+
+    @Test
+    fun `searchFiles returns a list of OCFile`() {
+        val remoteResult = createRemoteOperationResultMock(
+            data = arrayListOf(REMOTE_FILE),
+            isSuccess = true,
+        )
+
+        every {
+            ocFileService.searchFiles(
+                searchQuery = "image",
+                spaceId = null,
+            )
+        } returns remoteResult
+
+        val result = ocRemoteFileDataSource.searchFiles(
+            searchQuery = "image",
+            accountName = OC_ACCOUNT_NAME,
+            spaceId = null,
+        )
+
+        assertEquals(listOf(REMOTE_FILE.toModel()), result)
+
+        verify(exactly = 1) {
+            clientManager.getFileService(OC_ACCOUNT_NAME)
+            ocFileService.searchFiles("image", null)
+        }
+    }
 }

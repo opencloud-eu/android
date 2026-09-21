@@ -51,6 +51,9 @@ class OCLocalFileDataSource(
     override fun getFileWithSyncInfoByIdAsFlow(id: Long): Flow<OCFileWithSyncInfo?> =
         fileDao.getFileWithSyncInfoByIdAsFlow(id).map { it?.toModel() }
 
+    override fun getFileWithSyncInfoById(id: Long): OCFileWithSyncInfo? =
+        fileDao.getFileWithSyncInfoById(id)?.toModel()
+
     override fun getFileByRemotePath(remotePath: String, owner: String, spaceId: String?): OCFile? {
         fileDao.getFileByOwnerAndRemotePath(owner, remotePath, spaceId)?.let { return it.toModel() }
 
@@ -83,6 +86,11 @@ class OCLocalFileDataSource(
 
     override fun getSearchFolderContent(folderId: Long, search: String): List<OCFile> =
         fileDao.getSearchFolderContent(folderId = folderId, search = search).map {
+            it.toModel()
+        }
+
+    override fun getSearchFilesForAccount(accountName: String, search: String): List<OCFile> =
+        fileDao.getSearchFilesForAccount(accountName = accountName, search = search).map {
             it.toModel()
         }
 
@@ -220,17 +228,17 @@ class OCLocalFileDataSource(
         fileDao.updateSyncStatusForFile(fileId, null)
     }
 
-    @VisibleForTesting
-    fun OCFileAndFileSync.toModel(): OCFileWithSyncInfo =
-        OCFileWithSyncInfo(
-            file = file.toModel(),
-            uploadWorkerUuid = fileSync?.uploadWorkerUuid,
-            downloadWorkerUuid = fileSync?.downloadWorkerUuid,
-            isSynchronizing = fileSync?.isSynchronizing == true,
-            space = space?.toModel(),
-        )
-
     companion object {
+        @VisibleForTesting
+        fun OCFileAndFileSync.toModel(): OCFileWithSyncInfo =
+            OCFileWithSyncInfo(
+                file = file.toModel(),
+                uploadWorkerUuid = fileSync?.uploadWorkerUuid,
+                downloadWorkerUuid = fileSync?.downloadWorkerUuid,
+                isSynchronizing = fileSync?.isSynchronizing == true,
+                space = space?.toModel(),
+            )
+
         @VisibleForTesting
         fun OCFileEntity.toModel(): OCFile =
             OCFile(

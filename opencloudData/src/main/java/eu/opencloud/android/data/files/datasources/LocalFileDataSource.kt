@@ -36,6 +36,7 @@ interface LocalFileDataSource {
     fun getFileByRemoteId(remoteId: String): OCFile?
     fun getFolderContent(folderId: Long): List<OCFile>
     fun getSearchFolderContent(folderId: Long, search: String): List<OCFile>
+    fun getSearchFilesForAccount(accountName: String, search: String): List<OCFile>
     fun getSearchAvailableOfflineFolderContent(folderId: Long, search: String): List<OCFile>
     fun getSearchSharedByLinkFolderContent(folderId: Long, search: String): List<OCFile>
     fun getFolderContentWithSyncInfoAsFlow(folderId: Long): Flow<List<OCFileWithSyncInfo>>
@@ -46,6 +47,7 @@ interface LocalFileDataSource {
     fun getFilesAvailableOfflineFromEveryAccount(): List<OCFile>
     fun getDownloadedFilesForAccount(owner: String): List<OCFile>
     fun getFileWithSyncInfoByIdAsFlow(id: Long): Flow<OCFileWithSyncInfo?>
+    fun getFileWithSyncInfoById(id: Long): OCFileWithSyncInfo?
     fun getFilesWithLastUsageOlderThanGivenTime(milliseconds: Long): List<OCFile>
     fun moveFile(sourceFile: OCFile, targetFolder: OCFile, finalRemotePath: String, finalStoragePath: String)
     fun copyFile(sourceFile: OCFile, targetFolder: OCFile, finalRemotePath: String, remoteId: String, replace: Boolean?)

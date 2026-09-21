@@ -2068,4 +2068,36 @@ class OCFileRepositoryTest {
             localFileDataSource.cleanWorkersUuid(OC_FILE_WITH_SPACE_ID.id!!)
         }
     }
+
+    @Test
+    fun `searchFiles returns a list of OCFileWithSyncInfo from remote search`() {
+        every {
+            remoteFileDataSource.searchFiles(
+                searchQuery = "image",
+                accountName = OC_FILE.owner,
+                spaceId = null,
+            )
+        } returns listOf(OC_FILE)
+        every {
+            localFileDataSource.getFileByRemotePath(
+                remotePath = OC_FILE.remotePath,
+                owner = OC_FILE.owner,
+                spaceId = OC_FILE.spaceId,
+            )
+        } returns OC_FILE
+        every { localFileDataSource.saveFile(any()) } returns Unit
+        every { localFileDataSource.getFileWithSyncInfoById(OC_FILE.id!!) } returns OC_FILE_WITH_SYNC_INFO
+
+        val result = ocFileRepository.searchFiles(
+            searchQuery = "image",
+            accountName = OC_FILE.owner,
+            spaceId = null,
+        )
+
+        assertEquals(1, result.size)
+        assertEquals(OC_FILE, result.first().file)
+        verify(exactly = 1) {
+            remoteFileDataSource.searchFiles("image", OC_FILE.owner, null)
+        }
+    }
 }

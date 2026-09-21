@@ -40,7 +40,9 @@ import at.bitfire.dav4jvm.property.OCPrivatelink
 import at.bitfire.dav4jvm.property.OCSize
 import eu.opencloud.android.lib.common.http.HttpConstants
 import eu.opencloud.android.lib.common.http.methods.webdav.properties.OCChecksums
+import eu.opencloud.android.lib.common.http.methods.webdav.properties.OCFileId
 import eu.opencloud.android.lib.common.http.methods.webdav.properties.OCShareTypes
+import eu.opencloud.android.lib.common.http.methods.webdav.properties.OCSpaceId
 import eu.opencloud.android.lib.common.utils.isOneOf
 import eu.opencloud.android.lib.resources.shares.ShareType
 import eu.opencloud.android.lib.resources.shares.ShareType.Companion.fromValue
@@ -76,6 +78,7 @@ data class RemoteFile(
     var sharedWithSharee: Boolean = false,
     /** Server-reported checksums as raw "ALGORITHM:value" strings (e.g. "SHA1:1c68ea…"). */
     var checksums: List<String> = emptyList(),
+    var spaceId: String? = null,
 ) : Parcelable {
 
     // To do: Quotas not used. Use or remove them.
@@ -97,6 +100,7 @@ data class RemoteFile(
 
         const val MIME_DIR = "DIR"
         const val MIME_DIR_UNIX = "httpd/unix-directory"
+        private const val DAV_SPACES_PATH = "/dav/spaces/"
 
         fun getRemoteFileFromDav(
             davResource: Response,
@@ -105,7 +109,12 @@ data class RemoteFile(
             spaceWebDavUrl: String? = null
         ): RemoteFile {
             val remotePath = getRemotePathFromUrl(davResource.href, userId, spaceWebDavUrl)
-            val remoteFile = RemoteFile(remotePath = remotePath, owner = userName)
+            val extractedSpaceId = getSpaceIdFromUrl(davResource.href, spaceWebDavUrl)
+            val remoteFile = RemoteFile(
+                remotePath = remotePath,
+                owner = userName,
+                spaceId = extractedSpaceId,
+            )
             val properties = getPropertiesEvenIfPostProcessing(davResource)
 
             for (property in properties) {
@@ -130,6 +139,16 @@ data class RemoteFile(
                     }
                     is OCId -> {
                         remoteFile.remoteId = property.id
+                    }
+                    is OCFileId -> {
+                        if (remoteFile.remoteId == null) {
+                            remoteFile.remoteId = property.fileId
+                        }
+                    }
+                    is OCSpaceId -> {
+                        if (remoteFile.spaceId == null) {
+                            remoteFile.spaceId = property.spaceId
+                        }
                     }
                     is OCSize -> {
                         remoteFile.size = property.size
@@ -187,8 +206,33 @@ data class RemoteFile(
             } else {
                 URLDecoder.decode(url.encodedPath, StandardCharsets.UTF_8.name())
             }
+            if (spaceWebDavUrl == null && absoluteDavPath.contains(DAV_SPACES_PATH)) {
+                val afterSpaces = absoluteDavPath.substringAfter(DAV_SPACES_PATH)
+                val slashIndex = afterSpaces.indexOf('/')
+                return if (slashIndex != -1) {
+                    afterSpaces.substring(slashIndex)
+                } else {
+                    "/"
+                }
+            }
             val pathToOc = absoluteDavPath.split(davFilesPath).first()
             return absoluteDavPath.replace(pathToOc + davFilesPath, "")
+        }
+
+        fun getSpaceIdFromUrl(
+            url: HttpUrl,
+            spaceWebDavUrl: String? = null,
+        ): String? {
+            val sourcePath = if (spaceWebDavUrl != null) {
+                URLDecoder.decode(spaceWebDavUrl, StandardCharsets.UTF_8.name())
+            } else {
+                URLDecoder.decode(url.encodedPath, StandardCharsets.UTF_8.name())
+            }
+            if (sourcePath.contains(DAV_SPACES_PATH)) {
+                val afterSpaces = sourcePath.substringAfter(DAV_SPACES_PATH)
+                return afterSpaces.substringBefore('/').ifEmpty { null }
+            }
+            return null
         }
 
         private fun getPropertiesEvenIfPostProcessing(response: Response): List<Property> =

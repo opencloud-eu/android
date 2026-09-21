@@ -42,6 +42,7 @@ import eu.opencloud.android.domain.files.usecases.GetFileByIdUseCase
 import eu.opencloud.android.domain.files.usecases.GetFileByRemotePathUseCase
 import eu.opencloud.android.domain.files.usecases.GetFolderContentAsStreamUseCase
 import eu.opencloud.android.domain.files.usecases.GetSharedByLinkForAccountAsStreamUseCase
+import eu.opencloud.android.domain.files.usecases.SearchFilesUseCase
 import eu.opencloud.android.domain.files.usecases.SortFilesWithSyncInfoUseCase
 import eu.opencloud.android.domain.spaces.model.OCSpace
 import eu.opencloud.android.domain.spaces.usecases.GetSpaceWithSpecialsByIdForAccountUseCase
@@ -58,6 +59,7 @@ import eu.opencloud.android.providers.CoroutinesDispatcherProvider
 import eu.opencloud.android.usecases.files.FilterFileMenuOptionsUseCase
 import eu.opencloud.android.usecases.synchronization.SynchronizeFolderUseCase
 import eu.opencloud.android.usecases.synchronization.SynchronizeFolderUseCase.SyncFolderMode.SYNC_CONTENTS
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -65,13 +67,16 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import eu.opencloud.android.domain.files.usecases.SortType.Companion as SortTypeDomain
 
 class MainFileListViewModel(
@@ -83,6 +88,7 @@ class MainFileListViewModel(
     private val getSpaceWithSpecialsByIdForAccountUseCase: GetSpaceWithSpecialsByIdForAccountUseCase,
     private val sortFilesWithSyncInfoUseCase: SortFilesWithSyncInfoUseCase,
     private val synchronizeFolderUseCase: SynchronizeFolderUseCase,
+    private val searchFilesUseCase: SearchFilesUseCase,
     getAppRegistryWhichAllowCreationAsStreamUseCase: GetAppRegistryWhichAllowCreationAsStreamUseCase,
     private val getAppRegistryForMimeTypeAsStreamUseCase: GetAppRegistryForMimeTypeAsStreamUseCase,
     private val getUrlToOpenInWebUseCase: GetUrlToOpenInWebUseCase,
@@ -99,6 +105,12 @@ class MainFileListViewModel(
     val currentFolderDisplayed: MutableStateFlow<OCFile> = MutableStateFlow(initialFolderToDisplay)
     val fileListOption: MutableStateFlow<FileListOption> = MutableStateFlow(fileListOptionParam)
     private val searchFilter: MutableStateFlow<String> = MutableStateFlow("")
+
+    @OptIn(FlowPreview::class)
+    private val debouncedSearchFilter: Flow<String> = searchFilter.debounce { query ->
+        if (query.isBlank()) 0L else SEARCH_DEBOUNCE_MS
+    }
+
     private val sortTypeAndOrder = MutableStateFlow(Pair(SortType.SORT_TYPE_BY_NAME, SortOrder.SORT_ORDER_ASCENDING))
     val space: MutableStateFlow<OCSpace?> = MutableStateFlow(null)
     val appRegistryToCreateFiles: StateFlow<List<AppRegistryMimeType>> =
@@ -123,7 +135,7 @@ class MainFileListViewModel(
         combine(
             currentFolderDisplayed,
             fileListOption,
-            searchFilter,
+            debouncedSearchFilter,
             sortTypeAndOrder,
             space,
         ) { currentFolderDisplayed, fileListOption, searchFilter, sortTypeAndOrder, space ->
@@ -211,7 +223,7 @@ class MainFileListViewModel(
         viewModelScope.launch(coroutinesDispatcherProvider.io) {
             val currentFolder = currentFolderDisplayed.value
             val parentId = currentFolder.parentId
-            val parentDir: OCFile?
+            var parentDir: OCFile? = null
 
             // browsing back to not shared by link or av offline should update to root
             if (parentId != null && parentId != ROOT_PARENT_ID) {
@@ -225,8 +237,12 @@ class MainFileListViewModel(
                     FileListOption.SHARED_BY_LINK -> {
                         val fileById = fileByIdResult.getDataOrNull()
                         parentDir =
-                            if (fileById != null && (!fileById.sharedByLink || fileById.sharedWithSharee != true) && fileById.spaceId == null) {
-                                getFileByRemotePathUseCase(GetFileByRemotePathUseCase.Params(fileById.owner, ROOT_PATH)).getDataOrNull()
+                            if (fileById != null && (!fileById.sharedByLink || fileById.sharedWithSharee != true) &&
+                                fileById.spaceId == null
+                            ) {
+                                getFileByRemotePathUseCase(
+                                    GetFileByRemotePathUseCase.Params(fileById.owner, ROOT_PATH)
+                                ).getDataOrNull()
                             } else {
                                 fileById
                             }
@@ -235,14 +251,16 @@ class MainFileListViewModel(
                     FileListOption.AV_OFFLINE -> {
                         val fileById = fileByIdResult.getDataOrNull()
                         parentDir = if (fileById != null && (!fileById.isAvailableOffline)) {
-                            getFileByRemotePathUseCase(GetFileByRemotePathUseCase.Params(fileById.owner, ROOT_PATH)).getDataOrNull()
+                            getFileByRemotePathUseCase(
+                                GetFileByRemotePathUseCase.Params(fileById.owner, ROOT_PATH)
+                            ).getDataOrNull()
                         } else {
                             fileById
                         }
                     }
 
                     FileListOption.SPACES_LIST -> {
-                        parentDir = TODO("Move it to usecase if possible")
+                        parentDir = null
                     }
                 }
             } else if (parentId == ROOT_PARENT_ID) {
@@ -251,12 +269,35 @@ class MainFileListViewModel(
                     GetFileByRemotePathUseCase.Params(
                         remotePath = ROOT_PATH,
                         owner = currentFolder.owner,
+                        spaceId = currentFolder.spaceId,
                     )
                 )
                 parentDir = rootFolderForAccountResult.getDataOrNull()
-            } else {
-                // Browsing to non existing parent folder.
-                TODO()
+            }
+
+            // Fallback: If parent was not resolved by ID (e.g. parentId was null, 0, or not found in DB)
+            if (parentDir == null) {
+                if (currentFolder.remotePath != ROOT_PATH) {
+                    val parentRemotePath = currentFolder.getParentRemotePath()
+                    parentDir = getFileByRemotePathUseCase(
+                        GetFileByRemotePathUseCase.Params(
+                            remotePath = parentRemotePath,
+                            owner = currentFolder.owner,
+                            spaceId = currentFolder.spaceId,
+                        )
+                    ).getDataOrNull()
+                }
+
+                // If still null or at root, fallback to space/personal root folder
+                if (parentDir == null) {
+                    parentDir = getFileByRemotePathUseCase(
+                        GetFileByRemotePathUseCase.Params(
+                            remotePath = ROOT_PATH,
+                            owner = currentFolder.owner,
+                            spaceId = currentFolder.spaceId,
+                        )
+                    ).getDataOrNull()
+                }
             }
 
             parentDir?.let { updateFolderToDisplay(it) }
@@ -370,18 +411,60 @@ class MainFileListViewModel(
         sortTypeAndOrder: Pair<SortType, SortOrder>,
         space: OCSpace?,
     ): Flow<FileListUiState> =
-        when (fileListOption) {
-            FileListOption.ALL_FILES -> retrieveFlowForAllFiles(currentFolderDisplayed, currentFolderDisplayed.owner)
-            FileListOption.SHARED_BY_LINK -> retrieveFlowForShareByLink(currentFolderDisplayed, currentFolderDisplayed.owner)
-            FileListOption.AV_OFFLINE -> retrieveFlowForAvailableOffline(currentFolderDisplayed, currentFolderDisplayed.owner)
-            FileListOption.SPACES_LIST -> flowOf()
-        }.toFileListUiState(
-            currentFolderDisplayed,
-            fileListOption,
-            searchFilter,
-            sortTypeAndOrder,
-            space,
+        if (!searchFilter.isNullOrBlank()) {
+            retrieveFlowForSearch(
+                currentFolderDisplayed = currentFolderDisplayed,
+                fileListOption = fileListOption,
+                searchFilter = searchFilter,
+                sortTypeAndOrder = sortTypeAndOrder,
+                space = space,
+            )
+        } else {
+            when (fileListOption) {
+                FileListOption.ALL_FILES -> retrieveFlowForAllFiles(currentFolderDisplayed, currentFolderDisplayed.owner)
+                FileListOption.SHARED_BY_LINK -> retrieveFlowForShareByLink(currentFolderDisplayed, currentFolderDisplayed.owner)
+                FileListOption.AV_OFFLINE -> retrieveFlowForAvailableOffline(currentFolderDisplayed, currentFolderDisplayed.owner)
+                FileListOption.SPACES_LIST -> flowOf()
+            }.toFileListUiState(
+                currentFolderDisplayed,
+                fileListOption,
+                searchFilter,
+                sortTypeAndOrder,
+                space,
+            )
+        }
+
+    private fun retrieveFlowForSearch(
+        currentFolderDisplayed: OCFile,
+        fileListOption: FileListOption,
+        searchFilter: String,
+        sortTypeAndOrder: Pair<SortType, SortOrder>,
+        space: OCSpace?,
+    ): Flow<FileListUiState> = flow {
+        emit(FileListUiState.Loading)
+        val searchResult = withContext(coroutinesDispatcherProvider.io) {
+            searchFilesUseCase(
+                SearchFilesUseCase.Params(
+                    searchQuery = searchFilter,
+                    accountName = currentFolderDisplayed.owner,
+                    spaceId = null,
+                )
+            )
+        }
+        val filesWithSyncInfo = (searchResult.getDataOrNull() ?: emptyList())
+            .filter { showHiddenFiles || !it.file.fileName.startsWith(".") }
+            .let { sortList(it, sortTypeAndOrder) }
+
+        emit(
+            FileListUiState.Success(
+                folderToDisplay = currentFolderDisplayed,
+                folderContent = filesWithSyncInfo,
+                fileListOption = fileListOption,
+                searchFilter = searchFilter,
+                space = space,
+            )
         )
+    }
 
     private fun retrieveFlowForAllFiles(
         currentFolderDisplayed: OCFile,
@@ -456,6 +539,7 @@ class MainFileListViewModel(
 
     companion object {
         private const val RECYCLER_VIEW_PREFERRED = "RECYCLER_VIEW_PREFERRED"
+        private const val SEARCH_DEBOUNCE_MS = 300L
     }
 }
 

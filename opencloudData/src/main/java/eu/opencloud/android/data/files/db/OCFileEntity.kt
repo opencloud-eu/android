@@ -109,32 +109,45 @@ data class OCFileEntity(
     companion object {
         fun fromCursor(cursor: Cursor): OCFileEntity =
             OCFileEntity(
-                parentId = cursor.getLong(cursor.getColumnIndexOrThrow(FILE_PARENT)),
+                parentId = cursor.getLongOrNull(FILE_PARENT),
                 remotePath = cursor.getString(cursor.getColumnIndexOrThrow(FILE_PATH)),
                 owner = cursor.getString(cursor.getColumnIndexOrThrow(FILE_ACCOUNT_OWNER)),
                 permissions = cursor.getString(cursor.getColumnIndexOrThrow(FILE_PERMISSIONS)),
                 remoteId = cursor.getString(cursor.getColumnIndexOrThrow(FILE_REMOTE_ID)),
                 privateLink = cursor.getString(cursor.getColumnIndexOrThrow(FILE_PRIVATE_LINK)),
-                creationTimestamp = cursor.getLong(cursor.getColumnIndexOrThrow(FILE_CREATION)),
+                creationTimestamp = cursor.getLongOrNull(FILE_CREATION),
                 modificationTimestamp = cursor.getLong(cursor.getColumnIndexOrThrow(FILE_MODIFIED)),
                 etag = cursor.getString(cursor.getColumnIndexOrThrow(FILE_ETAG)),
-                remoteEtag = cursor.getString(cursor.getColumnIndexOrThrow(FILE_REMOTE_ETAG)),
+                remoteEtag = cursor.getStringOrNull(FILE_REMOTE_ETAG),
                 mimeType = cursor.getStringFromColumnOrEmpty(FILE_CONTENT_TYPE),
                 length = cursor.getLong(cursor.getColumnIndexOrThrow(FILE_CONTENT_LENGTH)),
                 storagePath = cursor.getString(cursor.getColumnIndexOrThrow(FILE_STORAGE_PATH)),
                 name = cursor.getString(cursor.getColumnIndexOrThrow(FILE_NAME)),
                 treeEtag = cursor.getString(cursor.getColumnIndexOrThrow(FILE_TREE_ETAG)),
-                lastSyncDateForData = cursor.getLong(cursor.getColumnIndexOrThrow(FILE_LAST_SYNC_DATE_FOR_DATA)),
+                lastSyncDateForData = cursor.getLongOrNull(FILE_LAST_SYNC_DATE_FOR_DATA),
                 availableOfflineStatus = cursor.getInt(cursor.getColumnIndexOrThrow(FILE_KEEP_IN_SYNC)),
-                fileShareViaLink = cursor.getInt(cursor.getColumnIndexOrThrow(FILE_SHARED_VIA_LINK)),
+                fileShareViaLink = cursor.getIntOrNull(FILE_SHARED_VIA_LINK),
                 needsToUpdateThumbnail = cursor.getInt(cursor.getColumnIndexOrThrow(FILE_UPDATE_THUMBNAIL)) == 1,
-                modifiedAtLastSyncForData = cursor.getLong(cursor.getColumnIndexOrThrow(FILE_MODIFIED_AT_LAST_SYNC_FOR_DATA)),
+                modifiedAtLastSyncForData = cursor.getLongOrNull(FILE_MODIFIED_AT_LAST_SYNC_FOR_DATA),
                 etagInConflict = cursor.getString(cursor.getColumnIndexOrThrow(FILE_ETAG_IN_CONFLICT)),
                 fileIsDownloading = cursor.getInt(cursor.getColumnIndexOrThrow(FILE_IS_DOWNLOADING)) == 1,
-                sharedWithSharee = cursor.getInt(cursor.getColumnIndexOrThrow(FILE_SHARED_WITH_SHAREE)) == 1
+                sharedWithSharee = cursor.getInt(cursor.getColumnIndexOrThrow(FILE_SHARED_WITH_SHAREE)) == 1,
+                spaceId = cursor.getStringOrNull(FILE_SPACE_ID),
             ).apply {
                 id = cursor.getLong(cursor.getColumnIndexOrThrow(_ID))
             }
+
+        private fun Cursor.getLongOrNull(
+            columnName: String
+        ): Long? = getColumnIndex(columnName).takeUnless { it < 0 || isNull(it) }?.let { getLong(it) }
+
+        private fun Cursor.getIntOrNull(
+            columnName: String
+        ): Int? = getColumnIndex(columnName).takeUnless { it < 0 || isNull(it) }?.let { getInt(it) }
+
+        private fun Cursor.getStringOrNull(
+            columnName: String
+        ): String? = getColumnIndex(columnName).takeUnless { it < 0 || isNull(it) }?.let { getString(it) }
 
         private fun Cursor.getStringFromColumnOrEmpty(
             columnName: String

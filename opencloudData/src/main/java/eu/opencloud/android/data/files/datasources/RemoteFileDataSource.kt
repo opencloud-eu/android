@@ -96,4 +96,10 @@ interface RemoteFileDataSource {
         accountName: String,
     ): OCMetaFile
 
+    fun searchFiles(
+        searchQuery: String,
+        accountName: String,
+        spaceId: String? = null,
+    ): List<OCFile>
+
 }

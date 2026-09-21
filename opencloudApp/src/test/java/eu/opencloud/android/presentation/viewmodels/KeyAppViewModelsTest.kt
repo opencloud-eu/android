@@ -31,7 +31,9 @@ import eu.opencloud.android.domain.automaticuploads.usecases.SaveVideoUploadsCon
 import eu.opencloud.android.domain.files.model.FileListOption
 import eu.opencloud.android.domain.files.usecases.CreateFolderAsyncUseCase
 import eu.opencloud.android.domain.files.usecases.GetFileByIdUseCase
+import eu.opencloud.android.domain.files.usecases.GetFileByRemotePathUseCase
 import eu.opencloud.android.domain.files.usecases.GetFolderContentAsStreamUseCase
+import eu.opencloud.android.domain.files.usecases.SearchFilesUseCase
 import eu.opencloud.android.domain.files.usecases.SortFilesWithSyncInfoUseCase
 import eu.opencloud.android.domain.spaces.usecases.GetPersonalSpaceForAccountUseCase
 import eu.opencloud.android.domain.spaces.usecases.GetSpaceByIdForAccountUseCase
@@ -53,6 +55,7 @@ import eu.opencloud.android.providers.ContextProvider
 import eu.opencloud.android.providers.WorkManagerProvider
 import eu.opencloud.android.testutil.OC_ACCOUNT_NAME
 import eu.opencloud.android.testutil.OC_BACKUP
+import eu.opencloud.android.testutil.OC_FILE_WITH_SYNC_INFO
 import eu.opencloud.android.testutil.OC_FOLDER
 import eu.opencloud.android.testutil.OC_FOLDER_WITH_SPACE_ID
 import eu.opencloud.android.testutil.OC_ROOT_FOLDER
@@ -69,6 +72,8 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
@@ -298,6 +303,7 @@ class KeyAppViewModelsTest : ViewModelTest() {
             getSpaceWithSpecialsByIdForAccountUseCase = getSpaceWithSpecialsByIdForAccountUseCase,
             sortFilesWithSyncInfoUseCase = SortFilesWithSyncInfoUseCase(),
             synchronizeFolderUseCase = synchronizeFolderUseCase,
+            searchFilesUseCase = mockk(relaxed = true),
             getAppRegistryWhichAllowCreationAsStreamUseCase = getAppRegistryWhichAllowCreationAsStreamUseCase,
             getAppRegistryForMimeTypeAsStreamUseCase = mockk(relaxed = true),
             getUrlToOpenInWebUseCase = mockk(relaxed = true),
@@ -330,4 +336,158 @@ class KeyAppViewModelsTest : ViewModelTest() {
             )
         }
     }
+
+    @Test
+    fun `MainFileListViewModel search executes searchFilesUseCase and updates state`() = runTest(testCoroutineDispatcher) {
+        val sharedPreferencesProvider = mockk<SharedPreferencesProvider>(relaxed = true)
+        every { sharedPreferencesProvider.getBoolean(any(), any()) } returns false
+        every { sharedPreferencesProvider.getInt(PREF_FILE_LIST_SORT_TYPE, any()) } returns SortType.SORT_TYPE_BY_NAME.ordinal
+        every { sharedPreferencesProvider.getInt(PREF_FILE_LIST_SORT_ORDER, any()) } returns SortOrder.SORT_ORDER_ASCENDING.ordinal
+
+        val searchFilesUseCase = mockk<SearchFilesUseCase>()
+        every {
+            searchFilesUseCase(
+                SearchFilesUseCase.Params(
+                    searchQuery = "document",
+                    accountName = OC_ROOT_FOLDER.owner,
+                    spaceId = null,
+                )
+            )
+        } returns UseCaseResult.Success(listOf(OC_FILE_WITH_SYNC_INFO))
+
+        val getFolderContentAsStreamUseCase = mockk<GetFolderContentAsStreamUseCase>()
+        every { getFolderContentAsStreamUseCase(any()) } returns flowOf(emptyList())
+
+        val getAppRegistryWhichAllowCreationAsStreamUseCase = mockk<GetAppRegistryWhichAllowCreationAsStreamUseCase>()
+        every { getAppRegistryWhichAllowCreationAsStreamUseCase(any()) } returns flowOf(emptyList())
+
+        val getSpaceWithSpecialsByIdForAccountUseCase = mockk<GetSpaceWithSpecialsByIdForAccountUseCase>()
+        every { getSpaceWithSpecialsByIdForAccountUseCase(any()) } returns OC_SPACE_PERSONAL
+
+        val viewModel = MainFileListViewModel(
+            getFolderContentAsStreamUseCase = getFolderContentAsStreamUseCase,
+            getSharedByLinkForAccountAsStreamUseCase = mockk(relaxed = true),
+            getFilesAvailableOfflineFromAccountAsStreamUseCase = mockk(relaxed = true),
+            getFileByIdUseCase = mockk(relaxed = true),
+            getFileByRemotePathUseCase = mockk(relaxed = true),
+            getSpaceWithSpecialsByIdForAccountUseCase = getSpaceWithSpecialsByIdForAccountUseCase,
+            sortFilesWithSyncInfoUseCase = SortFilesWithSyncInfoUseCase(),
+            synchronizeFolderUseCase = mockk(relaxed = true),
+            searchFilesUseCase = searchFilesUseCase,
+            getAppRegistryWhichAllowCreationAsStreamUseCase = getAppRegistryWhichAllowCreationAsStreamUseCase,
+            getAppRegistryForMimeTypeAsStreamUseCase = mockk(relaxed = true),
+            getUrlToOpenInWebUseCase = mockk(relaxed = true),
+            filterFileMenuOptionsUseCase = mockk(relaxed = true),
+            contextProvider = contextProvider,
+            coroutinesDispatcherProvider = coroutineDispatcherProvider,
+            sharedPreferencesProvider = sharedPreferencesProvider,
+            initialFolderToDisplay = OC_ROOT_FOLDER,
+            fileListOptionParam = FileListOption.ALL_FILES,
+        )
+
+        val states = mutableListOf<MainFileListViewModel.FileListUiState>()
+        val job = launch(UnconfinedTestDispatcher(testScheduler)) {
+            viewModel.fileListUiState.collect { states.add(it) }
+        }
+
+        viewModel.updateSearchFilter("document")
+        testScheduler.advanceTimeBy(350)
+        testScheduler.runCurrent()
+
+        verify {
+            searchFilesUseCase(
+                SearchFilesUseCase.Params(
+                    searchQuery = "document",
+                    accountName = OC_ROOT_FOLDER.owner,
+                    spaceId = null,
+                )
+            )
+        }
+
+        val successState = states.filterIsInstance<MainFileListViewModel.FileListUiState.Success>().lastOrNull()
+        assertTrue(successState != null)
+        assertEquals("document", successState?.searchFilter)
+        assertEquals(listOf(OC_FILE_WITH_SYNC_INFO), successState?.folderContent)
+
+        job.cancel()
+    }
+
+    @Test
+    fun `MainFileListViewModel manageBrowseUp resolves parent via remote path when parentId is null`() =
+        runTest(testCoroutineDispatcher) {
+            val sharedPreferencesProvider = mockk<SharedPreferencesProvider>(relaxed = true)
+            every { sharedPreferencesProvider.getBoolean(any(), any()) } returns false
+            every { sharedPreferencesProvider.getInt(PREF_FILE_LIST_SORT_TYPE, any()) } returns
+                SortType.SORT_TYPE_BY_NAME.ordinal
+            every { sharedPreferencesProvider.getInt(PREF_FILE_LIST_SORT_ORDER, any()) } returns
+                SortOrder.SORT_ORDER_ASCENDING.ordinal
+
+            val parentFolder = OC_ROOT_FOLDER.copy(
+                id = 10L,
+                remotePath = "/ebooks/",
+            )
+            val currentFolderWithNullParent = OC_ROOT_FOLDER.copy(
+                id = 20L,
+                parentId = null,
+                remotePath = "/ebooks/Öko Test/",
+            )
+
+            val getFileByRemotePathUseCase = mockk<GetFileByRemotePathUseCase>()
+            every {
+                getFileByRemotePathUseCase(
+                    GetFileByRemotePathUseCase.Params(
+                        owner = currentFolderWithNullParent.owner,
+                        remotePath = "/ebooks/",
+                        spaceId = currentFolderWithNullParent.spaceId,
+                    )
+                )
+            } returns UseCaseResult.Success(parentFolder)
+
+            val getFolderContentAsStreamUseCase = mockk<GetFolderContentAsStreamUseCase>()
+            every { getFolderContentAsStreamUseCase(any()) } returns flowOf(emptyList())
+
+            val getAppRegistryWhichAllowCreationAsStreamUseCase =
+                mockk<GetAppRegistryWhichAllowCreationAsStreamUseCase>()
+            every { getAppRegistryWhichAllowCreationAsStreamUseCase(any()) } returns flowOf(emptyList())
+
+            val getSpaceWithSpecialsByIdForAccountUseCase = mockk<GetSpaceWithSpecialsByIdForAccountUseCase>()
+            every { getSpaceWithSpecialsByIdForAccountUseCase(any()) } returns OC_SPACE_PERSONAL
+
+            val viewModel = MainFileListViewModel(
+                getFolderContentAsStreamUseCase = getFolderContentAsStreamUseCase,
+                getSharedByLinkForAccountAsStreamUseCase = mockk(relaxed = true),
+                getFilesAvailableOfflineFromAccountAsStreamUseCase = mockk(relaxed = true),
+                getFileByIdUseCase = mockk(relaxed = true),
+                getFileByRemotePathUseCase = getFileByRemotePathUseCase,
+                getSpaceWithSpecialsByIdForAccountUseCase = getSpaceWithSpecialsByIdForAccountUseCase,
+                sortFilesWithSyncInfoUseCase = SortFilesWithSyncInfoUseCase(),
+                synchronizeFolderUseCase = mockk(relaxed = true),
+                searchFilesUseCase = mockk(relaxed = true),
+                getAppRegistryWhichAllowCreationAsStreamUseCase = getAppRegistryWhichAllowCreationAsStreamUseCase,
+                getAppRegistryForMimeTypeAsStreamUseCase = mockk(relaxed = true),
+                getUrlToOpenInWebUseCase = mockk(relaxed = true),
+                filterFileMenuOptionsUseCase = mockk(relaxed = true),
+                contextProvider = contextProvider,
+                coroutinesDispatcherProvider = coroutineDispatcherProvider,
+                sharedPreferencesProvider = sharedPreferencesProvider,
+                initialFolderToDisplay = currentFolderWithNullParent,
+                fileListOptionParam = FileListOption.ALL_FILES,
+            )
+
+            assertEquals(currentFolderWithNullParent, viewModel.getFile())
+
+            viewModel.manageBrowseUp()
+            testScheduler.advanceUntilIdle()
+
+            assertEquals(parentFolder, viewModel.getFile())
+            verify {
+                getFileByRemotePathUseCase(
+                    GetFileByRemotePathUseCase.Params(
+                        owner = currentFolderWithNullParent.owner,
+                        remotePath = "/ebooks/",
+                        spaceId = currentFolderWithNullParent.spaceId,
+                    )
+                )
+            }
+        }
 }

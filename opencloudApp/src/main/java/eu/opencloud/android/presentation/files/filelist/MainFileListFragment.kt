@@ -40,6 +40,7 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
+import android.view.inputmethod.InputMethodManager
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -185,6 +186,7 @@ class MainFileListFragment : Fragment(),
     private var menu: Menu? = null
     private var checkedFiles: List<OCFile> = emptyList()
     private var filesToRemove: List<OCFile> = emptyList()
+    private var searchView: SearchView? = null
     private var fileSingleFile: OCFile? = null
     private var fileOptionsBottomSheetSingleFileLayout: LinearLayout? = null
     private var succeededTransfers: List<OCTransfer>? = null
@@ -786,9 +788,11 @@ class MainFileListFragment : Fragment(),
         collectLatestLifecycleFlow(mainFileListViewModel.fileListUiState) { fileListUiState ->
             if (fileListUiState !is MainFileListViewModel.FileListUiState.Success) return@collectLatestLifecycleFlow
 
+            val isSearchActive = !fileListUiState.searchFilter.isNullOrBlank()
             fileListAdapter.updateFileList(
                 filesToAdd = fileListUiState.folderContent,
                 fileListOption = fileListUiState.fileListOption,
+                isSearchActive = isSearchActive,
             )
             showOrHideEmptyView(fileListUiState)
 
@@ -928,7 +932,11 @@ class MainFileListFragment : Fragment(),
         with(binding.emptyDataParent) {
             root.isVisible = fileListUiState.folderContent.isEmpty()
 
-            if (fileListUiState.fileListOption.isSharedByLink() && fileListUiState.space != null) {
+            if (!fileListUiState.searchFilter.isNullOrBlank()) {
+                listEmptyDatasetIcon.setImageResource(R.drawable.ic_search)
+                listEmptyDatasetTitle.setText(R.string.local_file_list_search_with_no_matches)
+                listEmptyDatasetSubTitle.text = ""
+            } else if (fileListUiState.fileListOption.isSharedByLink() && fileListUiState.space != null) {
                 // Temporary solution for shares space
                 listEmptyDatasetIcon.setImageResource(R.drawable.ic_server_shares)
                 listEmptyDatasetTitle.setText(R.string.shares_list_empty_title)
@@ -1294,7 +1302,14 @@ class MainFileListFragment : Fragment(),
         dialog.show(requireActivity().supportFragmentManager, DIALOG_CREATE_FOLDER)
     }
 
-    override fun onQueryTextSubmit(query: String?): Boolean = false
+    override fun onQueryTextSubmit(query: String?): Boolean {
+        query?.let { mainFileListViewModel.updateSearchFilter(it) }
+        view?.findFocus()?.let {
+            val imm = requireActivity().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+            imm.hideSoftInputFromWindow(it.windowToken, 0)
+        }
+        return true
+    }
 
     override fun onQueryTextChange(newText: String?): Boolean {
         newText?.let { mainFileListViewModel.updateSearchFilter(it) }
@@ -1302,6 +1317,7 @@ class MainFileListFragment : Fragment(),
     }
 
     fun setSearchListener(searchView: SearchView) {
+        this.searchView = searchView
         searchView.setOnQueryTextListener(this)
     }
 
@@ -1545,6 +1561,12 @@ class MainFileListFragment : Fragment(),
         val ocFile = ocFileWithSyncInfo.file
 
         if (ocFile.isFolder) {
+            searchView?.let {
+                if (!it.isIconified) {
+                    it.setQuery("", false)
+                    it.isIconified = true
+                }
+            }
             mainFileListViewModel.updateFolderToDisplay(ocFile)
         } else { // Click on a file
             fileActions?.onFileClicked(ocFile)

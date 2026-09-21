@@ -56,4 +56,28 @@ class RemoteFileTest {
         val actualRemotePath = RemoteFile.Companion.getRemotePathFromUrl(httpUrlToTest, "username", spaceWebDavUrl)
         assertEquals(expectedRemotePath, actualRemotePath)
     }
+
+    @Test
+    fun getRemotePathFromUrl_spacesWebDav_withoutSpaceWebDavUrl() {
+        val path = "8871f4f3-fc6f-4a66-8bed-62f175f76f38$05bca744-d89f-4e9c-a990-25a0d7f03fe9/Documents/text.txt"
+        val httpUrlToTest = "https://server.url/remote.php/dav/spaces/$path".toHttpUrl()
+        val expectedRemotePath = "/Documents/text.txt"
+
+        val actualRemotePath = RemoteFile.Companion.getRemotePathFromUrl(httpUrlToTest, "username")
+        assertEquals(expectedRemotePath, actualRemotePath)
+    }
+
+    @Test
+    fun getSpaceIdFromUrl() {
+        val path = "8871f4f3-fc6f-4a66-8bed-62f175f76f38$05bca744-d89f-4e9c-a990-25a0d7f03fe9/Documents/text.txt"
+        val spacesUrl = "https://server.url/remote.php/dav/spaces/$path".toHttpUrl()
+        val expectedSpaceId = "8871f4f3-fc6f-4a66-8bed-62f175f76f38$05bca744-d89f-4e9c-a990-25a0d7f03fe9"
+
+        val actualSpaceId = RemoteFile.Companion.getSpaceIdFromUrl(spacesUrl)
+        assertEquals(expectedSpaceId, actualSpaceId)
+
+        val legacyUrl = "https://server.url/remote.php/dav/files/username/Documents/text.txt".toHttpUrl()
+        val legacySpaceId = RemoteFile.Companion.getSpaceIdFromUrl(legacyUrl)
+        assertEquals(null, legacySpaceId)
+    }
 }

@@ -5,7 +5,7 @@
     <string name="global_name">Nombre</string>
     <string name="global_date">Fecha</string>
     <string name="global_size">Tamaño</string>
-    <string name="actionbar_search">Buscar aquí</string>
+    <string name="actionbar_search">Buscar archivos</string>
     <string name="actionbar_search_space">Buscar en Espacios</string>
     <string name="actionbar_sync">Sincronizar cuenta</string>
     <string name="actionbar_upload">Subir</string>
