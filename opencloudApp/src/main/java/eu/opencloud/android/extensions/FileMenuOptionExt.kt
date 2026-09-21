@@ -40,6 +40,7 @@ fun FileMenuOption.toResId() =
         FileMenuOption.SEND -> R.id.action_send_file
         FileMenuOption.SET_AV_OFFLINE -> R.id.action_set_available_offline
         FileMenuOption.UNSET_AV_OFFLINE -> R.id.action_unset_available_offline
+        FileMenuOption.ADD_TO_HOME_SCREEN -> R.id.action_add_to_home
     }
 
 fun FileMenuOption.toStringResId() =
@@ -59,6 +60,7 @@ fun FileMenuOption.toStringResId() =
         FileMenuOption.SEND -> R.string.actionbar_send_file
         FileMenuOption.SET_AV_OFFLINE -> R.string.set_available_offline
         FileMenuOption.UNSET_AV_OFFLINE -> R.string.unset_available_offline
+        FileMenuOption.ADD_TO_HOME_SCREEN -> R.string.add_to_home_screen
     }
 
 fun FileMenuOption.toDrawableResId() =
@@ -78,4 +80,5 @@ fun FileMenuOption.toDrawableResId() =
         FileMenuOption.SEND -> R.drawable.ic_send_white
         FileMenuOption.SET_AV_OFFLINE -> R.drawable.ic_action_set_available_offline
         FileMenuOption.UNSET_AV_OFFLINE -> R.drawable.ic_action_unset_available_offline
+        FileMenuOption.ADD_TO_HOME_SCREEN -> R.drawable.ic_action_add_to_home
     }

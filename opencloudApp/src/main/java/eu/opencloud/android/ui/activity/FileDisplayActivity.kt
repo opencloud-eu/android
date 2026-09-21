@@ -201,6 +201,7 @@ class FileDisplayActivity : FileActivity(),
 
     private var isLightUser = false
     private var isMultiPersonal = false
+    private var shortcutFolderToNavigate: OCFile? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         Timber.v("onCreate() start")
@@ -253,6 +254,8 @@ class FileDisplayActivity : FileActivity(),
         binding = ActivityMainBinding.inflate(layoutInflater)
         val view = binding.root
         setContentView(view)
+
+        handleShortcutIntent()
 
         // setup toolbar
         setupRootToolbar(
@@ -348,7 +351,17 @@ class FileDisplayActivity : FileActivity(),
             })
             isLightUser = manageAccountsViewModel.checkUserLight(account.name)
             isMultiPersonal = capabilitiesViewModel.checkMultiPersonal()
-            navigateTo(fileListOption, initialState = true)
+
+            if (shortcutFolderToNavigate != null) {
+                fileListOption = FileListOption.ALL_FILES
+                setFile(shortcutFolderToNavigate)
+                initAndShowListOfFiles(fileListOption)
+                refreshListOfFilesFragment()
+                updateToolbar(shortcutFolderToNavigate)
+                shortcutFolderToNavigate = null
+            } else {
+                navigateTo(fileListOption, initialState = true)
+            }
 
         }
 
@@ -1964,6 +1977,28 @@ class FileDisplayActivity : FileActivity(),
         intent.data?.let { uri ->
             fileOperationsViewModel.handleDeepLink(uri, getCurrentOpenCloudAccount(baseContext).name)
         }
+    }
+
+    private fun handleShortcutIntent() {
+        val sc = eu.opencloud.android.presentation.files.addtohomescreen.FolderShortcutHelper
+        if (intent?.action != sc.ACTION_OPEN_SHORTCUT) return
+
+        val shortcutRemotePath = intent?.getStringExtra(sc.EXTRA_SHORTCUT_FOLDER_REMOTE_PATH)
+        val shortcutSpaceId = intent?.getStringExtra(sc.EXTRA_SHORTCUT_FOLDER_SPACE_ID)
+        if (shortcutRemotePath != null) {
+            val file = storageManager.getFileByPath(shortcutRemotePath, shortcutSpaceId)
+            if (file != null) {
+                shortcutFolderToNavigate = file
+            } else {
+                showMessageInSnackbar(
+                    R.id.list_layout,
+                    getString(R.string.add_to_home_screen_shortcut_folder_missing)
+                )
+            }
+        }
+        intent?.removeExtra(sc.EXTRA_SHORTCUT_FOLDER_REMOTE_ID)
+        intent?.removeExtra(sc.EXTRA_SHORTCUT_FOLDER_REMOTE_PATH)
+        intent?.removeExtra(sc.EXTRA_SHORTCUT_FOLDER_SPACE_ID)
     }
 
     private fun onDeepLinkManaged() {
