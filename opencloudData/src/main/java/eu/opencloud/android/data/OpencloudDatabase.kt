@@ -32,6 +32,8 @@ import eu.opencloud.android.data.appregistry.db.AppRegistryDao
 import eu.opencloud.android.data.appregistry.db.AppRegistryEntity
 import eu.opencloud.android.data.capabilities.db.OCCapabilityDao
 import eu.opencloud.android.data.capabilities.db.OCCapabilityEntity
+import eu.opencloud.android.data.exportjobs.db.ExportJobDao
+import eu.opencloud.android.data.exportjobs.db.ExportJobEntity
 import eu.opencloud.android.data.files.db.FileDao
 import eu.opencloud.android.data.files.db.OCFileEntity
 import eu.opencloud.android.data.files.db.OCFileSyncEntity
@@ -52,6 +54,7 @@ import eu.opencloud.android.data.migrations.MIGRATION_41_42
 import eu.opencloud.android.data.migrations.MIGRATION_42_43
 import eu.opencloud.android.data.migrations.MIGRATION_47_48
 import eu.opencloud.android.data.migrations.MIGRATION_48_49
+import eu.opencloud.android.data.migrations.MIGRATION_49_50
 import eu.opencloud.android.data.sharing.shares.db.OCShareDao
 import eu.opencloud.android.data.sharing.shares.db.OCShareEntity
 import eu.opencloud.android.data.spaces.db.SpaceSpecialEntity
@@ -65,6 +68,7 @@ import eu.opencloud.android.data.user.db.UserQuotaEntity
 @Database(
     entities = [
         AppRegistryEntity::class,
+        ExportJobEntity::class,
         FolderBackUpEntity::class,
         OCCapabilityEntity::class,
         OCFileEntity::class,
@@ -91,6 +95,7 @@ import eu.opencloud.android.data.user.db.UserQuotaEntity
 abstract class OpencloudDatabase : RoomDatabase() {
     abstract fun appRegistryDao(): AppRegistryDao
     abstract fun capabilityDao(): OCCapabilityDao
+    abstract fun exportJobDao(): ExportJobDao
     abstract fun fileDao(): FileDao
     abstract fun folderBackUpDao(): FolderBackupDao
     abstract fun shareDao(): OCShareDao
@@ -127,7 +132,8 @@ abstract class OpencloudDatabase : RoomDatabase() {
                         MIGRATION_41_42,
                         MIGRATION_42_43,
                         MIGRATION_47_48,
-                        MIGRATION_48_49)
+                        MIGRATION_48_49,
+                        MIGRATION_49_50)
                     .build()
                 INSTANCE = instance
                 instance

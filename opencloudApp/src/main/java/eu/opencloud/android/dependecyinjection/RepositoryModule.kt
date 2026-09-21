@@ -25,6 +25,7 @@ package eu.opencloud.android.dependecyinjection
 import eu.opencloud.android.data.appregistry.repository.OCAppRegistryRepository
 import eu.opencloud.android.data.authentication.repository.OCAuthenticationRepository
 import eu.opencloud.android.data.capabilities.repository.OCCapabilityRepository
+import eu.opencloud.android.data.exportjobs.repository.OCExportJobRepository
 import eu.opencloud.android.data.files.repository.OCFileRepository
 import eu.opencloud.android.data.folderbackup.repository.OCFolderBackupRepository
 import eu.opencloud.android.data.oauth.repository.OCOAuthRepository
@@ -40,6 +41,7 @@ import eu.opencloud.android.domain.authentication.AuthenticationRepository
 import eu.opencloud.android.domain.authentication.oauth.OAuthRepository
 import eu.opencloud.android.domain.automaticuploads.FolderBackupRepository
 import eu.opencloud.android.domain.capabilities.CapabilityRepository
+import eu.opencloud.android.domain.exportjobs.ExportJobRepository
 import eu.opencloud.android.domain.files.FileRepository
 import eu.opencloud.android.domain.server.ServerInfoRepository
 import eu.opencloud.android.domain.sharing.sharees.ShareeRepository
@@ -56,6 +58,7 @@ val repositoryModule = module {
     factoryOf(::OCAppRegistryRepository) bind AppRegistryRepository::class
     factoryOf(::OCAuthenticationRepository) bind AuthenticationRepository::class
     factoryOf(::OCCapabilityRepository) bind CapabilityRepository::class
+    factoryOf(::OCExportJobRepository) bind ExportJobRepository::class
     factoryOf(::OCFileRepository) bind FileRepository::class
     factoryOf(::OCFolderBackupRepository) bind FolderBackupRepository::class
     factoryOf(::OCOAuthRepository) bind OAuthRepository::class
