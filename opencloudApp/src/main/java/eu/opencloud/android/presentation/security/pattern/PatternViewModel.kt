@@ -22,6 +22,7 @@ package eu.opencloud.android.presentation.security.pattern
 
 import androidx.lifecycle.ViewModel
 import eu.opencloud.android.data.providers.SharedPreferencesProvider
+import eu.opencloud.android.presentation.security.AppLockSecretHash
 import eu.opencloud.android.presentation.security.biometric.BiometricActivity
 
 class PatternViewModel(
@@ -29,7 +30,7 @@ class PatternViewModel(
 ) : ViewModel() {
 
     fun setPattern(pattern: String) {
-        preferencesProvider.putString(PatternActivity.PREFERENCE_PATTERN, pattern)
+        preferencesProvider.putString(PatternActivity.PREFERENCE_PATTERN, AppLockSecretHash.hash(pattern))
         preferencesProvider.putBoolean(PatternActivity.PREFERENCE_SET_PATTERN, true)
     }
 
@@ -39,8 +40,16 @@ class PatternViewModel(
     }
 
     fun checkPatternIsValid(patternValue: String?): Boolean {
+        if (patternValue == null) return false
+
         val savedPattern = preferencesProvider.getString(PatternActivity.PREFERENCE_PATTERN, null)
-        return savedPattern != null && savedPattern == patternValue
+        if (savedPattern.isNullOrEmpty()) return false
+
+        val isValid = AppLockSecretHash.verify(patternValue, savedPattern)
+        if (isValid && !AppLockSecretHash.isHash(savedPattern)) {
+            setPattern(patternValue)
+        }
+        return isValid
     }
 
     fun setBiometricsState(enabled: Boolean) {

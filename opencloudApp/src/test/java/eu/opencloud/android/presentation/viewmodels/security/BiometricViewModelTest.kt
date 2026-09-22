@@ -107,6 +107,7 @@ class BiometricViewModelTest : ViewModelTest() {
 
         verify(exactly = 1) {
             preferencesProvider.removePreference(PassCodeActivity.PREFERENCE_PASSCODE)
+            preferencesProvider.removePreference(PassCodeActivity.PREFERENCE_PASSCODE_LENGTH)
             preferencesProvider.putBoolean(PassCodeActivity.PREFERENCE_SET_PASSCODE, false)
         }
     }

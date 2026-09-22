@@ -28,6 +28,7 @@ import androidx.lifecycle.ViewModel
 import eu.opencloud.android.R
 import eu.opencloud.android.data.providers.SharedPreferencesProvider
 import eu.opencloud.android.domain.utils.Event
+import eu.opencloud.android.presentation.security.AppLockSecretHash
 import eu.opencloud.android.presentation.security.PREFERENCE_LAST_UNLOCK_ATTEMPT_TIMESTAMP
 import eu.opencloud.android.presentation.security.PREFERENCE_LAST_UNLOCK_TIMESTAMP
 import eu.opencloud.android.presentation.security.biometric.BiometricActivity
@@ -66,7 +67,7 @@ class PassCodeViewModel(
     private var confirmingPassCode = false
 
     init {
-        numberOfPasscodeDigits = (getPassCode()?.length ?: getNumberOfPassCodeDigits())
+        numberOfPasscodeDigits = getPassCodeLength()
     }
 
     fun onNumberClicked(number: Int) {
@@ -108,11 +109,11 @@ class PassCodeViewModel(
     }
 
     private fun actionCheckPasscode() {
-        if (checkPassCodeIsValid(passcodeString.toString())) {
+        val enteredPasscode = passcodeString.toString()
+        if (checkPassCodeIsValid(enteredPasscode)) {
             // pass code accepted in request, user is allowed to access the app
             setLastUnlockTimestamp()
-            val passCode = getPassCode()
-            if (passCode != null && passCode.length < getNumberOfPassCodeDigits()) {
+            if (getPassCodeLength() < getNumberOfPassCodeDigits()) {
                 setMigrationRequired(true)
                 removePassCode()
                 _status.postValue(Status(PasscodeAction.CHECK, PasscodeType.MIGRATION))
@@ -150,24 +151,40 @@ class PassCodeViewModel(
         }
     }
 
-    fun getPassCode() = preferencesProvider.getString(PassCodeActivity.PREFERENCE_PASSCODE, loadPinFromOldFormatIfPossible())
+    fun getPassCode(): String? =
+        getStoredPassCode()?.takeUnless(AppLockSecretHash::isHash)
+
+    fun getPassCodeLength(): Int {
+        val storedPassCode = getStoredPassCode()
+        return when {
+            storedPassCode == null -> getNumberOfPassCodeDigits()
+            AppLockSecretHash.isHash(storedPassCode) ->
+                preferencesProvider.getInt(PassCodeActivity.PREFERENCE_PASSCODE_LENGTH, getNumberOfPassCodeDigits())
+            else -> storedPassCode.length
+        }
+    }
 
     fun setPassCode() {
-        preferencesProvider.putString(PassCodeActivity.PREFERENCE_PASSCODE, firstPasscode)
-        preferencesProvider.putBoolean(PassCodeActivity.PREFERENCE_SET_PASSCODE, true)
-        numberOfPasscodeDigits = (getPassCode()?.length ?: getNumberOfPassCodeDigits())
+        storePassCode(firstPasscode)
+        numberOfPasscodeDigits = getPassCodeLength()
     }
 
     fun removePassCode() {
         preferencesProvider.removePreference(PassCodeActivity.PREFERENCE_PASSCODE)
+        preferencesProvider.removePreference(PassCodeActivity.PREFERENCE_PASSCODE_LENGTH)
         preferencesProvider.putBoolean(PassCodeActivity.PREFERENCE_SET_PASSCODE, false)
-        numberOfPasscodeDigits = (getPassCode()?.length ?: getNumberOfPassCodeDigits())
+        numberOfPasscodeDigits = getPassCodeLength()
     }
 
     fun checkPassCodeIsValid(passcode: String): Boolean {
-        val passCodeString = getPassCode()
-        if (passCodeString.isNullOrEmpty()) return false
-        return passcode == passCodeString
+        val storedPassCode = getStoredPassCode()
+        if (storedPassCode.isNullOrEmpty()) return false
+
+        val isValid = AppLockSecretHash.verify(passcode, storedPassCode)
+        if (isValid && !AppLockSecretHash.isHash(storedPassCode)) {
+            storePassCode(passcode)
+        }
+        return isValid
     }
 
     fun getNumberOfPassCodeDigits(): Int {
@@ -228,6 +245,22 @@ class PassCodeViewModel(
             pinChar?.let { pinString += pinChar }
         }
         return pinString.ifEmpty { null }
+    }
+
+    private fun getStoredPassCode(): String? =
+        preferencesProvider.getString(PassCodeActivity.PREFERENCE_PASSCODE, loadPinFromOldFormatIfPossible())
+
+    private fun storePassCode(passcode: String) {
+        preferencesProvider.putString(PassCodeActivity.PREFERENCE_PASSCODE, AppLockSecretHash.hash(passcode))
+        preferencesProvider.putInt(PassCodeActivity.PREFERENCE_PASSCODE_LENGTH, passcode.length)
+        preferencesProvider.putBoolean(PassCodeActivity.PREFERENCE_SET_PASSCODE, true)
+        removeLegacyPinFormat()
+    }
+
+    private fun removeLegacyPinFormat() {
+        for (i in 1..4) {
+            preferencesProvider.removePreference(PassCodeActivity.PREFERENCE_PASSCODE_D + i)
+        }
     }
 
     fun setBiometricsState(enabled: Boolean) {
