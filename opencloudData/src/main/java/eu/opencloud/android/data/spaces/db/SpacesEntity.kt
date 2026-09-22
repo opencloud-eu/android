@@ -89,7 +89,7 @@ data class SpaceQuotaEntity(
     @ColumnInfo(name = SPACES_QUOTA_STATE)
     val state: String?,
     @ColumnInfo(name = SPACES_QUOTA_TOTAL)
-    val total: Long,
+    val total: Long?,
     @ColumnInfo(name = SPACES_QUOTA_USED)
     val used: Long?,
 )

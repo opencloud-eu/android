@@ -28,8 +28,10 @@ import eu.opencloud.android.testutil.OC_ACCOUNT_NAME
 import eu.opencloud.android.testutil.OC_CAPABILITY
 import eu.opencloud.android.testutil.OC_CAPABILITY_WITH_MULTIPERSONAL_ENABLED
 import eu.opencloud.android.testutil.OC_SPACE_PERSONAL
+import eu.opencloud.android.testutil.OC_SPACE_PERSONAL_WITH_EMPTY_QUOTA
 import eu.opencloud.android.testutil.OC_SPACE_PERSONAL_WITH_LIMITED_QUOTA
 import eu.opencloud.android.testutil.OC_SPACE_PERSONAL_WITH_UNLIMITED_QUOTA
+import eu.opencloud.android.testutil.OC_SPACE_PERSONAL_WITHOUT_QUOTA
 import eu.opencloud.android.testutil.OC_SPACE_PROJECT_WITH_IMAGE
 import eu.opencloud.android.testutil.OC_USER_QUOTA_LIMITED
 import eu.opencloud.android.testutil.OC_USER_QUOTA_UNLIMITED
@@ -130,6 +132,65 @@ class OCSpacesRepositoryTest {
             localSpacesDataSource.saveSpacesForAccount(listOf(OC_SPACE_PROJECT_WITH_IMAGE))
             localCapabilitiesDataSource.getCapabilitiesForAccount(OC_ACCOUNT_NAME)
             localUserDataSource.saveQuotaForAccount(OC_ACCOUNT_NAME, OC_USER_QUOTA_WITHOUT_PERSONAL)
+        }
+    }
+
+    @Test
+    fun `refreshSpacesForAccount refreshes spaces for account correctly when quota is missing`() {
+        every {
+            remoteSpacesDataSource.refreshSpacesForAccount(OC_ACCOUNT_NAME)
+        } returns listOf(OC_SPACE_PERSONAL_WITHOUT_QUOTA)
+
+        every {
+            localCapabilitiesDataSource.getCapabilitiesForAccount(OC_ACCOUNT_NAME)
+        } returns OC_CAPABILITY
+
+        ocSpacesRepository.refreshSpacesForAccount(OC_ACCOUNT_NAME)
+
+        verify(exactly = 1) {
+            remoteSpacesDataSource.refreshSpacesForAccount(OC_ACCOUNT_NAME)
+            localSpacesDataSource.saveSpacesForAccount(listOf(OC_SPACE_PERSONAL_WITHOUT_QUOTA))
+            localCapabilitiesDataSource.getCapabilitiesForAccount(OC_ACCOUNT_NAME)
+            localUserDataSource.saveQuotaForAccount(OC_ACCOUNT_NAME, OC_USER_QUOTA_WITHOUT_PERSONAL)
+        }
+    }
+
+    @Test
+    fun `refreshSpacesForAccount refreshes spaces for account correctly when quota is empty`() {
+        every {
+            remoteSpacesDataSource.refreshSpacesForAccount(OC_ACCOUNT_NAME)
+        } returns listOf(OC_SPACE_PERSONAL_WITH_EMPTY_QUOTA)
+
+        every {
+            localCapabilitiesDataSource.getCapabilitiesForAccount(OC_ACCOUNT_NAME)
+        } returns OC_CAPABILITY
+
+        ocSpacesRepository.refreshSpacesForAccount(OC_ACCOUNT_NAME)
+
+        verify(exactly = 1) {
+            remoteSpacesDataSource.refreshSpacesForAccount(OC_ACCOUNT_NAME)
+            localSpacesDataSource.saveSpacesForAccount(listOf(OC_SPACE_PERSONAL_WITH_EMPTY_QUOTA))
+            localCapabilitiesDataSource.getCapabilitiesForAccount(OC_ACCOUNT_NAME)
+            localUserDataSource.saveQuotaForAccount(OC_ACCOUNT_NAME, OC_USER_QUOTA_WITHOUT_PERSONAL)
+        }
+    }
+
+    @Test
+    fun `refreshSpacesForAccount clears local spaces when remote returns empty list`() {
+        every {
+            remoteSpacesDataSource.refreshSpacesForAccount(OC_ACCOUNT_NAME)
+        } returns emptyList()
+
+        ocSpacesRepository.refreshSpacesForAccount(OC_ACCOUNT_NAME)
+
+        verify(exactly = 1) {
+            remoteSpacesDataSource.refreshSpacesForAccount(OC_ACCOUNT_NAME)
+            localSpacesDataSource.deleteSpacesForAccount(OC_ACCOUNT_NAME)
+            localUserDataSource.saveQuotaForAccount(OC_ACCOUNT_NAME, OC_USER_QUOTA_WITHOUT_PERSONAL)
+        }
+        verify(exactly = 0) {
+            localSpacesDataSource.saveSpacesForAccount(any())
+            localCapabilitiesDataSource.getCapabilitiesForAccount(any())
         }
     }
 
