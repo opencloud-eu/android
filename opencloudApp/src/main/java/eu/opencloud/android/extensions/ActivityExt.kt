@@ -27,8 +27,6 @@ import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.content.Intent.FLAG_ACTIVITY_NO_HISTORY
-import android.content.pm.PackageManager
-import android.content.pm.ResolveInfo
 import android.net.Uri
 import android.text.method.LinkMovementMethod
 import android.util.TypedValue
@@ -222,24 +220,10 @@ private fun getExposedFileUri(context: Context, localPath: String): Uri? {
 
 fun Activity.openFileWithIntent(intentForSavedMimeType: Intent, intentForGuessedMimeType: Intent?) {
     val openFileWithIntent: Intent = intentForGuessedMimeType ?: intentForSavedMimeType
-    val launchables: List<ResolveInfo> =
-        this.packageManager.queryIntentActivities(openFileWithIntent, PackageManager.MATCH_DEFAULT_ONLY)
-    if (launchables.isNotEmpty()) {
-        try {
-            this.startActivity(
-                Intent.createChooser(
-                    openFileWithIntent, this.getString(R.string.actionbar_open_with)
-                )
-            )
-        } catch (anfe: ActivityNotFoundException) {
-            Timber.i(anfe, "No app found for file type")
-            showMessageInSnackbar(
-                message = this.getString(
-                    R.string.file_list_no_app_for_file_type
-                )
-            )
-        }
-    } else {
+    try {
+        startActivity(openFileWithIntent)
+    } catch (anfe: ActivityNotFoundException) {
+        Timber.i(anfe, "No app found for file type")
         showMessageInSnackbar(
             message = this.getString(
                 R.string.file_list_no_app_for_file_type
@@ -474,7 +458,7 @@ fun Activity.openOCFile(ocFile: OCFile) {
     }
 
     try {
-        startActivity(Intent.createChooser(intentForSavedMimeType, getString(R.string.actionbar_open_with)))
+        startActivity(intentForSavedMimeType)
     } catch (anfe: ActivityNotFoundException) {
         showErrorInSnackbar(genericErrorMessageId = R.string.file_list_no_app_for_file_type, anfe)
     }
