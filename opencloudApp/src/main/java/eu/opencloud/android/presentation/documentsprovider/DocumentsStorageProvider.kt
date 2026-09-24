@@ -26,6 +26,7 @@
 
 package eu.opencloud.android.presentation.documentsprovider
 
+import android.content.Context
 import android.content.res.AssetFileDescriptor
 import android.database.Cursor
 import android.database.MatrixCursor
@@ -35,6 +36,7 @@ import android.os.CancellationSignal
 import android.os.Handler
 import android.os.ParcelFileDescriptor
 import android.provider.DocumentsContract
+import org.json.JSONObject
 import android.provider.DocumentsProvider
 import eu.opencloud.android.MainApp
 import eu.opencloud.android.R
@@ -61,6 +63,7 @@ import eu.opencloud.android.presentation.documentsprovider.cursors.FileCursor
 import eu.opencloud.android.presentation.documentsprovider.cursors.RootCursor
 import eu.opencloud.android.presentation.documentsprovider.cursors.SpaceCursor
 import eu.opencloud.android.presentation.settings.security.SettingsSecurityFragment.Companion.PREFERENCE_LOCK_ACCESS_FROM_DOCUMENT_PROVIDER
+import eu.opencloud.android.presentation.settings.advanced.SettingsAdvancedFragment.Companion.PREFERENCE_PRETEND_LOCAL_STORAGE
 import eu.opencloud.android.usecases.synchronization.SynchronizeFileUseCase
 import eu.opencloud.android.usecases.transfers.downloads.DownloadFileUseCase
 import eu.opencloud.android.usecases.synchronization.SynchronizeFolderUseCase
@@ -94,6 +97,9 @@ class DocumentsStorageProvider : DocumentsProvider() {
     private var spacesSyncRequired = true
 
     private lateinit var fileToUpload: OCFile
+    private val pendingUploadsPrefs by lazy {
+        context!!.getSharedPreferences("saf_pending_uploads", Context.MODE_PRIVATE)
+    }
 
     // Cache to avoid redundant PROPFINDs when apps (e.g. Google Photos) call
     // openDocument many times for the same file. Two layers:
@@ -106,6 +112,59 @@ class DocumentsStorageProvider : DocumentsProvider() {
     private var propfindCacheFileId: Long? = null
     private var propfindCacheTimestamp: Long = 0
 
+    private fun savePendingDocument(pendingId: String, ocFile: OCFile) {
+        val json = JSONObject().apply {
+            put("remotePath", ocFile.remotePath)
+            put("mimeType", ocFile.mimeType)
+            put("owner", ocFile.owner)
+            if (ocFile.parentId != null) put("parentId", ocFile.parentId)
+            if (ocFile.spaceId != null) put("spaceId", ocFile.spaceId)
+            put("storagePath", ocFile.storagePath)
+        }
+        pendingUploadsPrefs.edit().putString(pendingId, json.toString()).apply()
+    }
+
+    private fun getPendingDocument(pendingId: String): OCFile? {
+        val jsonString = pendingUploadsPrefs.getString(pendingId, null) ?: return null
+        val json = JSONObject(jsonString)
+
+        if (json.has("dbId")) {
+            val dbId = json.getLong("dbId")
+            return try {
+                getFileByIdOrException(dbId.toInt())
+            } catch (_: Exception) {
+                null
+            }
+        }
+
+        val remotePath = json.getString("remotePath")
+        val owner = json.getString("owner")
+        val spaceId = if (json.has("spaceId")) json.getString("spaceId") else null
+
+        return try {
+            val fileFromDb = getFileByPathOrException(remotePath, owner, spaceId)
+            json.put("dbId", fileFromDb.id)
+            pendingUploadsPrefs.edit().putString(pendingId, json.toString()).apply()
+            fileFromDb
+        } catch (_: Exception) {
+            OCFile(
+                remotePath = remotePath,
+                mimeType = json.getString("mimeType"),
+                parentId = if (json.has("parentId")) json.getLong("parentId") else null,
+                owner = owner,
+                spaceId = spaceId,
+                modificationTimestamp = 0,
+                length = 0
+            ).apply {
+                storagePath = json.getString("storagePath")
+                val localFile = File(storagePath ?: "")
+                if (localFile.exists()) {
+                    length = localFile.length()
+                }
+            }
+        }
+    }
+
     override fun openDocument(
         documentId: String,
         mode: String,
@@ -115,7 +174,7 @@ class DocumentsStorageProvider : DocumentsProvider() {
 
         // If documentId == NONEXISTENT_DOCUMENT_ID only Upload is needed because file does not exist in our database yet.
         var ocFile: OCFile
-        val uploadOnly: Boolean = documentId == NONEXISTENT_DOCUMENT_ID || documentId == "null"
+        val uploadOnly: Boolean = documentId == NONEXISTENT_DOCUMENT_ID || documentId == "null" || documentId.startsWith("pending_")
 
         var accessMode: Int = ParcelFileDescriptor.parseMode(mode)
         val isWrite: Boolean = mode.contains("w")
@@ -197,11 +256,11 @@ class DocumentsStorageProvider : DocumentsProvider() {
                 }
             }
         } else {
-            ocFile = fileToUpload
+            ocFile = getPendingDocument(documentId) ?: fileToUpload
             accessMode = accessMode or ParcelFileDescriptor.MODE_CREATE
         }
 
-        val fileToOpen = File(ocFile.storagePath)
+        val fileToOpen = File(ocFile.storagePath ?: "")
 
         return if (!isWrite) {
             ParcelFileDescriptor.open(fileToOpen, accessMode)
@@ -318,7 +377,13 @@ class DocumentsStorageProvider : DocumentsProvider() {
     override fun queryDocument(documentId: String, projection: Array<String>?): Cursor {
         Timber.d("Query Document: $documentId")
         if (documentId == NONEXISTENT_DOCUMENT_ID) return FileCursor(projection).apply {
-            addFile(fileToUpload)
+            if (this@DocumentsStorageProvider::fileToUpload.isInitialized) addFile(fileToUpload, documentId)
+        }
+
+        if (documentId.startsWith("pending_")) {
+            return FileCursor(projection).apply {
+                getPendingDocument(documentId)?.let { addFile(it, documentId) }
+            }
         }
 
         val fileId = try {
@@ -350,6 +415,10 @@ class DocumentsStorageProvider : DocumentsProvider() {
         // If access from document provider is not allowed, return empty cursor
         val preferences: SharedPreferencesProvider by inject()
         val lockAccessFromDocumentProvider = preferences.getBoolean(PREFERENCE_LOCK_ACCESS_FROM_DOCUMENT_PROVIDER, false)
+
+        // Get if user selected to pretend local storage
+        val pretendLocal = preferences.getBoolean(PREFERENCE_PRETEND_LOCAL_STORAGE, false)
+
         return if (lockAccessFromDocumentProvider && accounts.isNotEmpty()) {
             result.apply { addProtectedRoot(contextApp) }
         } else {
@@ -362,7 +431,7 @@ class DocumentsStorageProvider : DocumentsProvider() {
                 )
                 val spacesFeatureAllowedForAccount = AccountUtils.isSpacesFeatureAllowedForAccount(contextApp, account, capabilities)
 
-                result.addRoot(account, contextApp, spacesFeatureAllowedForAccount)
+                result.addRoot(account, contextApp, spacesFeatureAllowedForAccount, pretendLocal)
             }
             result
         }
@@ -376,7 +445,7 @@ class DocumentsStorageProvider : DocumentsProvider() {
         // To do: Show thumbnail for spaces
         val file = getFileByIdOrException(documentId.toInt())
 
-        val realFile = File(file.storagePath)
+        val realFile = File(file.storagePath ?: "")
 
         return AssetFileDescriptor(
             ParcelFileDescriptor.open(realFile, ParcelFileDescriptor.MODE_READ_ONLY), 0, AssetFileDescriptor.UNKNOWN_LENGTH
@@ -497,6 +566,43 @@ class DocumentsStorageProvider : DocumentsProvider() {
         }
     }
 
+    override fun isChildDocument(parentDocumentId: String, documentId: String): Boolean {
+        Timber.d("isChildDocument($parentDocumentId, $documentId)")
+
+        // If they are the same, Android specs usually consider it a child/match
+        if (parentDocumentId == documentId) return true
+
+        return try {
+            // Parse the child file. If it's a new un-uploaded file, pull from memory. Otherwise, query DB.
+            val childFile = if (documentId == NONEXISTENT_DOCUMENT_ID && this::fileToUpload.isInitialized) {
+                fileToUpload
+            } else if (documentId.startsWith("pending_")) {
+                getPendingDocument(documentId) ?: return false
+            } else {
+                getFileByIdOrException(documentId.toInt())
+            }
+
+            val parentIdInt = parentDocumentId.toIntOrNull()
+
+            if (parentIdInt != null) {
+                // The parent is a standard folder
+                val parentFile = getFileByIdOrException(parentIdInt)
+
+                // Check if the child belongs to the same account and its path sits inside the parent's path and space
+                childFile.owner == parentFile.owner &&
+                    childFile.spaceId == parentFile.spaceId &&
+                    childFile.remotePath.startsWith(parentFile.remotePath)
+            } else {
+                // The parentDocumentId is a string, meaning it's the account root (e.g., "user@server.com")
+                // Just verify the child file belongs to this account
+                childFile.owner == parentDocumentId
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "Error evaluating isChildDocument for parent: $parentDocumentId, child: $documentId")
+            false
+        }
+    }
+
     private fun checkUseCaseResult(result: UseCaseResult<Any>, folderToNotify: String) {
         if (!result.isSuccess) {
             Timber.e(result.getThrowableOrNull()!!)
@@ -530,22 +636,26 @@ class DocumentsStorageProvider : DocumentsProvider() {
         mimeType: String,
         displayName: String,
     ): String {
-        // We just need to return a Document ID, so we'll return an empty one. File does not exist in our db yet.
-        // File will be created at [openDocument] method.
+        val pendingId = "pending_${UUID.randomUUID()}"
         val tempDir = File(FileStorageUtils.getTemporalPath(parentDocument.owner, parentDocument.spaceId))
-        val newFile = File(tempDir, displayName)
+        val newFile = File(File(tempDir, pendingId), displayName)
         newFile.parentFile?.mkdirs()
-        fileToUpload = OCFile(
+
+        val ocFile = OCFile(
             remotePath = parentDocument.remotePath + displayName,
             mimeType = mimeType,
             parentId = parentDocument.id,
             owner = parentDocument.owner,
-            spaceId = parentDocument.spaceId
+            spaceId = parentDocument.spaceId,
+            modificationTimestamp = 0,
+            length = 0
         ).apply {
             storagePath = newFile.path
         }
 
-        return NONEXISTENT_DOCUMENT_ID
+        savePendingDocument(pendingId, ocFile)
+
+        return pendingId
     }
 
     /**

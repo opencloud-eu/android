@@ -29,4 +29,11 @@
         app:key="remove_local_files"
         app:negativeButtonText=""
         app:title="@string/prefs_delete_local_files" />
+
+    <CheckBoxPreference
+        app:key="pretend_local_storage"
+        app:title="@string/prefs_pretend_local_title"
+        app:summary="@string/prefs_pretend_local_summary"
+        app:defaultValue="false"
+        app:iconSpaceReserved="false" />
 </PreferenceScreen>
