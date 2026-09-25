@@ -24,6 +24,12 @@
     -->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <!--
+        Since API 29 the system strips location metadata (GPS EXIF) from photos and videos read
+        through the media store / SAF unless this permission is held. Requested at runtime only
+        when picture or video automatic uploads are enabled.
+    -->
+    <uses-permission android:name="android.permission.ACCESS_MEDIA_LOCATION" />
+    <!--
         Notifications are off by default since API 33;
         See note in https://developer.android.com/develop/ui/views/notifications/notification-permission
     -->

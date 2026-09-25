@@ -66,6 +66,7 @@ import eu.opencloud.android.lib.resources.files.ReadRemoteFileOperation
 import eu.opencloud.android.lib.resources.files.UploadFileFromFileSystemOperation
 import eu.opencloud.android.lib.resources.files.tus.TusChecksumHelper
 import eu.opencloud.android.presentation.authentication.AccountUtils
+import eu.opencloud.android.utils.MediaLocationUtils
 import eu.opencloud.android.utils.MimetypeIconUtil
 import eu.opencloud.android.utils.NotificationUtils
 import eu.opencloud.android.utils.UPLOAD_NOTIFICATION_CHANNEL_ID
@@ -251,7 +252,7 @@ class UploadFileFromContentUriWorker(
 
         // openInputStream can return null if the content provider is unavailable or permissions were revoked.
         // Failing here avoids silently uploading a 0-byte file.
-        val inputStream = appContext.contentResolver.openInputStream(contentUri)
+        val inputStream = MediaLocationUtils.openInputStreamPreservingLocation(appContext, appContext.contentResolver, contentUri)
         if (inputStream == null) {
             Timber.e("Failed to open input stream for %s — content provider unavailable or permissions revoked", contentUri)
             throw LocalFileNotFoundException()
