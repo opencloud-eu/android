@@ -32,7 +32,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.LinearLayout
-import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
@@ -273,8 +272,6 @@ class FileListAdapter(
                     position = adapterPosition
                 )
             }
-            holder.itemView.setBackgroundColor(colorSurface)
-
             val checkBoxV = holder.itemView.findViewById<ImageView>(R.id.custom_checkbox).apply {
                 isVisible = hasActiveSelection
             }
@@ -310,7 +307,7 @@ class FileListAdapter(
                 }
 
                 if (file.mimeType.equals("image/png", ignoreCase = true)) {
-                    fileIcon.setBackgroundColor(ContextCompat.getColor(context, R.color.background_color))
+                    fileIcon.setBackgroundColor(colorSurface)
                 } else {
                     fileIcon.setBackgroundColor(Color.TRANSPARENT)
                 }

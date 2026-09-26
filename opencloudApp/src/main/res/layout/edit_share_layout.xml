@@ -60,7 +60,7 @@
                 android:paddingStart="0dp"
                 android:paddingEnd="0dp"
                 android:text="@string/share_privilege_can_edit"
-                android:textColor="@color/color_accent" />
+                android:textColor="?attr/colorOnSurface" />
 
             <CheckBox
                 android:id="@+id/canEditCreateCheckBox"
@@ -92,7 +92,7 @@
                 android:layout_marginTop="@dimen/standard_half_margin"
                 android:paddingLeft="0dp"
                 android:text="@string/share_privilege_can_share"
-                android:textColor="@color/color_accent" />
+                android:textColor="?attr/colorOnSurface" />
 
             <TextView
                 android:id="@+id/private_share_error_message"

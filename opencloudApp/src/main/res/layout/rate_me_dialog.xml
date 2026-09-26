@@ -31,7 +31,7 @@
         android:layout_marginEnd="8dp"
         android:drawableEnd="@drawable/ic_star_black_24dp"
         android:drawablePadding="16dp"
-        android:textColor="@color/color_accent"
+        android:textColor="?attr/colorOnSurface"
         android:textSize="20sp"
         android:text="@string/rate_dialog_title" />
 
@@ -47,7 +47,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:textSize="16sp"
-        android:textColor="@color/color_accent"
+        android:textColor="?attr/colorOnSurface"
         android:layout_marginStart="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginBottom="16dp"

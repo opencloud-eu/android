@@ -22,6 +22,7 @@ package eu.opencloud.android.settings
 
 import android.content.ClipboardManager
 import android.content.Context
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.fragment.app.testing.FragmentScenario
 import androidx.fragment.app.testing.launchFragmentInContainer
 import androidx.preference.ListPreference
@@ -44,6 +45,7 @@ import eu.opencloud.android.presentation.settings.AppearanceMode
 import eu.opencloud.android.presentation.releasenotes.ReleaseNotesViewModel
 import eu.opencloud.android.presentation.settings.more.SettingsMoreViewModel
 import eu.opencloud.android.presentation.settings.SettingsViewModel
+import eu.opencloud.android.providers.WorkManagerProvider
 import eu.opencloud.android.utils.matchers.verifyPreference
 import eu.opencloud.android.utils.releaseNotesList
 import io.mockk.every
@@ -79,10 +81,15 @@ class SettingsFragmentTest {
     private lateinit var context: Context
 
     private lateinit var version: String
+    private var previousNightMode = AppCompatDelegate.MODE_NIGHT_UNSPECIFIED
+    private var previousAppearance: String? = null
 
     @Before
     fun setUp() {
         context = InstrumentationRegistry.getInstrumentation().targetContext
+        previousNightMode = AppCompatDelegate.getDefaultNightMode()
+        previousAppearance = PreferenceManager.getDefaultSharedPreferences(context)
+            .getString(AppearanceMode.PREFERENCE_KEY, null)
         PreferenceManager.getDefaultSharedPreferences(context).edit().remove(AppearanceMode.PREFERENCE_KEY).commit()
         settingsViewModel = mockk(relaxed = true)
         moreViewModel = mockk(relaxed = true)
@@ -95,6 +102,7 @@ class SettingsFragmentTest {
             allowOverride(override = true)
             modules(
                 module {
+                    single { mockk<WorkManagerProvider>(relaxed = true) }
                     viewModel {
                         settingsViewModel
                     }
@@ -121,6 +129,14 @@ class SettingsFragmentTest {
 
     @After
     fun tearDown() {
+        if (::fragmentScenario.isInitialized) {
+            fragmentScenario.close()
+        }
+        PreferenceManager.getDefaultSharedPreferences(context).edit()
+            .putString(AppearanceMode.PREFERENCE_KEY, previousAppearance).commit()
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            AppCompatDelegate.setDefaultNightMode(previousNightMode)
+        }
         Intents.release()
         unmockkAll()
     }
@@ -235,6 +251,33 @@ class SettingsFragmentTest {
             PreferenceManager.getDefaultSharedPreferences(context)
                 .getString(AppearanceMode.PREFERENCE_KEY, null)
         )
+    }
+
+    @Test
+    fun appearanceSelectionAppliesAndPersistsNightMode() {
+        launchTest(attachedAccount = false)
+
+        listOf(
+            AppearanceMode.LIGHT to R.string.prefs_appearance_light,
+            AppearanceMode.DARK to R.string.prefs_appearance_dark,
+            AppearanceMode.SYSTEM to R.string.prefs_appearance_system
+        ).forEach { (mode, label) ->
+            onView(withText(R.string.prefs_appearance)).perform(click())
+            onView(withText(label)).perform(click())
+
+            assertEquals(mode.nightMode, AppCompatDelegate.getDefaultNightMode())
+            assertEquals(
+                mode.name,
+                PreferenceManager.getDefaultSharedPreferences(context)
+                    .getString(AppearanceMode.PREFERENCE_KEY, null)
+            )
+            fragmentScenario.recreate()
+            fragmentScenario.onFragment { fragment ->
+                val preference = fragment.findPreference<ListPreference>(AppearanceMode.PREFERENCE_KEY)
+                assertEquals(mode.name, preference?.value)
+                assertEquals(context.getString(label), preference?.summary)
+            }
+        }
     }
 
     @Test

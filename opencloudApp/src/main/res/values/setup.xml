@@ -38,7 +38,6 @@
     <color name="login_credentials_text_color">@color/white</color>
     <color name="login_button_background_color">@color/white</color>
     <color name="login_button_text_color">@color/color_accent</color>
-    <color name="background_color">#FFFFFF</color>
     <color name="actionbar_start_color">@color/primary</color>
     <color name="primary_button_background_color">@color/color_accent</color>
     <color name="primary_button_text_color">@color/white</color>

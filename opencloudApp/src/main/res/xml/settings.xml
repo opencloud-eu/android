@@ -21,7 +21,7 @@
     <ListPreference
         app:defaultValue="SYSTEM"
         app:dialogTitle="@string/prefs_appearance"
-        app:iconSpaceReserved="false"
+        app:icon="@drawable/ic_appearance"
         app:key="appearance_mode"
         app:title="@string/prefs_appearance" />
 
