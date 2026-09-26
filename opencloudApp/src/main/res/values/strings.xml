@@ -39,6 +39,10 @@
     <string name="drawer_feedback">GitHub Discussions</string>
     <string name="drawer_help">Help</string>
     <string name="prefs_category_general">General</string>
+    <string name="prefs_appearance">Appearance</string>
+    <string name="prefs_appearance_system">System default</string>
+    <string name="prefs_appearance_light">Light</string>
+    <string name="prefs_appearance_dark">Dark</string>
     <string name="prefs_subsection_logging">Logging</string>
     <string name="prefs_subsection_more">More</string>
     <string name="prefs_subsection_security">Security</string>

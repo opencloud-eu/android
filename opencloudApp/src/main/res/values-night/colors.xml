@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- DayNight semantic color tokens -->
+    <color name="theme_color_background">#121212</color>
+    <color name="theme_color_surface">#1E1E1E</color>
+    <color name="theme_color_on_surface">#FFFFFF</color>
+    <color name="theme_color_on_surface_variant">#E0E0E0</color>
+    <color name="theme_color_outline">#A5ABAF</color>
+    <color name="theme_color_on_primary">#FFFFFF</color>
+    <color name="theme_color_selection">#31515D</color>
+</resources>

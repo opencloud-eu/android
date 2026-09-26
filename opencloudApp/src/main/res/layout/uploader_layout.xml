@@ -65,7 +65,7 @@
             android:layout_width="match_parent"
             android:layout_height="0dip"
             android:layout_weight="1"
-            android:divider="@color/list_divider_background"
+            android:divider="?attr/colorOutline"
             android:dividerHeight="1dip"
             android:visibility="gone"
             tools:listitem="@layout/uploader_list_item_layout" />

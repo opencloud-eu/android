@@ -25,8 +25,8 @@
     <!-- General openCloud app style.
          To apply directly only on Activities that cannot extend ToolbarActivity;
          otherwise, prefer Theme.openCloud.Toolbar -->
-    <style name="Theme.openCloud" parent="Theme.AppCompat.Light.DarkActionBar">
-        <item name="android:windowBackground">@color/background_color</item>
+    <style name="Theme.openCloud" parent="Theme.AppCompat.DayNight.DarkActionBar">
+        <item name="android:windowBackground">?android:attr/colorBackground</item>
 
         <!-- theme for the app bar (both for old actionbar and new toolbar) -->
         <item name="actionBarTheme">@style/openCloud.Appbar</item>
@@ -39,6 +39,14 @@
         <item name="colorPrimary">@color/primary</item>
         <item name="colorPrimaryDark">@color/actionbar_start_color</item>
         <item name="colorAccent">@color/color_accent</item>
+        <item name="android:colorBackground">@color/theme_color_background</item>
+        <item name="colorSurface">@color/theme_color_surface</item>
+        <item name="colorOnSurface">@color/theme_color_on_surface</item>
+        <item name="colorOnSurfaceVariant">@color/theme_color_on_surface_variant</item>
+        <item name="colorOutline">@color/theme_color_outline</item>
+        <item name="colorOnPrimary">@color/theme_color_on_primary</item>
+        <item name="colorOnBackground">@color/theme_color_on_surface</item>
+        <item name="colorSelection">@color/theme_color_selection</item>
 
         <!-- default theme for alert dialogs -->
         <item name="alertDialogTheme">@style/Theme.openCloud.AlertDialog</item>
@@ -88,9 +96,9 @@
     <!-- DIALOG THEMES: styles for DIALOGs -->
 
     <!-- DEFAULT (via Theme.openCloud), and explicitly used ONCE, in Preference "behaviour" for instant uploads - NO MORE, not needed, it's default -->
-    <style name="Theme.openCloud.AlertDialog" parent="Theme.AppCompat.Light.Dialog.Alert">
+    <style name="Theme.openCloud.AlertDialog" parent="Theme.AppCompat.DayNight.Dialog.Alert">
         <item name="colorAccent">@color/color_accent</item>
-        <item name="android:textColorPrimary">@color/primary</item>
+        <item name="android:textColorPrimary">?attr/colorOnSurface</item>
         <item name="searchViewStyle">@style/openCloud.SearchView</item>
         <item name="buttonBarButtonStyle">@style/Theme.openCloud.Dialog.ButtonBar.Button</item>
         <item name="buttonBarStyle">@style/Theme.openCloud.Dialog.ButtonBar</item>
@@ -145,7 +153,7 @@
     </style>
 
     <style name="Button.Borderless" parent="Widget.AppCompat.Button.Borderless">
-        <item name="android:textColor">@color/color_accent</item>
+        <item name="android:textColor">@color/dialog_button_text</item>
     </style>
 
     <!-- Style for top progress bar -->
@@ -182,6 +190,7 @@
     </style>
 
     <style name="Theme.openCloud.Dialog.ButtonBar.Button" parent="@style/Widget.AppCompat.Button.Borderless.Colored">
+        <item name="android:textColor">@color/dialog_button_text</item>
         <!-- Setting the weight as follows should result in equally wide buttons filling the alert dialog width,
             but instead they span further out of the dialog, breaking in multiple lines though -->
         <item name="android:layout_width">0dp</item>
