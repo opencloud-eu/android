@@ -2,12 +2,12 @@ package eu.opencloud.android.presentation.files.addtohomescreen
 
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PinShortcutInfo
 import android.content.pm.ShortcutInfo
 import android.content.pm.ShortcutManager
 import android.graphics.drawable.Icon
-import android.os.Build
 import android.widget.Toast
-import androidx.annotation.RequiresApi
+import androidx.core.content.ContextCompat
 import eu.opencloud.android.R
 import eu.opencloud.android.domain.files.model.OCFile
 import eu.opencloud.android.ui.activity.FileDisplayActivity
@@ -21,22 +21,35 @@ object FolderShortcutHelper {
         "eu.opencloud.android.ui.activity.action.OPEN_SHORTCUT"
 
     fun createPinnedShortcut(context: Context, folder: OCFile, shortcutName: String) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            createPinnedShortcutApi26(context, folder, shortcutName)
-        } else {
-            Toast.makeText(context, context.getString(R.string.add_to_home_screen_shortcut_added), Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    @RequiresApi(Build.VERSION_CODES.O)
-    private fun createPinnedShortcutApi26(context: Context, folder: OCFile, shortcutName: String) {
-        val shortcutManager = context.getSystemService(ShortcutManager::class.java)
-
-        if (shortcutManager?.isRequestPinShortcutSupported != true) {
-            Toast.makeText(context, context.getString(R.string.add_to_home_screen_shortcut_added), Toast.LENGTH_SHORT).show()
+        if (shortcutName.isBlank()) {
+            showMessage(context, R.string.add_to_home_screen_dialog_error_empty)
             return
         }
 
+        val shortcutManager = context.getSystemService(ShortcutManager::class.java)
+
+        if (shortcutManager?.isRequestPinShortcutSupported != true) {
+            showMessage(context, R.string.add_to_home_screen_shortcut_not_supported)
+            return
+        }
+
+        PinShortcutInfo.requestPinShortcut(context, null).requestPinShortcut(
+            shortcutManager,
+            buildShortcutInfo(context, folder, shortcutName),
+            ContextCompat.getMainExecutor(context),
+            object : PinShortcutInfo.CallbackHandler() {
+                override fun onResultShortcutAdded(resultInfo: PinShortcutInfo) {
+                    showMessage(context, R.string.add_to_home_screen_shortcut_added)
+                }
+
+                override fun onResultShortcutFailed(resultInfo: PinShortcutInfo) {
+                    showMessage(context, R.string.add_to_home_screen_shortcut_add_failed)
+                }
+            }
+        )
+    }
+
+    private fun buildShortcutInfo(context: Context, folder: OCFile, shortcutName: String): ShortcutInfo {
         val shortcutId = "folder_${folder.id}"
 
         val shortcutIntent = Intent(context, FileDisplayActivity::class.java).apply {
@@ -47,14 +60,15 @@ object FolderShortcutHelper {
             flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
         }
 
-        val shortcut = ShortcutInfo.Builder(context, shortcutId)
+        return ShortcutInfo.Builder(context, shortcutId)
             .setShortLabel(shortcutName)
             .setLongLabel(shortcutName)
             .setIcon(Icon.createWithResource(context, R.mipmap.icon))
             .setIntent(shortcutIntent)
             .build()
+    }
 
-        shortcutManager.requestPinShortcut(shortcut, null)
-        Toast.makeText(context, context.getString(R.string.add_to_home_screen_shortcut_added), Toast.LENGTH_SHORT).show()
+    private fun showMessage(context: Context, messageRes: Int) {
+        Toast.makeText(context, context.getString(messageRes), Toast.LENGTH_SHORT).show()
     }
 }
