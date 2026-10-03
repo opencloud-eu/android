@@ -24,7 +24,7 @@ object FolderShortcutHelper {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             createPinnedShortcutApi26(context, folder, shortcutName)
         } else {
-            Toast.makeText(context, context.getString(R.string.add_to_home_screen_shortcut_added), Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, context.getString(R.string.add_to_home_screen_shortcut_not_supported), Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -33,7 +33,7 @@ object FolderShortcutHelper {
         val shortcutManager = context.getSystemService(ShortcutManager::class.java)
 
         if (shortcutManager?.isRequestPinShortcutSupported != true) {
-            Toast.makeText(context, context.getString(R.string.add_to_home_screen_shortcut_added), Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, context.getString(R.string.add_to_home_screen_shortcut_not_supported), Toast.LENGTH_SHORT).show()
             return
         }
 
