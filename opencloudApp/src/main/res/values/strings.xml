@@ -871,8 +871,6 @@
     <string name="add_to_home_screen_dialog_add_button">Add</string>
     <string name="add_to_home_screen_dialog_error_empty">The name cannot be empty</string>
     <string name="add_to_home_screen_shortcut_added">Shortcut added to Home screen</string>
-    <string name="add_to_home_screen_shortcut_not_supported">Adding a Home screen shortcut is not supported by your launcher.</string>
-    <string name="add_to_home_screen_shortcut_add_failed">The shortcut could not be added to the Home screen.</string>
     <string name="add_to_home_screen_shortcut_folder_missing">This folder is no longer available. It may have been removed or renamed.</string>
 
 </resources>
