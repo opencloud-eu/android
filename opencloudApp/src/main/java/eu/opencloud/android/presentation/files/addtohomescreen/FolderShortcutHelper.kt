@@ -1,5 +1,6 @@
 package eu.opencloud.android.presentation.files.addtohomescreen
 
+import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ShortcutInfo
@@ -19,6 +20,8 @@ object FolderShortcutHelper {
     const val EXTRA_SHORTCUT_FOLDER_ACCOUNT = "SHORTCUT_FOLDER_ACCOUNT"
     const val ACTION_OPEN_SHORTCUT =
         "eu.opencloud.android.ui.activity.action.OPEN_SHORTCUT"
+    const val ACTION_PIN_SHORTCUT_RESULT =
+        "eu.opencloud.android.presentation.files.action.PIN_SHORTCUT_RESULT"
 
     const val MAX_SHORT_LABEL_LENGTH = 10
     const val MAX_LONG_LABEL_LENGTH = 25
@@ -58,12 +61,19 @@ object FolderShortcutHelper {
             .setIntent(shortcutIntent)
             .build()
 
-        shortcutManager.requestPinShortcut(shortcut, null)
-        Toast.makeText(context, context.getString(R.string.add_to_home_screen_shortcut_added), Toast.LENGTH_SHORT).show()
+        val pinResultCallback = PendingIntent.getBroadcast(
+            context,
+            0,
+            Intent(context, ShortcutPinResultReceiver::class.java).setAction(ACTION_PIN_SHORTCUT_RESULT),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val requestAccepted = shortcutManager.requestPinShortcut(shortcut, pinResultCallback.intentSender)
+        if (!requestAccepted) {
+            Toast.makeText(context, context.getString(R.string.add_to_home_screen_shortcut_failed), Toast.LENGTH_SHORT).show()
+        }
     }
 
-    private fun String.truncateForLabel(maxLength: Int): String {
-        if (length <= maxLength) return this
-        return take(maxLength - 1) + "…"
-    }
+    private fun String.truncateForLabel(maxLength: Int): String =
+        if (length > maxLength) take(maxLength - 1) + "…" else this
 }

@@ -124,6 +124,10 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
+
+        <receiver
+            android:name=".presentation.files.addtohomescreen.ShortcutPinResultReceiver"
+            android:exported="false" />
         <activity
             android:name=".ui.activity.ReceiveExternalFilesActivity"
             android:configChanges="orientation|screenSize"
