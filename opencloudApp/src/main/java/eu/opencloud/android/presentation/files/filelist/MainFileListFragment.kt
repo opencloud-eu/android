@@ -1448,6 +1448,16 @@ class MainFileListFragment : Fragment(),
                 true
             }
 
+            R.id.action_add_to_home -> {
+                if (singleFile.isFolder) {
+                    val dialog = AddToHomeScreenDialogFragment.newInstance(singleFile)
+                    dialog.show(childFragmentManager, DIALOG_ADD_TO_HOME_SCREEN)
+                }
+                fileListAdapter.clearSelection()
+                updateActionModeAfterTogglingSelected()
+                true
+            }
+
             else -> {
                 false
             }
