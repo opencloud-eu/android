@@ -11,7 +11,6 @@ import androidx.fragment.app.DialogFragment
 import com.google.android.material.textfield.TextInputLayout
 import eu.opencloud.android.R
 import eu.opencloud.android.domain.files.model.OCFile
-import eu.opencloud.android.presentation.files.filelist.MainFileListFragment.Companion.MAX_FILENAME_LENGTH
 import eu.opencloud.android.presentation.files.filelist.MainFileListFragment.Companion.forbiddenChars
 import eu.opencloud.android.utils.PreferenceUtils
 
@@ -66,9 +65,9 @@ class AddToHomeScreenDialogFragment : DialogFragment() {
                 val name = inputText.text.toString().trim()
                 val error = when {
                     name.isBlank() -> getString(R.string.add_to_home_screen_dialog_error_empty)
-                    name.length > MAX_FILENAME_LENGTH -> String.format(
-                        getString(R.string.uploader_upload_text_dialog_filename_error_length_max),
-                        MAX_FILENAME_LENGTH
+                    name.length > FolderShortcutHelper.MAX_LONG_LABEL_LENGTH -> String.format(
+                        getString(R.string.add_to_home_screen_dialog_error_length_max),
+                        FolderShortcutHelper.MAX_LONG_LABEL_LENGTH
                     )
                     forbiddenChars.any { name.contains(it) } -> getString(R.string.filename_forbidden_characters)
                     else -> null
@@ -90,10 +89,10 @@ class AddToHomeScreenDialogFragment : DialogFragment() {
             if (text.isNullOrBlank()) {
                 okButton.isEnabled = false
                 error = getString(R.string.add_to_home_screen_dialog_error_empty)
-            } else if (text.length > MAX_FILENAME_LENGTH) {
+            } else if (text.length > FolderShortcutHelper.MAX_LONG_LABEL_LENGTH) {
                 error = String.format(
-                    getString(R.string.uploader_upload_text_dialog_filename_error_length_max),
-                    MAX_FILENAME_LENGTH
+                    getString(R.string.add_to_home_screen_dialog_error_length_max),
+                    FolderShortcutHelper.MAX_LONG_LABEL_LENGTH
                 )
             } else if (forbiddenChars.any { text.contains(it) }) {
                 error = getString(R.string.filename_forbidden_characters)

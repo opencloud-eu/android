@@ -20,6 +20,9 @@ object FolderShortcutHelper {
     const val ACTION_OPEN_SHORTCUT =
         "eu.opencloud.android.ui.activity.action.OPEN_SHORTCUT"
 
+    const val MAX_SHORT_LABEL_LENGTH = 10
+    const val MAX_LONG_LABEL_LENGTH = 25
+
     fun createPinnedShortcut(context: Context, folder: OCFile, shortcutName: String) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             createPinnedShortcutApi26(context, folder, shortcutName)
@@ -49,13 +52,18 @@ object FolderShortcutHelper {
         }
 
         val shortcut = ShortcutInfo.Builder(context, shortcutId)
-            .setShortLabel(shortcutName)
-            .setLongLabel(shortcutName)
+            .setShortLabel(shortcutName.truncateForLabel(MAX_SHORT_LABEL_LENGTH))
+            .setLongLabel(shortcutName.truncateForLabel(MAX_LONG_LABEL_LENGTH))
             .setIcon(Icon.createWithResource(context, R.mipmap.icon))
             .setIntent(shortcutIntent)
             .build()
 
         shortcutManager.requestPinShortcut(shortcut, null)
         Toast.makeText(context, context.getString(R.string.add_to_home_screen_shortcut_added), Toast.LENGTH_SHORT).show()
+    }
+
+    private fun String.truncateForLabel(maxLength: Int): String {
+        if (length <= maxLength) return this
+        return take(maxLength - 1) + "…"
     }
 }
