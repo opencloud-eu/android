@@ -16,6 +16,7 @@ object FolderShortcutHelper {
     const val EXTRA_SHORTCUT_FOLDER_REMOTE_ID = "SHORTCUT_FOLDER_REMOTE_ID"
     const val EXTRA_SHORTCUT_FOLDER_REMOTE_PATH = "SHORTCUT_FOLDER_REMOTE_PATH"
     const val EXTRA_SHORTCUT_FOLDER_SPACE_ID = "SHORTCUT_FOLDER_SPACE_ID"
+    const val EXTRA_SHORTCUT_FOLDER_ACCOUNT = "SHORTCUT_FOLDER_ACCOUNT"
     const val ACTION_OPEN_SHORTCUT =
         "eu.opencloud.android.ui.activity.action.OPEN_SHORTCUT"
 
@@ -43,6 +44,7 @@ object FolderShortcutHelper {
             putExtra(EXTRA_SHORTCUT_FOLDER_REMOTE_ID, folder.remoteId)
             putExtra(EXTRA_SHORTCUT_FOLDER_REMOTE_PATH, folder.remotePath)
             putExtra(EXTRA_SHORTCUT_FOLDER_SPACE_ID, folder.spaceId)
+            putExtra(EXTRA_SHORTCUT_FOLDER_ACCOUNT, folder.owner)
             flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
         }
 

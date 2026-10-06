@@ -22,6 +22,7 @@ class ShortcutTrampolineActivity : Activity() {
             copyStringExtra(shortcutIntent, FolderShortcutHelper.EXTRA_SHORTCUT_FOLDER_REMOTE_ID)
             copyStringExtra(shortcutIntent, FolderShortcutHelper.EXTRA_SHORTCUT_FOLDER_REMOTE_PATH)
             copyStringExtra(shortcutIntent, FolderShortcutHelper.EXTRA_SHORTCUT_FOLDER_SPACE_ID)
+            copyStringExtra(shortcutIntent, FolderShortcutHelper.EXTRA_SHORTCUT_FOLDER_ACCOUNT)
             flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
         }
         startActivity(target)

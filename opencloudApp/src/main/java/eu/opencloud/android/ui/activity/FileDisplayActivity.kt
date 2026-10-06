@@ -1985,6 +1985,28 @@ class FileDisplayActivity : FileActivity(),
 
         val shortcutRemotePath = intent?.getStringExtra(sc.EXTRA_SHORTCUT_FOLDER_REMOTE_PATH)
         val shortcutSpaceId = intent?.getStringExtra(sc.EXTRA_SHORTCUT_FOLDER_SPACE_ID)
+        val shortcutAccountName = intent?.getStringExtra(sc.EXTRA_SHORTCUT_FOLDER_ACCOUNT)
+
+        if (shortcutRemotePath != null &&
+            !shortcutAccountName.isNullOrBlank() &&
+            shortcutAccountName != account?.name
+        ) {
+            val targetAccount = eu.opencloud.android.presentation.authentication.AccountUtils
+                .getOpenCloudAccountByName(this, shortcutAccountName)
+            if (targetAccount != null) {
+                MainApp.initDependencyInjection()
+                startActivity(Intent(this, FileDisplayActivity::class.java).apply {
+                    action = sc.ACTION_OPEN_SHORTCUT
+                    putExtra(EXTRA_ACCOUNT, targetAccount)
+                    putExtra(sc.EXTRA_SHORTCUT_FOLDER_REMOTE_PATH, shortcutRemotePath)
+                    putExtra(sc.EXTRA_SHORTCUT_FOLDER_SPACE_ID, shortcutSpaceId)
+                    putExtra(sc.EXTRA_SHORTCUT_FOLDER_ACCOUNT, shortcutAccountName)
+                    flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+                })
+                return
+            }
+        }
+
         if (shortcutRemotePath != null) {
             val file = storageManager.getFileByPath(shortcutRemotePath, shortcutSpaceId)
             if (file != null) {
@@ -1999,6 +2021,7 @@ class FileDisplayActivity : FileActivity(),
         intent?.removeExtra(sc.EXTRA_SHORTCUT_FOLDER_REMOTE_ID)
         intent?.removeExtra(sc.EXTRA_SHORTCUT_FOLDER_REMOTE_PATH)
         intent?.removeExtra(sc.EXTRA_SHORTCUT_FOLDER_SPACE_ID)
+        intent?.removeExtra(sc.EXTRA_SHORTCUT_FOLDER_ACCOUNT)
     }
 
     private fun onDeepLinkManaged() {
