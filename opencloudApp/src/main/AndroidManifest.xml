@@ -111,6 +111,19 @@
             android:configChanges="orientation|screenSize"
             android:theme="@style/Theme.openCloud.Toolbar.Drawer"
             android:windowSoftInputMode="adjustPan" />
+        <!-- Exported trampoline for pinned folder shortcuts: the launcher cannot start the
+             non-exported FileDisplayActivity directly. Only the shortcut action is accepted
+             and only the shortcut extras are forwarded. -->
+        <activity
+            android:name=".presentation.files.addtohomescreen.ShortcutTrampolineActivity"
+            android:exported="true"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar">
+            <intent-filter>
+                <action android:name="eu.opencloud.android.ui.activity.action.OPEN_SHORTCUT" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
         <activity
             android:name=".ui.activity.ReceiveExternalFilesActivity"
             android:configChanges="orientation|screenSize"

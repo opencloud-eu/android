@@ -10,7 +10,6 @@ import android.widget.Toast
 import androidx.annotation.RequiresApi
 import eu.opencloud.android.R
 import eu.opencloud.android.domain.files.model.OCFile
-import eu.opencloud.android.ui.activity.FileDisplayActivity
 
 object FolderShortcutHelper {
 
@@ -39,7 +38,7 @@ object FolderShortcutHelper {
 
         val shortcutId = "folder_${folder.id}"
 
-        val shortcutIntent = Intent(context, FileDisplayActivity::class.java).apply {
+        val shortcutIntent = Intent(context, ShortcutTrampolineActivity::class.java).apply {
             action = ACTION_OPEN_SHORTCUT
             putExtra(EXTRA_SHORTCUT_FOLDER_REMOTE_ID, folder.remoteId)
             putExtra(EXTRA_SHORTCUT_FOLDER_REMOTE_PATH, folder.remotePath)
