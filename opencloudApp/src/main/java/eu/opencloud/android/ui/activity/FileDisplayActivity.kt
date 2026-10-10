@@ -1449,13 +1449,13 @@ class FileDisplayActivity : FileActivity(),
         val messageTextView = TextView(this).apply {
             text = message
             setPadding(0, 70, 0, 30)
-            setTextColor(ContextCompat.getColor(this@FileDisplayActivity, android.R.color.black))
+            setTextColor(ContextCompat.getColor(this@FileDisplayActivity, R.color.theme_color_on_surface))
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f)
         }
 
         val urlTextView = TextView(this).apply {
             text = urlFormat
-            setTextColor(ContextCompat.getColor(this@FileDisplayActivity, android.R.color.black))
+            setTextColor(ContextCompat.getColor(this@FileDisplayActivity, R.color.theme_color_on_surface))
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f)
         }
         val scrollView = ScrollView(this).apply {
