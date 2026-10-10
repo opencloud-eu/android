@@ -313,6 +313,18 @@ class FileDisplayActivity : FileActivity(),
         Timber.v("onCreate() end")
     }
 
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleShortcutIntent()
+    }
+
+    override fun onResumeFragments() {
+        super.onResumeFragments()
+        // New intents can arrive while fragment state is saved. Navigate after it is safe to commit.
+        navigateToShortcutFolder()
+    }
+
     private fun checkNotificationPermission() {
         // Ask for permission only in case it's api >= 33 and notifications are not granted.
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
@@ -353,12 +365,7 @@ class FileDisplayActivity : FileActivity(),
             isMultiPersonal = capabilitiesViewModel.checkMultiPersonal()
 
             if (shortcutFolderToNavigate != null) {
-                fileListOption = FileListOption.ALL_FILES
-                setFile(shortcutFolderToNavigate)
-                initAndShowListOfFiles(fileListOption)
-                refreshListOfFilesFragment()
-                updateToolbar(shortcutFolderToNavigate)
-                shortcutFolderToNavigate = null
+                navigateToShortcutFolder()
             } else {
                 navigateTo(fileListOption, initialState = true)
             }
@@ -1987,6 +1994,12 @@ class FileDisplayActivity : FileActivity(),
         val shortcutSpaceId = intent?.getStringExtra(sc.EXTRA_SHORTCUT_FOLDER_SPACE_ID)
         val shortcutAccountName = intent?.getStringExtra(sc.EXTRA_SHORTCUT_FOLDER_ACCOUNT)
 
+        shortcutFolderToNavigate = null
+        intent?.removeExtra(sc.EXTRA_SHORTCUT_FOLDER_REMOTE_ID)
+        intent?.removeExtra(sc.EXTRA_SHORTCUT_FOLDER_REMOTE_PATH)
+        intent?.removeExtra(sc.EXTRA_SHORTCUT_FOLDER_SPACE_ID)
+        intent?.removeExtra(sc.EXTRA_SHORTCUT_FOLDER_ACCOUNT)
+
         if (shortcutRemotePath != null &&
             !shortcutAccountName.isNullOrBlank() &&
             shortcutAccountName != account?.name
@@ -1995,6 +2008,8 @@ class FileDisplayActivity : FileActivity(),
                 .getOpenCloudAccountByName(this, shortcutAccountName)
             if (targetAccount != null) {
                 MainApp.initDependencyInjection()
+                // Recreate account-scoped state instead of delivering another intent to this instance.
+                finish()
                 startActivity(Intent(this, FileDisplayActivity::class.java).apply {
                     action = sc.ACTION_OPEN_SHORTCUT
                     putExtra(EXTRA_ACCOUNT, targetAccount)
@@ -2003,11 +2018,16 @@ class FileDisplayActivity : FileActivity(),
                     putExtra(sc.EXTRA_SHORTCUT_FOLDER_ACCOUNT, shortcutAccountName)
                     flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
                 })
-                return
+            } else {
+                showMessageInSnackbar(
+                    R.id.list_layout,
+                    getString(R.string.add_to_home_screen_shortcut_folder_missing)
+                )
             }
+            return
         }
 
-        if (shortcutRemotePath != null) {
+        if (shortcutRemotePath != null && account != null) {
             val file = storageManager.getFileByPath(shortcutRemotePath, shortcutSpaceId)
             if (file != null) {
                 shortcutFolderToNavigate = file
@@ -2018,10 +2038,18 @@ class FileDisplayActivity : FileActivity(),
                 )
             }
         }
-        intent?.removeExtra(sc.EXTRA_SHORTCUT_FOLDER_REMOTE_ID)
-        intent?.removeExtra(sc.EXTRA_SHORTCUT_FOLDER_REMOTE_PATH)
-        intent?.removeExtra(sc.EXTRA_SHORTCUT_FOLDER_SPACE_ID)
-        intent?.removeExtra(sc.EXTRA_SHORTCUT_FOLDER_ACCOUNT)
+    }
+
+    private fun navigateToShortcutFolder() {
+        val folder = shortcutFolderToNavigate ?: return
+        shortcutFolderToNavigate = null
+        fileListOption = FileListOption.ALL_FILES
+        setFile(folder)
+        cleanSecondFragment()
+        initAndShowListOfFiles(fileListOption)
+        refreshListOfFilesFragment()
+        updateToolbar(folder)
+        setCheckedItemAtBottomBar(getMenuItemForFileListOption(fileListOption))
     }
 
     private fun onDeepLinkManaged() {
