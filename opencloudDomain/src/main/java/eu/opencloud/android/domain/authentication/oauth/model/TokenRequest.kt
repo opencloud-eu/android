@@ -49,7 +49,9 @@ sealed class TokenRequest(
         scope: String,
         clientId: String? = null,
         clientSecret: String? = null,
-        val refreshToken: String? = null
+        val refreshToken: String? = null,
+        /** Alias of the client certificate to present for mTLS, if the account uses one. */
+        val clientCertAlias: String? = null
     ) : TokenRequest(baseUrl, tokenEndpoint, clientAuth, GrantType.REFRESH_TOKEN.string, scope, clientId, clientSecret)
 
     enum class GrantType(val string: String) {
