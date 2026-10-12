@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <attr name="colorSelection" format="color" />
+
     <declare-styleable name="ActionEditText">
 
         <attr name="optionOneString" format="string" />
