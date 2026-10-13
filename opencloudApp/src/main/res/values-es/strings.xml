@@ -21,6 +21,7 @@
     <string name="actionbar_sort_title">Ordenar por</string>
     <string name="fab_new_file">Nuevo documento</string>
     <string name="fab_new_shortcut">Acceso directo</string>
+    <string name="fab_take_photo">Hacer una foto</string>
     <string name="drawer_item_all_files">Todos los archivos</string>
     <string name="drawer_item_only_available_offline">Sin conexión</string>
     <string name="drawer_item_shared_by_link_files">Enlaces compartidos</string>
@@ -38,6 +39,9 @@
     <string name="drawer_feedback">GitHub - Sugerencias</string>
     <string name="drawer_help">Ayuda</string>
     <string name="prefs_category_general">General</string>
+    <string name="prefs_appearance">Apariencia</string>
+    <string name="prefs_appearance_light">Light</string>
+    <string name="prefs_appearance_dark">Dark</string>
     <string name="prefs_subsection_logging">Registros</string>
     <string name="prefs_subsection_more">Más</string>
     <string name="prefs_subsection_security">Seguridad</string>
@@ -59,6 +63,15 @@
     <string name="prefs_lock_access_from_document_provider_summary">Bloquear el acceso de otras aplicaciones a los archivos de las cuentas a través del administrador de archivos de Android.</string>
     <string name="prefs_touches_with_other_visible_windows">Bloquear pulsaciones con aplicaciones superpuestas</string>
     <string name="prefs_touches_with_other_visible_windows_summary">Permite interactuar con la aplicación aunque haya otras ventanas visibles por encima. Activa para usar aplicaciones de atenuación de pantalla.</string>
+
+    <!-- mTLS client certificate (per account) -->
+    <string name="auth_connection_button">Conexión...</string>
+    <string name="auth_mtls_cert_selected">Certificado: %1$s</string>
+    <string name="account_mtls_button">Certificado de cliente</string>
+    <string name="account_mtls_set_cert">Establecer certificado de cliente</string>
+    <string name="account_mtls_clear_cert">Eliminar certificado de cliente</string>
+    <string name="account_mtls_cert_selected">Certificado de cliente establecido: %1$s</string>
+    <string name="account_mtls_cert_cleared">Certificado de cliente eliminado</string>
     <string name="confirmation_touches_with_other_windows_title">¿Seguro que quieres activar esta función\?</string>
     <string name="confirmation_touches_with_other_windows_message">Utiliza esta función bajo tu responsabilidad. Una aplicación maliciosa podría intentar engañarte para que realices acciones sin darte cuenta a través de otras pantallas superpuestas.</string>
     <string name="prefs_subsection_picture_uploads">Subida automática de imágenes </string>
@@ -213,6 +226,7 @@
     <string name="common_loading">Cargando...</string>
     <string name="common_unknown">desconocido</string>
     <string name="common_error_unknown">error desconocido</string>
+    <string name="error_http_code">El servidor ha devuelto un error inesperado (HTTP %1$d)</string>
     <string name="common_pending">Pendiente</string>
     <string name="common_important">Importante</string>
     <string name="change_password">Cambiar contraseña</string>
@@ -368,6 +382,7 @@
     <string name="auth_expired_basic_auth_toast">Introduce la contraseña</string>
     <string name="auth_connecting_auth_server">Conectando con el servidor de autenticación...</string>
     <string name="auth_unsupported_auth_method">El método de autenticación no es compatible con el servidor</string>
+    <string name="auth_forbidden_check_client_cert">El servidor ha rechazado la conexión. Si requiere un certificado de cliente, compruebe el seleccionado debajo de Conexión.</string>
     <string name="auth_fail_get_user_name">El servidor no devuelve un ID de usuario correcto. Por favor, contacta con un administrador.</string>
     <string name="auth_can_not_auth_against_server">No se pudo autenticar en este servidor</string>
     <string name="auth_account_does_not_exist">La cuenta aún no existe en el dispositivo</string>

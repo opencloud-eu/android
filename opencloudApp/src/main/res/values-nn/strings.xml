@@ -1,0 +1,867 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- GLOBAL -->
+    <string name="global_name">Namn</string>
+    <string name="global_date">Dato</string>
+    <string name="global_size">Storleik</string>
+    <string name="actionbar_search">Søk i denne mappa</string>
+    <string name="actionbar_search_space">Søk etter rom</string>
+    <string name="actionbar_sync">Oppdater konto</string>
+    <string name="actionbar_upload">Last opp</string>
+    <string name="actionbar_upload_from_apps">Innhald frå andre appar</string>
+    <string name="actionbar_upload_files">Filer</string>
+    <string name="actionbar_open_with">Opne med</string>
+    <string name="actionbar_open_with_read_only">Opne med (skriveverna)</string>
+    <string name="actionbar_mkdir">Ny mappe</string>
+    <string name="actionbar_settings">Innstillingar</string>
+    <string name="actionbar_see_details">Detaljar</string>
+    <string name="actionbar_send_file">Send</string>
+    <string name="actionbar_descending">Søkkjande</string>
+    <string name="actionbar_sort_title">Sorter etter</string>
+    <string name="fab_new_file">Nytt dokument</string>
+    <string name="fab_new_shortcut">Ny snarveg</string>
+    <string name="fab_take_photo">Ta eit bilete</string>
+    <string name="drawer_item_all_files">Alle filer</string>
+    <string name="drawer_item_only_available_offline">Tilgjengeleg fråkopla</string>
+    <string name="drawer_item_shared_by_link_files">Delt via lenkje</string>
+    <string name="drawer_item_settings">Innstillingar</string>
+    <string name="drawer_item_uploads_list">Opplastingar</string>
+    <string name="drawer_close">Lukk</string>
+    <string name="drawer_open">Opne</string>
+    <string name="drawer_loading_quota">Lastar kvote</string>
+    <string name="drawer_quota">%1$s av %2$s brukt (%3$s %)</string>
+    <string name="drawer_exceeded_quota">Lagringsplassen er full</string>
+    <string name="drawer_nearing_quota">Lagringsplassen er nesten full</string>
+    <string name="drawer_critical_quota">Lagringsplassen er svært nær full</string>
+    <string name="drawer_unavailable_free_storage">%1$s i bruk</string>
+    <string name="drawer_unavailable_used_storage">Ingen informasjon om lagringsbruk tilgjengeleg</string>
+    <string name="drawer_feedback">GitHub-diskusjonar</string>
+    <string name="drawer_help">Hjelp</string>
+    <string name="prefs_category_general">Generelt</string>
+    <string name="prefs_appearance_light">Lys</string>
+    <string name="prefs_appearance_dark">Mørk</string>
+    <string name="prefs_subsection_logging">Loggføring</string>
+    <string name="prefs_subsection_more">Meir</string>
+    <string name="prefs_subsection_security">Tryggleik</string>
+    <string name="prefs_subsection_whatsnew">Kva er nytt i den nyaste versjonen?</string>
+    <string name="prefs_subsection_security_summary">Lås tilgangen til appen og tillat berøringar når andre vindauge er synlege</string>
+    <string name="prefs_subsection_logging_summary">Hald oversikt over loggane som appen lagar når han køyrer</string>
+    <string name="prefs_subsection_more_summary">Appinfo, tilbakemelding og anna</string>
+    <string name="prefs_accounts">Kontoar</string>
+    <string name="prefs_manage_accounts">Handsam kontoar</string>
+    <string name="prefs_passcode">Kodelås</string>
+    <string name="prefs_biometric">Biometrisk lås</string>
+    <string name="prefs_biometric_summary">Slå på kode- eller mønsterlås for å slå på dette valet</string>
+    <string name="prefs_lock_application">Lås appen</string>
+    <string name="prefs_lock_application_entries_immediately">Med ein gong</string>
+    <string name="prefs_lock_application_entries_1minute">Etter 1 minutt</string>
+    <string name="prefs_lock_application_entries_5minutes">Etter 5 minutt</string>
+    <string name="prefs_lock_application_entries_30minutes">Etter 30 minutt</string>
+    <string name="prefs_lock_access_from_document_provider">Lås tilgang frå dokumentleverandør</string>
+    <string name="prefs_lock_access_from_document_provider_summary">Lås tilgangen andre appar har til filene til kontoane i appen via den innebygde filutforskaren i Android.</string>
+    <string name="prefs_touches_with_other_visible_windows">Berøringar når andre vindauge er synlege</string>
+    <string name="prefs_touches_with_other_visible_windows_summary">Tillat berøringar når visinga er dekt av eit anna synleg vindauge. Slå på dette for å bruke appar som filtrerer lyset.</string>
+
+    <!-- mTLS client certificate (per account) -->
+    <string name="auth_connection_button">Tilkopling …</string>
+    <string name="auth_mtls_cert_selected">Sertifikat: %1$s</string>
+    <string name="account_mtls_button">Klientsertifikat</string>
+    <string name="account_mtls_set_cert">Vel klientsertifikat</string>
+    <string name="account_mtls_clear_cert">Fjern klientsertifikat</string>
+    <string name="account_mtls_cert_selected">Klientsertifikat er valt: %1$s</string>
+    <string name="account_mtls_cert_cleared">Klientsertifikatet er fjerna</string>
+    <string name="confirmation_touches_with_other_windows_title">Er du sikker på at du vil slå på denne funksjonen?</string>
+    <string name="confirmation_touches_with_other_windows_message">Bruk denne funksjonen på eigen risiko. Ein vondsinna app kan prøve å lure deg til å gjere handlingar utan at du veit det, ved å bruke andre visingar.</string>
+    <string name="prefs_subsection_picture_uploads">Automatisk opplasting av bilete</string>
+    <string name="prefs_subsection_picture_uploads_summary">Styr kvar og korleis bilete vert lasta opp automatisk</string>
+    <string name="prefs_subsection_video_uploads">Automatisk videoopplasting</string>
+    <string name="prefs_subsection_video_uploads_summary">Styr kvar og korleis videoar vert lasta opp automatisk</string>
+    <string name="prefs_camera_picture_upload">Opplasting av bilete</string>
+    <string name="prefs_camera_picture_upload_summary">Last opp bilete frå kameraet automatisk</string>
+    <string name="prefs_camera_picture_upload_path_title">Opplastingssti for bilete</string>
+    <string name="prefs_camera_picture_upload_conditions_title">Vilkår for å utføre opplastingar</string>
+    <string name="prefs_camera_picture_upload_conditions_summary">Opplastingane startar når alle dei valde vilkåra er oppfylte</string>
+    <string name="prefs_camera_picture_upload_on_wifi">Last opp bilete berre via wifi</string>
+    <string name="prefs_camera_picture_upload_on_charging">Last opp bilete berre under lading</string>
+    <string name="prefs_camera_upload_on_charging_summary">Slå på opplasting berre via wifi for å slå på dette valet</string>
+    <string name="prefs_camera_video_upload">Opplasting av videoar</string>
+    <string name="prefs_camera_video_upload_summary">Last opp videoar frå kameraet automatisk</string>
+    <string name="prefs_camera_video_upload_path_title">Opplastingssti for video</string>
+    <string name="prefs_camera_video_upload_on_wifi">Last opp videoar berre via wifi</string>
+    <string name="prefs_camera_video_upload_on_charging">Last opp videoar berre under lading</string>
+    <string name="prefs_automatic_uploads_not_available_users_light">Automatisk opplasting er ikkje tilgjengeleg for lettbrukarar</string>
+    <string name="prefs_subsection_advanced">Avansert</string>
+    <string name="prefs_subsection_notifications">Handsam varsel</string>
+    <string name="prefs_show_hidden_files">Vis gøymde filer</string>
+    <string name="prefs_log_open_logs_list_view">Loggfiler</string>
+    <string name="prefs_log_no_logs_list_view">Tom loggmappe!</string>
+    <string name="prefs_log_empty_subtitle">Slå på logging, så vert loggfilene viste her.</string>
+    <string name="prefs_log_title">Slå på logging</string>
+    <string name="prefs_log_summary">Dette vert brukt til å logge problem.</string>
+    <string name="prefs_log_title_history">Logghistorikk</string>
+    <string name="prefs_log_summary_history">Dette viser dei lagra loggane.</string>
+    <string name="prefs_log_delete_history_button">Slett historikk</string>
+    <string name="prefs_help">Hjelp</string>
+    <string name="prefs_sync_calendar_contacts">Synkroniser kontaktane, kalendrane og oppgåvene dine</string>
+    <string name="prefs_sync_calendar_contacts_summary">Installer DAVx⁵</string>
+    <string name="prefs_access_document_provider">Tilgang til dokumentleverandør</string>
+    <string name="prefs_access_document_provider_summary">Tilrådd app for å bla gjennom filene på eininga via den innebygde filutforskaren i Android</string>
+    <string name="prefs_recommend">Tilrå til ein ven</string>
+    <string name="prefs_feedback">Tilbakemelding</string>
+    <string name="prefs_imprint">Juridisk informasjon</string>
+    <string name="prefs_remember_last_share_location">Hugs delingsplasseringa</string>
+    <string name="prefs_remember_last_upload_location_summary">Hugs den siste opplastingsplasseringa for deling</string>
+    <string name="prefs_pattern"> Mønsterlås </string>
+    <string name="prefs_enable_logging">Slå på logging</string>
+    <string name="prefs_enable_logging_summary">Når logging er slått på, kan loggane påverke ytinga og innehalde sensitiv informasjon. Loggane vert likevel ikkje sende automatisk til OpenCloud-tenarar. Det er berre brukaren sjølv som har ansvar for å dele loggar med andre.</string>
+    <string name="prefs_send_feedback">Send tilbakemelding</string>
+    <string name="prefs_app_version">Appversjon</string>
+    <string name="prefs_app_version_summary">%1$s %2$s-versjon %3$s (%4$s)</string>
+    <string name="pattern_enter_pattern">Skriv inn mønsteret ditt</string>
+    <string name="pattern_configure_pattern">Skriv inn mønsteret ditt</string>
+    <string name="pattern_remove_pattern">Fjern mønsteret ditt</string>
+    <string name="pattern_incorrect_pattern">Feil mønster</string>
+    <string name="pattern_reenter_pattern">Skriv inn mønsteret ditt på nytt.</string>
+    <string name="pattern_not_same_pattern">Mønstra er ikkje like.</string>
+    <string name="pattern_error_set">Det oppstod ein feil då mønsterlåsen skulle setjast.</string>
+    <string name="pattern_error_remove">Det oppstod ein feil under fjerning av mønsterlåsen.</string>
+    <string name="pattern_already_set">Mønster- og kodelås kan ikkje vere slått på samstundes. Slå av mønsterlåsen først.</string>
+    <string name="passcode_already_set">Mønster- og kodelås kan ikkje vere slått på samstundes. Slå av kodelåsen først.</string>
+    <string name="pattern_no_longer_required">Du vert ikkje lenger beden om mønsteret.</string>
+    <string name="pattern_configure_your_pattern_explanation">Du vert beden om mønsteret kvar gong appen startar.</string>
+    <string name="document_provider_locked">Låst</string>
+    <string name="illegal_argument_exception_message">Det trengst ei gyldig ACTION i intensjonen som vert send til</string>
+
+    <!-- Bottom navigation bar -->
+    <string name="bottom_nav_files">Filer</string>
+    <string name="bottom_nav_personal">Personleg</string>
+    <string name="bottom_nav_uploads">Opplastingar</string>
+    <string name="bottom_nav_offline">Fråkopla</string>
+    <string name="bottom_nav_links">Lenkjer</string>
+    <string name="bottom_nav_shares">Delingar</string>
+
+    <string name="recommend_subject">Prøv %1$s på smarttelefonen din!</string>
+    <string name="recommend_text">Eg vil invitere deg til å bruke %1$s på smarttelefonen din!\nLast ned her: %2$s</string>
+
+    <string name="error_reason">fordi</string>
+    <string name="auth_failure_snackbar">Autentiseringa feila. Logg inn på nytt for å få tilgang att.</string>
+    <string name="server_not_supported">Tenarversjonen din er lågare enn 10 og er difor ikkje støtta. Oppgrader tenaren til ein nyare versjon.</string>
+    <string name="auth_failure_snackbar_action">Byt konto</string>
+    <string name="auth_oauth_failure">Tilgangstokenet har gått ut eller vorte ugyldig. Logg inn på nytt for å få tilgang att.</string>
+    <string name="auth_oauth_failure_snackbar_action">Logg inn</string>
+    <string name="auth_check_server">Kontroller tenaren</string>
+    <string name="auth_host_url">Tenaradresse https:// …</string>
+    <string name="auth_username">Brukarnamn</string>
+    <string name="auth_password">Passord</string>
+    <string name="auth_register">Ny på %1$s?</string>
+    <string name="sync_string_files">Filer</string>
+    <string name="setup_btn_login">Logg inn</string>
+    <string name="uploader_btn_upload_text">Last opp</string>
+    <string name="uploader_top_message">Vel opplastingsmappe</string>
+    <string name="choose_upload_space">Vel opplastingsrom</string>
+    <string name="uploader_wrn_no_account_title">Ingen konto funne</string>
+    <string name="uploader_wrn_no_account_text">Det finst ingen %1$s-kontoar på eininga di. Opprett ein konto først.</string>
+    <string name="uploader_wrn_no_account_setup_btn_text">Oppsett</string>
+    <string name="uploader_wrn_no_account_quit_btn_text">Avslutt</string>
+    <string name="uploader_error_title_no_file_to_upload">Inga fil til opplasting</string>
+    <string name="uploader_error_message_received_piece_of_text">%1$s kan ikkje laste opp ein tekstbit som ei fil.</string>
+    <string name="uploader_error_message_no_file_to_upload">Mottekne data inneheld ingen gyldig fil.</string>
+    <string name="uploader_error_title_file_cannot_be_uploaded">Fila kan ikkje lastast opp</string>
+    <string name="uploader_error_message_read_permission_not_granted">%1$s har ikkje løyve til å lese ei motteken fil.</string>
+    <string name="uploader_error_message_source_file_not_found">Fann ikkje fila som skal lastast opp. Sjekk om fila finst.</string>
+    <string name="uploader_error_message_source_file_not_copied">Det oppstod ein feil under kopiering av fila til ei mellombels mappe. Prøv å sende på nytt.</string>
+    <string name="file_list_seconds_ago">for nokre sekund sidan</string>
+    <string name="file_list_empty_title_all_files">Ingen filer her</string>
+    <string name="spaces_list_empty_title">Ingen rom</string>
+    <string name="space_label">Rom:</string>
+    <string name="file_list_empty_title_available_offline">Ingen filer tilgjengelege fråkopla</string>
+    <string name="file_list_empty_title_shared_by_links">Ingen delte lenkjer</string>
+    <string name="file_list_empty_subtitle_all_files">Last opp noko innhald eller synkroniser med einingane dine!</string>
+    <string name="light_users_subtitle">Personleg rom er ikkje tilgjengeleg</string>
+    <string name="shares_list_empty_title">Ingen delingar</string>
+    <string name="shares_list_empty_subtitle">Du samarbeider ikkje om ressursane til andre.</string>
+    <string name="spaces_list_empty_subtitle">Du har ikkje tilgang til noko rom!</string>
+    <string name="file_list_empty_subtitle_available_offline">Filer og mapper du merkjer som tilgjengelege fråkopla, vert viste her.</string>
+    <string name="file_list_empty_subtitle_shared_by_links">Filer og mapper du deler med lenkje, vert viste her.</string>
+    <string name="file_list_loading">Lastar …</string>
+    <string name="file_list_no_app_for_file_type">Fann ingen app for filtypen</string>
+    <string name="file_list_no_app_for_perform_action">Fann ingen app for denne handlinga</string>
+    <string name="local_file_list_empty">Det er ingen filer i denne mappa.</string>
+    <string name="local_file_list_empty_just_folders">Det er ingen mapper i denne mappa.</string>
+    <string name="local_file_list_search_with_no_matches">Ingen treff for dette søket</string>
+    <string name="upload_list_empty">Ingen opplastingar tilgjengelege.</string>
+    <string name="upload_list_empty_subtitle">Last opp noko, så vert det vist her.</string>
+    <string name="file_list_folder">mappe</string>
+    <string name="file_list_folders">mapper</string>
+    <string name="file_list_file">fil</string>
+    <string name="file_list_files">filer</string>
+    <string name="filedetails_select_file">Trykk på ei fil for å vise tilleggsinformasjon.</string>
+    <string name="upload_to">Last opp til %1$s</string>
+    <string name="pick_document_type">Vel kva for dokumenttype som skal opprettast:</string>
+    <string name="upload_files_title"> Filer </string>
+    <string name="filedetails_size">Storleik:</string>
+    <string name="filedetails_type">Type:</string>
+    <string name="filedetails_created">Oppretta:</string>
+    <string name="filedetails_last_sync">Siste synkronisering:</string>
+    <string name="filedetails_path">Sti:</string>
+    <string name="filedetails_modified">Endra:</string>
+    <string name="filedetails_download">Last ned</string>
+    <string name="filedetails_file_image_content_description">Filbilete</string>
+    <string name="filedetails_cancel_btn_content_description">Knapp for å avbryte nedlastinga</string>
+    <string name="filedetails_sync_file">Synkroniser</string>
+    <string name="filedetails_renamed_in_upload_msg">Fila fekk namnet %1$s under opplastinga</string>
+    <string name="list_layout">Listeoppsett</string>
+    <string name="action_share">Del</string>
+    <string name="login_account_preparing">Førebur kontoen for første oppstart</string>
+    <string name="common_yes">Ja</string>
+    <string name="common_no">Nei</string>
+    <string name="common_remove_upload">Fjern opplasting</string>
+    <string name="common_retry_upload">Prøv opplasting på nytt</string>
+    <string name="common_cancel_sync">Avbryt synkronisering</string>
+    <string name="common_back">Tilbake</string>
+    <string name="common_save_exit">Lagre og avslutt</string>
+    <string name="common_error">Feil</string>
+    <string name="common_loading">Lastar …</string>
+    <string name="common_unknown">ukjend</string>
+    <string name="common_error_unknown">ukjend feil</string>
+    <string name="error_http_code">Tenaren returnerte ein uventa feil (HTTP %1$d)</string>
+    <string name="common_pending">Ventar</string>
+    <string name="common_important">Viktig</string>
+    <string name="change_password">Endre passord</string>
+    <string name="delete_account">Fjern konto</string>
+    <string name="create_account">Opprett konto</string>
+    <string name="upload_chooser_title">Last opp frå</string>
+    <string name="uploader_info_dirname">Mappenamn</string>
+    <string name="uploader_upload_in_progress_ticker">Lastar opp …</string>
+    <string name="uploader_upload_in_progress_content">%1$d%% Lastar opp %2$s</string>
+    <string name="uploader_upload_succeeded_ticker">Opplastinga er fullført</string>
+    <string name="uploader_upload_succeeded_content_single">%1$s er lasta opp</string>
+    <string name="uploader_upload_failed_ticker">Opplastinga feila</string>
+    <string name="uploader_upload_failed_content_single">Klarte ikkje fullføre opplastinga av %1$s.</string>
+    <string name="uploader_upload_failed_credentials_error">Opplastinga feila, du må logge inn på nytt.</string>
+    <string name="uploader_upload_failed_ssl_certificate_not_trusted">Tenarsertifikatet er ikkje klarert.</string>
+    <string name="uploader_upload_text_dialog_title">Skriv inn eit namn på den nye fila.</string>
+    <string name="uploader_upload_text_dialog_filename_error_empty">Filnamnet kan ikkje vere tomt.</string>
+    <string name="uploader_upload_text_dialog_filename_error_length_max">Filnamnet kan ikkje vere lengre enn %d teikn.</string>
+    <string name="uploader_upload_text_filename_hint">Filnamn</string>
+    <string name="uploader_upload_camera_upload_files">Lastar opp filer frå kameraet</string>
+    <string name="uploader_upload_picture_upload_files">%d nye bilete vert lasta opp.</string>
+    <string name="uploader_upload_video_upload_files">%d nye videoar vert lasta opp.</string>
+    <string name="uploader_upload_camera_upload_source_path_error">Kameraopplastinga feila.</string>
+    <string name="uploader_upload_picture_upload_error">Kjeldestien for opplasting av bilete er ikkje lenger gyldig.</string>
+    <string name="uploader_upload_video_upload_error">Kjeldestien for opplasting av videoar er ikkje lenger gyldig.</string>
+    <string name="uploader_upload_available_offline_files">Lastar opp filer som er tilgjengelege fråkopla</string>
+    <string name="uploader_upload_requested_from_wifi_files">Lastar opp filer som venta på wifi</string>
+    <string name="ssl_certificate_not_trusted">Tenarsertifikatet er ikkje klarert.</string>
+    <string name="uploads_view_title">Opplastingar</string>
+    <string name="uploads_view_group_current_uploads">Pågåande</string>
+    <string name="uploads_view_group_failed_uploads">Feila (trykk for å prøve på nytt)</string>
+    <string name="uploads_view_group_finished_uploads">Lasta opp</string>
+    <string name="uploads_view_group_queued_uploads">I kø</string>
+    <string name="uploads_view_group_file_count">%d filer</string>
+    <string name="uploads_view_group_file_count_single">%d fil</string>
+    <string name="uploads_view_upload_status_succeeded">Fullført</string>
+    <string name="uploads_view_upload_status_cancelled">Avbrote</string>
+    <string name="uploads_view_upload_status_paused">Pause</string>
+    <string name="uploads_view_upload_status_failed_connection_error">Tilkoplingsfeil</string>
+    <string name="uploads_view_upload_status_failed_retry">Opplastinga vert prøvd på nytt om kort tid</string>
+    <string name="uploads_view_upload_status_failed_credentials_error">Feil med innloggingsinformasjonen</string>
+    <string name="uploads_view_upload_status_failed_folder_error">Mappefeil</string>
+    <string name="uploads_view_upload_status_failed_file_error">Filfeil</string>
+    <string name="uploads_view_upload_status_failed_localfile_error">Fann ikkje den lokale fila</string>
+    <string name="uploads_view_upload_status_failed_permission_error">Feil med løyve</string>
+    <string name="uploads_view_upload_status_failed_firewall_error">Forbode av ein brannmurregel</string>
+    <string name="uploads_view_upload_status_conflict">Konflikt</string>
+    <string name="uploads_view_upload_status_service_interrupted">Appen vart avslutta</string>
+    <string name="uploads_view_upload_status_unknown_fail">Ukjend feil</string>
+    <string name="uploads_view_upload_status_waiting_for_wifi">Ventar på wifi-tilkopling</string>
+    <string name="uploads_view_upload_status_queued">I kø</string>
+    <string name="uploads_view_later_waiting_to_upload">Ventar på opplasting</string>
+    <string name="uploads_view_unsupported_media_type">Medietypen er ikkje støtta</string>
+    <string name="uploader_upload_enqueued_ticker">Opplasting av %1$s er sett i kø</string>
+    <string name="uploader_upload_canceled_ticker">Opplastinga vart avbroten</string>
+    <string name="downloader_download_canceled_ticker">Nedlastinga vart avbroten</string>
+    <string name="downloader_download_enqueued_ticker">Nedlasting av %1$s er sett i kø</string>
+    <string name="downloader_download_in_progress_ticker">Lastar ned …</string>
+    <string name="downloader_download_in_progress_content">%1$d%% Lastar ned %2$s</string>
+    <string name="downloader_download_succeeded_ticker">Nedlastinga er fullført</string>
+    <string name="downloader_download_succeeded_content">%1$s er lasta ned</string>
+    <string name="downloader_download_failed_ticker">Nedlastinga feila</string>
+    <string name="downloader_preview_failed_ticker">Klarte ikkje vise fila</string>
+    <string name="downloader_download_failed_content">Klarte ikkje fullføre nedlastinga av %1$s</string>
+    <string name="downloader_not_downloaded_yet">Ikkje lasta ned enno</string>
+    <string name="downloader_download_failed_credentials_error">Nedlastinga feila, du må logge inn på nytt.</string>
+    <string name="downloader_download_forbidden_permissions">til å laste ned denne fila</string>
+    <string name="common_choose_account">Vel konto</string>
+    <string name="sync_fail_ticker">Synkroniseringa feila</string>
+    <string name="sync_fail_ticker_unauthorized">Synkroniseringa feila, du må logge inn på nytt.</string>
+    <string name="sync_fail_content">Klarte ikkje fullføre synkroniseringa av %1$s.</string>
+    <string name="sync_fail_content_unauthorized">Ugyldig passord for %1$s</string>
+    <string name="sync_conflicts_in_favourites_ticker">Fann konfliktar</string>
+    <string name="sync_conflicts_in_favourites_content">Klarte ikkje synkronisere %1$d filer som skal haldast synkroniserte</string>
+    <string name="sync_fail_in_favourites_ticker">Synkronisering av filer som skal haldast synkroniserte, feila</string>
+    <string name="sync_fail_in_favourites_content">Klarte ikkje synkronisere innhaldet i %1$d filer (%2$d konfliktar)</string>
+    <string name="sync_current_folder_was_removed">Mappa %1$s finst ikkje lenger.</string>
+
+    <string name="pass_code_enter_pass_code">Skriv inn koden din.</string>
+    <string name="pass_code_configure_your_pass_code">Skriv inn koden din.</string>
+    <string name="pass_code_configure_your_pass_code_migration">Skriv inn ein ny %1$d-sifra kode.</string>
+    <string name="pass_code_configure_your_pass_code_explanation">Du vert beden om koden kvar gong appen startar.</string>
+    <string name="pass_code_reenter_your_pass_code">Skriv inn koden din på nytt.</string>
+    <string name="pass_code_remove_your_pass_code">Fjern koden din.</string>
+    <string name="pass_code_mismatch">Kodane er ikkje like.</string>
+    <string name="pass_code_wrong">Feil kode</string>
+    <string name="pass_code_error_set">Det oppstod ein feil då kodelåsen skulle setjast.</string>
+    <string name="pass_code_error_remove">Det oppstod ein feil då kodelåsen skulle fjernast.</string>
+    <string name="numberkeyboard_backspace_button_content_description">Slettetast</string>
+    <string name="numberkeyboard_biometric_button_content_description">Biometrisk knapp</string>
+
+    <string name="numberkeyboard_zero">0</string>
+    <string name="numberkeyboard_one">1</string>
+    <string name="numberkeyboard_two">2</string>
+    <string name="numberkeyboard_three">3</string>
+    <string name="numberkeyboard_four">4</string>
+    <string name="numberkeyboard_five">5</string>
+    <string name="numberkeyboard_six">6</string>
+    <string name="numberkeyboard_seven">7</string>
+    <string name="numberkeyboard_eight">8</string>
+    <string name="numberkeyboard_nine">9</string>
+
+    <string name="lock_time_try_again">Prøv igjen om %1$s</string>
+
+    <string name="biometric_not_enrolled">Registrer minst éin biometrisk metode for å bruke denne funksjonen.</string>
+    <string name="biometric_prompt_title">Biometrisk innlogging</string>
+    <string name="biometric_prompt_subtitle">Logg inn med biometrisk legitimasjon.</string>
+    <string name="biometric_dialog_title">Vil du i tillegg slå på biometrisk tryggleik?</string>
+    <string name="biometric_not_available">Biometrisk opplåsing er ikkje tilgjengeleg fordi systemet ikkje kunne gje</string>
+
+    <string name="media_notif_ticker">%1$s musikkspelar</string>
+    <string name="media_state_playing">%1$s (spelar)</string>
+    <string name="media_state_loading">%1$s (lastar)</string>
+    <string name="media_event_done">%1$s: avspelinga er ferdig</string>
+    <string name="media_err_nothing_to_play">Fann ingen mediefil</string>
+    <string name="media_err_no_account">Ingen konto er oppgjeven</string>
+    <string name="media_err_not_in_opencloud">Fila er ikkje i ein gyldig konto</string>
+    <string name="media_err_unsupported">Mediekodeken er ikkje støtta</string>
+    <string name="media_err_io">Klarte ikkje lese mediefila</string>
+    <string name="media_err_malformed">Mediefila er ikkje rett koda</string>
+    <string name="media_err_timeout">Tidsavbrot under forsøk på avspeling</string>
+    <string name="media_err_invalid_progressive_playback">Mediefila kan ikkje strøymast</string>
+    <string name="media_err_unknown">Mediefila kan ikkje spelast av med den innebygde mediespelaren</string>
+    <string name="media_err_security_ex">Tryggleiksfeil ved forsøk på å spele av %1$s</string>
+    <string name="media_err_io_ex">Inndatafeil ved forsøk på å spele av %1$s</string>
+    <string name="media_err_unexpected">Uventa feil ved forsøk på å spele av %1$s</string>
+    <string name="media_rewind_description">Spol tilbake-knapp</string>
+    <string name="media_play_pause_description">Spel av/pause-knapp</string>
+    <string name="media_forward_description">Spol fram-knapp</string>
+    <string name="upload_from_camera_title">Bilete frå kameraet</string>
+
+    <string name="auth_getting_authorization">Hentar autorisasjon …</string>
+    <string name="auth_trying_to_login">Prøver å logge inn …</string>
+    <string name="auth_no_net_conn_title">Inga nettverkstilkopling</string>
+    <string name="auth_nossl_plain_ok_title">Sikker tilkopling er ikkje tilgjengeleg.</string>
+    <string name="auth_connection_established">Tilkoplinga er oppretta</string>
+    <string name="auth_testing_connection">Testar tilkoplinga</string>
+    <string name="auth_not_configured_title">Ugyldig oppsett på tenaren</string>
+    <string name="auth_account_not_new">Ein konto for same brukar og tenar finst alt på eininga.</string>
+    <string name="auth_account_not_the_same">Den oppgjevne brukaren samsvarar ikkje med brukaren for denne kontoen.</string>
+    <string name="auth_unknown_error_title">Det oppstod ein ukjend feil!</string>
+    <string name="auth_incorrect_path_title">Fann ikkje tenarinstansen</string>
+    <string name="auth_incorrect_address_title">Feil format for tenaradresse</string>
+    <string name="auth_ssl_general_error_title">SSL-initialiseringa feila</string>
+    <string name="auth_bad_oc_version_title">Ukjend tenarversjon</string>
+    <string name="auth_wrong_connection_title">Klarte ikkje opprette tilkopling</string>
+    <string name="auth_secure_connection">Sikker tilkopling er oppretta</string>
+    <string name="auth_unauthorized">Feil brukarnamn eller passord</string>
+    <string name="auth_oauth_error">Autoriseringa feila</string>
+    <string name="auth_oauth_error_access_denied">Autorisasjonstenaren nekta tilgang</string>
+    <string name="auth_wtf_reenter_URL">Uventa tilstand; skriv inn tenaradressa på nytt</string>
+    <string name="auth_expired_oauth_token_toast">Autorisasjonen din har gått ut. Autoriser på nytt</string>
+    <string name="auth_expired_basic_auth_toast">Skriv inn det noverande passordet</string>
+    <string name="auth_connecting_auth_server">Koplar til autentiseringstenaren …</string>
+    <string name="auth_unsupported_auth_method">Tenaren støttar ikkje denne autentiseringsmetoden</string>
+    <string name="auth_forbidden_check_client_cert">Tenaren avviste tilkoplinga. Krev han eit klientsertifikat, kontroller det som er valt under Tilkopling.</string>
+    <string name="auth_fail_get_user_name">Tenaren din returnerer ikkje ein gyldig brukar-ID. Ta kontakt med ein administrator.</string>
+    <string name="auth_can_not_auth_against_server">Kan ikkje autentisere mot denne tenaren</string>
+    <string name="auth_account_does_not_exist">Kontoen finst ikkje på eininga enno</string>
+
+    <string name="set_available_offline">Gjer tilgjengeleg fråkopla</string>
+    <string name="unset_available_offline">Gjer utilgjengeleg fråkopla</string>
+    <string name="confirmation_set_available_offline">Fila er no tilgjengeleg fråkopla</string>
+    <string name="confirmation_unset_available_offline">Fila er ikkje lenger tilgjengeleg fråkopla</string>
+    <string name="common_rename">Endre namn</string>
+    <string name="common_remove">Fjern</string>
+    <string name="confirmation_remove_file_alert">Vil du verkeleg fjerne %1$s?</string>
+    <string name="confirmation_remove_folder_alert">Vil du verkeleg fjerne %1$s og innhaldet?</string>
+    <string name="confirmation_remove_local">Berre lokalt</string>
+    <string name="confirmation_remove_account_alert">Vil du verkeleg fjerne kontoen %1$s?</string>
+    <string name="confirmation_remove_account_alert_camera_uploads">Denne kontoen har kameraopplasting knytt til seg. Fjernar du kontoen, vert kameraopplastinga slått av. Vil du verkeleg fjerne kontoen %1$s?</string>
+    <string name="confirmation_remove_public_share_title">Fjern lenkje</string>
+    <string name="confirmation_remove_private_share_title">Fjern privat deling</string>
+    <string name="confirmation_remove_share_message">Vil du verkeleg fjerne delinga %1$s?</string>
+    <string name="remove_success_msg">Fjerninga er fullført</string>
+    <string name="remove_fail_msg">Fjerninga feila</string>
+    <string name="rename_dialog_title">Skriv inn eit nytt namn</string>
+    <string name="available_offline_inherited_msg">Ei mappe som inneheld denne fila, er tilgjengeleg fråkopla.</string>
+    <string name="rename_local_fail_msg">Klarte ikkje endre namnet på den lokale kopien. Prøv eit anna namn</string>
+    <string name="rename_server_fail_msg">Klarte ikkje endre namnet</string>
+    <string name="file_already_exists">Fila finst frå før</string>
+    <string name="folder_already_exists">Mappa finst frå før</string>
+    <string name="file_already_exists_description">Ei fil med namnet %1$s finst frå før.</string>
+    <string name="folder_already_exists_description">Ei mappe med namnet %1$s finst frå før.</string>
+    <string name="sync_file_fail_msg">Klarte ikkje kontrollere fila på tenaren</string>
+    <string name="sync_file_nothing_to_do_msg">Filinnhaldet er alt synkronisert</string>
+    <string name="sync_file_not_found_msg">Fann ikkje fila</string>
+    <string name="new_remote_version_found_msg">Fann ein ny versjon på tenaren. Lastar ned …</string>
+    <string name="download_enqueued_msg">Nedlastinga er sett i kø</string>
+    <string name="upload_enqueued_msg">Opplastinga er sett i kø</string>
+    <string name="create_dir_fail_msg">Klarte ikkje opprette mappa</string>
+    <string name="create_file_fail_msg">Klarte ikkje opprette fila</string>
+    <string name="filename_forbidden_characters">Forbodne teikn: / \\</string>
+    <string name="filename_forbidden_characters_from_server">Filnamnet inneheld minst eitt ugyldig teikn</string>
+    <string name="filename_empty">Filnamn kan ikkje vere tomt</string>
+    <string name="filename_too_long">Filnamnet kan ikkje vere så langt</string>
+    <string name="wait_a_moment">Vent eit augeblikk</string>
+    <string name="wait_checking_credentials">Sjekkar lagra innloggingsinformasjon</string>
+    <string name="filedisplay_unexpected_bad_get_content">Uventa problem. Vel fila frå ein annan app</string>
+    <string name="filedisplay_no_file_selected">Inga fil er vald</string>
+    <string name="activity_chooser_title">Send lenkje til</string>
+    <string name="wait_for_tmp_copy_from_private_storage">Kopierer fil frå privat lagring</string>
+
+    <string name="oauth_check_onoff">Logg inn med OAuth2</string>
+    <string name="oauth_login_connection">Koplar til OAuth2-tenar …</string>
+
+    <string name="ssl_connection_not_secure">Tilkoplinga er ikkje sikker, HTTP-trafikk er ikkje tillaten.</string>
+    <string name="ssl_validator_header">Klarte ikkje stadfeste identiteten til tenaren.</string>
+    <string name="ssl_validator_reason_cert_not_trusted">– Tenarsertifikatet er ikkje klarert.</string>
+    <string name="ssl_validator_reason_cert_expired">– Tenarsertifikatet har gått ut.</string>
+    <string name="ssl_validator_reason_cert_not_yet_valid">– Gyldigheitsdatoane til tenarsertifikatet ligg fram i tid.</string>
+    <string name="ssl_validator_reason_hostname_not_verified">– URL-en samsvarar ikkje med vertsnamnet i sertifikatet</string>
+    <string name="ssl_validator_question">Vil du likevel stole på dette sertifikatet?</string>
+    <string name="ssl_validator_not_saved">Klarte ikkje lagre sertifikatet.</string>
+    <string name="ssl_validator_btn_details_see">Detaljar</string>
+    <string name="ssl_validator_btn_details_hide">Gøym</string>
+    <string name="ssl_validator_label_subject">Utferda til:</string>
+    <string name="ssl_validator_label_issuer">Utferda av:</string>
+    <string name="ssl_validator_label_CN">Fellesnamn:</string>
+    <string name="ssl_validator_label_O">Organisasjon:</string>
+    <string name="ssl_validator_label_OU">Organisasjonseining:</string>
+    <string name="ssl_validator_label_C">Land:</string>
+    <string name="ssl_validator_label_ST">Fylke/delstat:</string>
+    <string name="ssl_validator_label_L">Stad:</string>
+    <string name="ssl_validator_label_validity">Gyldigheit:</string>
+    <string name="ssl_validator_label_validity_from">Frå:</string>
+    <string name="ssl_validator_label_validity_to">Til:</string>
+    <string name="ssl_validator_label_signature">Signatur:</string>
+    <string name="ssl_validator_label_signature_algorithm">Algoritme:</string>
+    <string name="digest_algorithm_not_available">Denne samandragsalgoritmen er ikkje tilgjengeleg på telefonen din.</string>
+    <string name="ssl_validator_label_certificate_fingerprint">Fingeravtrykk:</string>
+    <string name="certificate_load_problem">Det oppstod eit problem under lasting av sertifikatet.</string>
+    <string name="ssl_validator_null_cert">Klarte ikkje vise sertifikatet.</string>
+    <string name="ssl_validator_no_info_about_error">– Ingen informasjon om feilen</string>
+
+    <string name="placeholder_sentence">Dette er ein plasshaldar.</string>
+    <string name="placeholder_filename">placeholder.txt</string>
+    <string name="placeholder_filetype">PNG-bilete</string>
+    <string name="placeholder_filesize">389 KB</string>
+    <string name="placeholder_timestamp">18.05.2012 kl. 12:23</string>
+    <string name="placeholder_media_time">12:23:45</string>
+
+    <string name="confirmation_disable_camera_uploads_title">Stadfest</string>
+    <string name="confirmation_disable_pictures_upload_message">Er du sikker på at du vil slå av denne funksjonen? Bileta som ventar, vert ikkje lasta opp.</string>
+    <string name="confirmation_disable_videos_upload_message">Er du sikker på at du vil slå av denne funksjonen? Videoane som ventar, vert ikkje lasta opp.</string>
+    <string name="proper_pics_folder_warning_camera_upload">Sjå til at den valde mappa er der kameraet du brukar, lagrar bileta. Elles finn ikkje funksjonen bileta dine. Hugs at bileta vert lasta opp tidlegast 15 minutt etter at dei er tekne.</string>
+    <string name="proper_videos_folder_warning_camera_upload">Sjå til at den valde mappa er der kameraet du brukar, lagrar videoopptaka. Elles finn ikkje funksjonen videoane dine. Hugs at videoane vert lasta opp tidlegast 15 minutt etter at dei er tekne opp.</string>
+    <string name="conflict_title">Fil i konflikt</string>
+    <string name="conflict_description">Det er ein konflikt i fila %1$s. Trykk for å løyse han.</string>
+    <string name="conflict_message">Kva for filer vil du ta vare på? Vel du begge versjonane, får den lokale fila eit tal lagt til i namnet.</string>
+    <string name="conflict_keep_both">Ta vare på begge</string>
+    <string name="conflict_use_local_version">lokal versjon</string>
+    <string name="conflict_use_server_version">tenarversjon</string>
+    <string name="error_conflict">Det oppstod ein feil i målmappa.</string>
+    <string name="conflict_replace">Erstatt</string>
+
+    <string name="preview_image_description">Førehandsvising av bilete</string>
+    <string name="preview_image_error_unknown_format">Dette biletet kan ikkje visast.</string>
+
+    <string name="error__upload__local_file_not_copied">Klarte ikkje kopiere %1$s til den lokale mappa %2$s.</string>
+
+    <string name="get_shares_error">Klarte ikkje hente delingane frå tenaren</string>
+    <string name="get_sharees_error">Klarte ikkje hente brukarar og grupper frå tenaren</string>
+    <string name="get_capabilities_error">Klarte ikkje hente eigenskapane til tenaren</string>
+    <string name="share_link_no_support_share_api">Deling er dessverre ikkje slått på på tenaren din. Ta kontakt med administratoren.</string>
+    <string name="share_link_file_error">Klarte ikkje dele denne fila eller mappa</string>
+    <string name="unshare_link_file_error">Klarte ikkje fjerne delinga av denne fila eller mappa</string>
+    <string name="update_link_file_error">Klarte ikkje oppdatere denne fila eller mappa</string>
+    <string name="share_link_password_title">Skriv inn eit passord</string>
+    <string name="share_link_empty_password">Du må skrive inn eit passord.</string>
+
+    <string name="activity_chooser_send_file_title">Send</string>
+
+    <string name="copy_link">Kopier lenkje</string>
+    <string name="clipboard_text_copied">Kopiert til utklippstavla</string>
+    <string name="clipboard_no_text_to_copy">Fekk ingen tekst å kopiere til utklippstavla</string>
+    <string name="clipboard_uxexpected_error">Uventa feil under kopiering til utklippstavla</string>
+    <string name="clipboard_label">Tekst kopiert frå %1$s</string>
+
+    <string name="error_cant_bind_to_operations_service">Kritisk feil: kan ikkje utføre operasjonar</string>
+
+    <string name="network_error_socket_exception">Det oppstod ein feil under tilkopling til tenaren.</string>
+    <string name="network_error_socket_timeout_exception">Tenaren brukte for lang tid på å svare.</string>
+    <string name="network_error_connect_timeout_exception">Tenaren brukte for lang tid på å kople til.</string>
+    <string name="network_host_not_available">Klarte ikkje nå tenaren.</string>
+    <string name="network_error_message">Det oppstod ein feil i nettverket.</string>
+    <string name="resource_locked_error_message">Ressursen er låst</string>
+
+    <string name="forbidden_permissions">Du har ikkje løyve %s</string>
+
+    <string name="forbidden_permissions_rename">til å endre namn på denne fila</string>
+    <string name="forbidden_permissions_delete">til å slette denne fila</string>
+    <string name="share_link_forbidden_permissions">til å dele denne fila</string>
+    <string name="unshare_link_forbidden_permissions">til å fjerne delinga av denne fila</string>
+    <string name="update_link_forbidden_permissions">til å oppdatere denne delinga</string>
+    <string name="forbidden_permissions_create">til å opprette fila</string>
+    <string name="uploader_upload_forbidden_permissions">til å laste opp i denne mappa</string>
+    <string name="uploader_upload_forbidden">Opplasting er ikkje tillaten</string>
+    <string name="downloader_download_file_not_found">Fila er ikkje lenger tilgjengeleg på tenaren.</string>
+
+    <string name="prefs_category_accounts">Kontoar</string>
+    <string name="prefs_add_account">Legg til konto</string>
+    <string name="drawer_manage_accounts">Handsam kontoar</string>
+    <string name="manage_accounts_quota">%1$s av %2$s</string>
+    <string name="used_quota_title_manage_accounts">Brukt:</string>
+    <string name="auth_redirect_non_secure_connection_title">Den sikre tilkoplinga vert omdirigert gjennom ei usikker rute.</string>
+
+    <string name="actionbar_logger">Loggar</string>
+    <string name="log_send_history_button">Send historikk</string>
+    <string name="log_send_no_mail_app">Fann ingen app for å sende loggar. Installer ein e-postapp.</string>
+    <string name="log_send_mail_subject">%1$s Android-apploggar</string>
+    <string name="log_progress_dialog_text">Lastar data …</string>
+
+    <string name="actionbar_select_all">Vel alle</string>
+    <string name="actionbar_select_inverse">Inverter utvalet</string>
+
+    <string name="actionbar_move">Flytt</string>
+    <string name="file_list_empty_moving">Ingenting her. Du kan leggje til ei mappe!</string>
+    <string name="folder_picker_choose_button_text">Vel</string>
+    <string name="folder_picker_move_here_button_text">Flytt hit</string>
+    <string name="folder_picker_copy_here_button_text">Kopier hit</string>
+    <string name="folder_picker_no_permissions_message_text">Du har ikkje løyve til å leggje til innhald her!</string>
+
+    <string name="move_file_not_found">Kan ikkje flytte. Sjekk om fila finst.</string>
+    <string name="move_file_invalid_into_descendent">Det er ikkje mogleg å flytte ei mappe inn i ei undermappe.</string>
+    <string name="move_file_invalid_overwrite">Fila finst alt i målmappa.</string>
+    <string name="move_file_error">Det oppstod ein feil under flytting av denne fila eller mappa.</string>
+    <string name="forbidden_permissions_move">til å flytte denne fila</string>
+
+    <string name="copy_file_not_found">Klarte ikkje kopiere. Sjekk om fila finst.</string>
+    <string name="copy_file_invalid_into_descendent">Det er ikkje mogleg å kopiere ei mappe inn i ei undermappe.</string>
+    <string name="copy_file_invalid_overwrite">Fila finst alt i målmappa.</string>
+    <string name="copy_file_error">Det oppstod ein feil under kopieringa av denne fila eller mappa.</string>
+    <string name="forbidden_permissions_copy">til å kopiere denne fila</string>
+
+    <string name="prefs_category_camera_upload">Kameraopplastingar</string>
+
+    <string name="sync_folder_failed_content">Klarte ikkje fullføre synkroniseringa av mappa %1$s</string>
+
+    <string name="shared_subject_header">delt</string>
+    <string name="with_you_subject_header">med deg</string>
+
+    <string name="subject_user_shared_with_you">%1$s delte «%2$s» med deg</string>
+    <string name="subject_shared_with_you">«%1$s» er delt med deg</string>
+
+    <string name="auth_refresh_button">Oppdater tilkopling</string>
+    <string name="auth_host_address">Tenaradresse</string>
+    <string name="common_error_out_memory">Ikkje nok minne</string>
+
+    <string name="username">Brukarnamn</string>
+
+    <string name="file_list__footer__folder">1 mappe</string>
+    <string name="file_list__footer__folders">%1$d mapper</string>
+    <string name="file_list__footer__file">1 fil</string>
+    <string name="file_list__footer__file_and_folder">1 fil, 1 mappe</string>
+    <string name="file_list__footer__file_and_folders">1 fil, %1$d mapper</string>
+    <string name="file_list__footer__files">%1$d filer</string>
+    <string name="file_list__footer__files_and_folder">%1$d filer, 1 mappe</string>
+    <string name="file_list__footer__files_and_folders">%1$d filer, %2$d mapper</string>
+    <string name="prefs_picture_upload_account">Konto for å laste opp bilete</string>
+    <string name="prefs_video_upload_account">Konto for å laste opp videoar</string>
+    <string name="prefs_camera_upload_source_path_title">Kameramappe (%1$s)</string>
+    <string name="prefs_camera_upload_source_path_title_required">påkravd</string>
+    <string name="prefs_camera_upload_behaviour_dialog_title">Den opphavlege fila vert</string>
+    <string name="prefs_camera_upload_behaviour_title">Den opphavlege fila vert</string>
+    <string name="prefs_camera_upload_last_sync_title">Siste synkronisering</string>
+    <string name="notifications_permission_denied">Du kan oppdatere innstillingane dine i Innstillingar</string>
+    <string name="upload_copy_files">Kopier fil</string>
+    <string name="upload_move_files">Flytt fil</string>
+
+    <string name="pref_behaviour_entries_keep_file">teken vare på i den opphavlege mappa</string>
+    <string name="pref_behaviour_entries_remove_original_file">fjerna frå den opphavlege mappa</string>
+
+    <string name="share_dialog_title">Del</string>
+    <string name="share_file">Del %1$s</string>
+    <string name="share_with_user_section_title">Brukare og grupper</string>
+    <string name="share_no_users">Ingen data er delt med brukarane enno</string>
+    <string name="share_incompatible_version">For å dele med andre brukarar, må tenaren din vere minst versjon 8.2</string>
+    <string name="share_add_user_or_group">Legg til brukar eller gruppe</string>
+    <string name="share_via_link_section_title">Offentlege lenkjer</string>
+    <string name="share_via_link_create_title">Opprett delingslenkje</string>
+    <string name="share_via_link_edit_title">Rediger delingslenkje</string>
+    <string name="share_via_link_name_label">Lenkjenamn</string>
+    <string name="share_cancel_public_link_button">Avbryt</string>
+    <string name="share_confirm_public_link_button">Lagre</string>
+    <string name="share_via_link_expiration_date_label">Utløp</string>
+    <string name="share_via_link_password_label">Passord</string>
+    <string name="share_via_link_password_title">Sikra</string>
+    <string name="share_via_link_generate_password_button">Generer</string>
+    <string name="share_via_link_copy_password_button">Kopier</string>
+    <string name="share_via_link_edit_permission_read_only_label">Last ned / Vis</string>
+    <string name="share_via_link_edit_permission_read_and_write_label">Last ned/Vis/Last opp</string>
+    <string name="share_via_link_edit_permission_upload_only_label">Berre opplasting (filinnlevering)</string>
+    <string name="share_get_public_link_button">Hent lenkje</string>
+    <string name="share_with_title">Del med</string>
+    <string name="share_with_edit_title">Del med %1$s</string>
+
+    <string name="share_search">Søk</string>
+
+    <string name="search_users_and_groups_hint">Søk etter brukarar og grupper</string>
+    <string name="share_group_clarification">%1$s (gruppe)</string>
+    <string name="share_remote_clarification">%1$s (fjern)</string>
+    <string name="share_known_remote_clarification">%1$s ( på %2$s )</string>
+
+    <string name="share_sharee_unavailable">Tenarversjonen din tillèt dessverre ikkje deling med brukarar i klientar.\nTa kontakt med administratoren din</string>
+    <string name="share_privilege_can_share">kan dele</string>
+    <string name="share_privilege_can_edit">kan redigere</string>
+    <string name="share_privilege_can_edit_create">opprett</string>
+    <string name="share_privilege_can_edit_change">endre</string>
+    <string name="share_privilege_can_edit_delete">slett</string>
+    <string name="edit_share_unshare">Slutt å dele</string>
+    <string name="edit_share_done">ferdig</string>
+
+    <string name="action_upload_retry">Prøv på nytt</string>
+    <string name="action_upload_clear">Tøm</string>
+
+    <string name="local_file_not_found_toast">Fann ikkje fila i det lokale filsystemet</string>
+    <string name="confirmation_remove_files_alert">Vil du verkeleg fjerne desse %s elementa?</string>
+    <string name="confirmation_remove_folders_alert">Vil du verkeleg fjerne dei valde elementa og innhaldet deira?</string>
+    <string name="failed_upload_quota_exceeded_text">Ikkje nok plass på kontoen</string>
+    <string name="auth_forbidden">Autentiseringa er forboden</string>
+
+    <string name="actionbar_privacy_policy">Personvernerklæring</string>
+    <string name="prefs_privacy_policy">Personvernerklæring</string>
+    <string name="privacy_policy_error">Det har oppstått ein feil: </string>
+    <string name="service_unavailable">Tenaren er utilgjengeleg.</string>
+
+    <string name="streaming_certificate_error">Strøyminga kan ikkje startast fordi sertifikatet til tenaren din ikkje er klarert. Nedlastinga av fila startar automatisk.</string>
+    <string name="streaming_unrecognized_input">Dette videoformatet er ikkje støtta.</string>
+    <string name="streaming_file_not_found_error">Denne videofila er ikkje lenger tilgjengeleg på tenaren.</string>
+    <string name="streaming_crossed_redirection">Strøyming er ikkje tillaten via kryssande omdirigeringar.</string>
+    <string name="previewing_video_common_error">Denne videoen kan ikkje spelast av.</string>
+
+    <string name="previewing_video_not_supported">Førehandsvising av video er ikkje støtta i Android-versjonen din. Nedlastinga av fila startar automatisk.</string>
+    <string name="streaming_position_not_available">«Plassering ikkje tilgjengeleg»</string>
+    <string name="error_no_network_connection">Eininga er ikkje kopla til eit nettverk.</string>
+    <string name="share_no_public_links">Ingen offentlege lenkjer er oppretta enno.</string>
+    <string name="share_no_link_in_this_share">Denne delinga har ingen lenkje.</string>
+    <string name="share_warning_about_forwarding_public_links">Alle med lenka har tilgang til fila/mappa.</string>
+    <string name="share_via_link_default_password">*****</string>
+    <string name="share_via_link_password_enforced_label">Passord *</string>
+    <string name="share_via_link_expiration_date_enforced_label">Utløp *</string>
+    <string name="share_via_link_expiration_date_explanation_label">Den offentlege lenkja går ut seinast %1$d dagar etter at ho vart oppretta.</string>
+    <string name="share_via_link_default_name_template">%1$s-lenkje</string>
+    <string name="share_via_link_empty_password">Passordet er tomt.</string>
+    <string name="private_link_info">Privat lenkje: Berre dei som har tilgang til fila/mappa, kan bruke henne. Bruk henne som ei fast lenkje for deg sjølv eller for å vise andre til filer i delingar.</string>
+    <string name="file_private_link_error">Privat lenkje er ikkje tilgjengeleg for denne fila.</string>
+    <string name="download_notification_channel_name">Nedlastingar</string>
+    <string name="download_notification_channel_description">Sjå filnamnet og framdrifta for nedlastinga.</string>
+    <string name="upload_notification_channel_name">Opplastingar</string>
+    <string name="upload_notification_channel_description">Sjå filnamnet og framdrifta for opplastinga.</string>
+    <string name="media_service_notification_channel_name">Musikkspelar</string>
+    <string name="media_service_notification_channel_description">Sjå musikkspelaren</string>
+    <string name="file_sync_notification_channel_name">Filsynkronisering</string>
+    <string name="file_sync_notification_channel_description">Sjå resultatet av filsynkroniseringa</string>
+    <string name="file_sync_conflict_notification_channel_name">Filkonfliktar</string>
+    <string name="file_sync_conflict_notification_channel_description">Sjå filkonfliktar når dei oppstår.</string>
+    <string name="clicks_to_be_developer">Du er %1$d klikk unna å slå på utviklarmenyane</string>
+
+    <string name="rate_dialog_title">Vurder %1$s-appen!</string>
+    <string name="rate_dialog_description">Om du likar å bruke denne appen, kan du ta eit augeblikk og gje han ei vurdering? Tilbakemeldinga di er svært viktig for oss. </string>
+    <string name="button_no_thanks_name">NEI, TAKK</string>
+    <string name="button_later_name">SEINARE</string>
+    <string name="button_rate_now_name">VURDER NO</string>
+    <plurals name="items_selected_count">
+        <item quantity="one">%d vald</item>
+        <item quantity="other">%d valde</item>
+    </plurals>
+
+    <!-- Welcome to oC intro features -->
+    <string name="welcome_feature_skip_button">Hopp over</string>
+    <string name="welcome_feature_1_title">Handsam alle dei synkroniserte filene dine</string>
+    <string name="welcome_feature_1_text">Du kan kopiere, flytte, slette</string>
+    <string name="welcome_feature_2_title">Del filer og mapper</string>
+    <string name="welcome_feature_2_text">Du kan dele privat eller offentleg</string>
+    <string name="welcome_feature_3_title">Fleire kontoar</string>
+    <string name="welcome_feature_3_text">Kople til alle OpenCloud-tenarane dine</string>
+    <string name="welcome_feature_4_title">Kameraopplastingar</string>
+    <string name="welcome_feature_4_text">Bileta/videoane dine vert lasta opp automatisk</string>
+    <string name="welcome_feature_5_title">Videostrøyming</string>
+    <string name="welcome_feature_5_text">Spel av videoane dine utan å laste dei ned</string>
+    <string name="no_browser_installed_alert">Ingen nettlesar er installert. Installer ein nettlesar for å gjere sikker innlogging mogleg.</string>
+    <string name="common_not_found">det vart ikkje funne</string>
+
+    <string name="supports_oauth2_error">Klarte ikkje finne ut om OAuth2 er støtta.</string>
+    <string name="get_base_url_error">Klarte ikkje finne grunn-URL-en til tenaren.</string>
+    <string name="prefs_http_logs">Logg HTTP-førespurnadar og -svar</string>
+    <string name="prefs_logs_summary">Loggane kan innehalde sensitiv informasjon. Det er berre brukaren sjølv som har ansvar for å dele loggar med andre</string>
+
+    <string name="synchronizing_account">Synkroniserer konto</string>
+    <string name="spaces_sync_failed">Klarte ikkje oppdatere romma</string>
+
+    <!-- Scoped storage migration wizard -->
+    <string name="scoped_storage_wizard_explanation">Fann %1$s data på den eksterne lagringa di. Dei vert flytte til den sikre lagringa på eininga. Filene som er att, vert sletta frå den eksterne lagringa etter migreringa for å unngå duplikat og tryggleikshol.</string>
+    <string name="scoped_storage_wizard_intro">Appen er oppdatert. Denne oppdateringa flyttar filene dine til ein tryggare stad på eininga. Denne eingongsmigreringa er nødvendig og kan ta eitt minutt eller meir.</string>
+    <string name="scoped_storage_wizard_intro_button">Kom i gang</string>
+    <string name="scoped_storage_wizard_not_enough_space_warning">⚠️ Det er lite ledig plass på eininga di no. Nokre filer vert kanskje ikkje migrerte. Sjekk at alle nedlasta filer framleis er nedlasta når prosessen er fullført.</string>
+    <string name="scoped_storage_wizard_migrate_and_clean_button">Migrer no</string>
+    <string name="scoped_storage_wizard_migration_completed">Migreringa er fullført. Filene dine er no tryggare enn nokon gong.</string>
+    <string name="scoped_storage_wizard_migration_completed_access_files_button">Få tilgang til filene dine</string>
+    <string name="scoped_storage_wizard_migration_in_progress">Flyttar filene dine. Ikkje slå av eininga.</string>
+    <string name="scoped_storage_wizard_migration_in_progress_button">Arbeider … Vent litt</string>
+    <string name="scoped_storage_wizard_title">Meir tryggleik for filene dine</string>
+
+    <!-- Security Enforced -->
+    <string name="security_enforced_title">Vel korleis appen skal låsast:</string>
+    <string name="security_enforced_first_option">Kodelås</string>
+    <string name="security_enforced_second_option">Mønsterlås</string>
+
+    <string name="folder_upload_some_content_or_sync_devices">Last opp noko innhald eller synkroniser med einingane dine!</string>
+
+    <!-- Webfinger -->
+    <string name="global_proceed">Hald fram</string>
+    <string name="error_webfinger_username_empty">Brukarnamnet er tomt</string>
+
+    <!-- Release Notes -->
+    <string name="release_notes_header">Nytt i %1$s</string>
+    <string name="release_notes_footer">Takk for at du brukar %1$s.\n♥️</string>
+    <string name="release_notes_proceed">Hald fram</string>
+    <string name="release_notes_icon">Ikon for utgjevingsnotat</string>
+    <string name="release_notes_bugfixes_title">Mindre feilrettingar</string>
+    <string name="release_notes_bugfixes_subtitle">Nokre feil er retta for å gjere appen betre å bruke</string>
+    <string name="release_notes_4_5_0_title_feedback_in_previews">Tilbakemelding når tilgjengeleg fråkopla vert slått på eller av i alle førehandsvisingar</string>
+    <string name="release_notes_4_5_0_subtitle_feedback_in_previews">Lagt til tilbakemelding når tilgjengeleg fråkopla vert slått på eller av i alle førehandsvisingar, og menyen vert oppdatert etter filstatusen</string>
+    <string name="release_notes_4_5_0_title_quota_improvements">Betre vising av lagringsbruk</string>
+    <string name="release_notes_4_5_0_subtitle_quota_improvements">Lagringsbruken vert oppdatert oftare ved filoperasjonar og oppdatering, og er no tilgjengeleg i kontohandsaminga i tillegg til i sidemenyen</string>
+    <string name="release_notes_4_5_0_title_light_users">Lettbrukarar</string>
+    <string name="release_notes_4_5_0_subtitle_light_users">Lettbrukarar (brukarar utan personleg rom) er no støtta i appen</string>
+    <string name="release_notes_4_5_1_title_strange_behaviour_apps_provider">Retting for oppretting av filer via appleverandørar</string>
+    <string name="release_notes_4_5_1_subtitle_strange_behaviour_apps_provider">Filer vert no opna rett når dei vert oppretta med appleverandørar</string>
+    <string name="release_notes_title">OpenCloud-klient</string>
+    <string name="release_notes_initial_release">Velkomen til den første utgåva</string>
+
+
+    <!-- Open in web -->
+    <string name="ic_action_open_in_web">Opne i nettlesar</string>
+    <string name="ic_action_open_with_web">Opne i %1$s (web)</string>
+    <string name="open_in_web_error_generic">Klarte ikkje opne i nettlesar</string>
+    <string name="open_in_web_error_not_supported">Det finst ingen appar som støttar dette filformatet.</string>
+    <string name="open_in_web_error_too_early">Den etterspurde fila er ikkje tilgjengeleg enno. Prøv igjen seinare.</string>
+
+    <!-- accounts warning -->
+    <string name="server_accounts_warning_title">Åtvaring om kontoar</string>
+    <string name="server_accounts_warning_message">Fjern kontoen og logg inn på nytt for å få funksjonen rom.</string>
+    <string name="server_accounts_warning_checkbox_message">Ikkje vis att</string>
+    <string name="server_accounts_warning_button">Forstått</string>
+
+    <string name="tab_label_ascii">Tekst</string>
+
+    <string name="apply_to_all_conflicts">Bruk på alle %1$s konfliktar</string>
+    <string name="log_file_downloaded">Loggfila er lasta ned</string>
+    <string name="go_to_download_folder">Gå til Nedlastingar</string>
+    <string name="log_file_downloaded_description">Loggfila %1$s er lasta ned til mappa Nedlastingar.</string>
+
+    <!-- DeepLinks -->
+    <string name="invalid_deep_link_format">Ugyldig lenkjeformat</string>
+    <string name="deep_link_user_no_access">Brukaren har ikkje tilgang til fila</string>
+    <string name="deep_link_loading">Opnar fil frå lenkje</string>
+
+    <string name="fab_refresh_text">Oppdater</string>
+    <string name="fab_refresh_sync_in_progress">Synkroniseringa er alt i gang</string>
+
+    <string name="password_policy_min_characters">Minst %1$d teikn lang</string>
+    <string name="password_policy_max_characters">Høgst %1$d teikn lang</string>
+    <string name="password_policy_min_digits">Minst %1$d tal</string>
+    <string name="password_policy_lowercase_characters">Minst %1$d små bokstavar</string>
+    <string name="password_policy_uppercase_characters">Minst %1$d store bokstavar</string>
+    <string name="password_policy_intro">Skriv inn eit passord som oppfyller følgjande krav: \n</string>
+    <string name="password_policy_min_special_character">Minst %1$d av spesialteikna: «%2$s»</string>
+    <string name="password_policy_error_password_banned">Passordet ditt er dessverre mykje brukt. Vel eit passord som er vanskelegare å gjette, for din eigen tryggleik.</string>
+
+    <string name="prefs_delete_local_files_entries_never">Aldri</string>
+    <string name="prefs_delete_local_files_entries_1hour">1 time</string>
+    <string name="prefs_delete_local_files_entries_12hours">12 timar</string>
+    <string name="prefs_delete_local_files_entries_1day">1 dag</string>
+    <string name="prefs_delete_local_files_entries_30days">30 dagar</string>
+    <string name="prefs_delete_local_files">Slett lokale kopiar</string>
+    <string name="prefs_delete_local_files_summary">Fjern automatisk nedlasta filer som ikkje er tilgjengelege fråkopla, når det har gått lenger tid enn vald sidan dei sist vart brukte.\nVald tid: %1$s</string>
+
+    <string name="insecure_http_url_title_dialog">Utrygg HTTP-URL</string>
+    <string name="insecure_http_url_message_dialog">URL-en du oppgav, brukar HTTP i staden for den krypterte HTTPS-protokollen. Held du fram, vert ikkje kommunikasjonen din kryptert.</string>
+    <string name="insecure_http_url_continue_button">Hald fram</string>
+
+    <string name="clean_data_account_message">Alle nedlasta filer som ikkje er tilgjengelege fråkopla, vert rydda bort for kontoen %1$s</string>
+    <string name="clean_data_account_title">Fjern lokal lagring</string>
+    <string name="clean_data_account_button_yes">Rydd data</string>
+
+    <string name="content_description_menu">Meny</string>
+    <string name="content_description_manage_accounts">Handsam kontoar</string>
+    <string name="content_description_search">Søk</string>
+    <string name="content_description_type_view">Visingstype</string>
+    <string name="content_description_image_previewed">Førehandsvist bilete</string>
+    <string name="content_description_add_public_link">Legg til offentleg lenkje</string>
+    <string name="content_description_get_private_link">Hent privat lenkje</string>
+    <string name="content_description_get_public_link">Hent offentleg lenkje</string>
+    <string name="content_description_delete_public_link">Slett offentleg lenkje</string>
+    <string name="content_description_get_edit_public_link">Rediger offentleg lenkje</string>
+    <string name="content_description_remove_account">Fjern konto</string>
+    <string name="content_description_add_new_content">Legg til nytt innhald</string>
+    <string name="content_description_add_new_content_expanded">Legg til nytt innhald, utvida</string>
+    <string name="content_description_clean_account_storage">Rydd lagringa for kontoen</string>
+    <string name="content_description_logo">Logo</string>
+    <string name="content_description_add_share">Legg til deling</string>
+    <string name="content_description_edit_share">Rediger deling</string>
+    <string name="content_description_delete_share">Slett deling</string>
+    <string name="content_description_file_operations">%1$s operasjonar</string>
+    <string name="content_description_sort_by_name_ascending">Sorter etter %1$s stigande</string>
+    <string name="content_description_sort_by_name_descending">Sorter etter %1$s søkkjande</string>
+    <string name="content_description_create_new_folder">Opprett ny mappe</string>
+
+    <string name="create_shortcut_dialog_title">Opprett ein snarveg</string>
+    <string name="create_shortcut_dialog_url">URL</string>
+    <string name="create_shortcut_dialog_url_information">URL-en må starte med https:// eller http:// slik at han kan opnast i nettlesaren</string>
+    <string name="create_shortcut_dialog_url_error_no_blanks">URL-en kan ikkje innehalde mellomrom</string>
+    <string name="create_shortcut_dialog_url_extension">.url</string>
+    <string name="open_shortcut_description">Denne snarvegen peikar til:</string>
+    <string name="open_shortcut_title">Opne lenkje</string>
+
+    <string name="feedback_dialog_get_in_contact_description"><![CDATA[ Diskuter i <a href=\"%1$s\"><b>GitHub-repoet vårt</b></a>]]></string>
+
+    <string name="link_role_accessibility">Lenkje</string>
+    <string name="button_role_accessibility">Knapp</string>
+
+    <string name="folder_picker_label">Mappeveljar</string>
+    <string name="passcode_label">Kode</string>
+    <string name="pattern_label">Mønster</string>
+    <string name="receive_external_files_label">Ta imot eksterne filer</string>
+    <string name="video_preview_label">Førehandsvising av video</string>
+    <string name="release_notes_label">Utgjevingsnotat</string>
+    <string name="image_preview_label">Førehandsvising av bilete</string>
+    <string name="login_label">Logg inn</string>
+    <string name="whats_new_label">Kva er nytt</string>
+    <string name="audio_preview_label">Førehandsvising av lyd</string>
+    <string name="details_label">Detaljar</string>
+    <string name="text_preview_label">Førehandsvising av tekst</string>
+    <string name="release_notes_title_enhanced_bottom_nav_bar">Lagt til tekstetikettar på botnlinja</string>
+    <string name="release_notes_subtitle_bottom_nav_bar">Tekstetikettar er lagde til, og standardindikatoren for aktiv seksjon viser kva seksjon som er vald i botnlinja</string>
+
+</resources>

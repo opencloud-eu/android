@@ -38,6 +38,8 @@
     <string name="drawer_feedback">GitHub Discussions</string>
     <string name="drawer_help">Hulp</string>
     <string name="prefs_category_general">Algemeen</string>
+    <string name="prefs_appearance_light">Licht</string>
+    <string name="prefs_appearance_dark">Donker</string>
     <string name="prefs_subsection_logging">Logboeken</string>
     <string name="prefs_subsection_more">Meer</string>
     <string name="prefs_subsection_security">Beveiliging</string>
@@ -59,6 +61,15 @@
     <string name="prefs_lock_access_from_document_provider_summary">Blokkeer de toegang van andere apps tot de bestanden van accounts in de app via Android bestandsbeheer.</string>
     <string name="prefs_touches_with_other_visible_windows">Raakt andere zichtbare vensters</string>
     <string name="prefs_touches_with_other_visible_windows_summary">Sta aanrakingen toe als de weergave door een ander zichtbaar venster wordt bedekt. Schakel dit in om apps voor lichtfiltering te kunnen gebruiken.</string>
+
+    <!-- mTLS client certificate (per account) -->
+    <string name="auth_connection_button">Verbinding…</string>
+    <string name="auth_mtls_cert_selected">Certificaat: %1$s</string>
+    <string name="account_mtls_button">Client-certificaat</string>
+    <string name="account_mtls_set_cert">Client-certificaat instellen</string>
+    <string name="account_mtls_clear_cert">Client-certificaat verwijderen</string>
+    <string name="account_mtls_cert_selected">Client-certificaat ingesteld: %1$s</string>
+    <string name="account_mtls_cert_cleared">Client-certificaat verwijderd</string>
     <string name="confirmation_touches_with_other_windows_title">Weet u zeker dat u deze functie wilt inschakelen\?</string>
     <string name="confirmation_touches_with_other_windows_message">Gebruik deze functie op eigen risico. Een kwaadwillende applicatie kan proberen u te misleiden om onbewust bepaalde acties uit te voeren met behulp van andere weergaven.</string>
     <string name="prefs_subsection_picture_uploads">Automatische upload van foto\'s</string>

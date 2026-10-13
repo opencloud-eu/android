@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- GLOBAL -->
+    <string name="global_name">Имя</string>
+    <string name="global_date">Дата</string>
+    <string name="global_size">Размер</string>
+    <string name="actionbar_search">Искать в этой папке</string>
+    <string name="actionbar_search_space">Искать пространства</string>
+    <string name="actionbar_sync">Обновить аккаунт</string>
+    <string name="actionbar_upload">Загрузить</string>
+    <string name="actionbar_upload_from_apps">Данные из других приложений</string>
+    <string name="actionbar_upload_files">Файлы</string>
+    <string name="actionbar_open_with">Открыть с помощью</string>
+    <string name="actionbar_open_with_read_only">Открыть с помощью (только для чтения)</string>
+    <string name="actionbar_mkdir">Новая папка</string>
+    <string name="actionbar_settings">Настройки</string>
+    <string name="actionbar_see_details">Детали</string>
+    <string name="actionbar_send_file">Отправить</string>
+    <string name="actionbar_descending">По убыванию</string>
+    <string name="actionbar_sort_title">Сортировать по</string>
+    <string name="fab_new_file">Новый документ</string>
+    <string name="fab_new_shortcut">Новый ярлык</string>
+    <string name="drawer_item_all_files">Все файлы</string>
+    <string name="drawer_item_only_available_offline">Сохранено на устройстве</string>
+    <string name="drawer_item_shared_by_link_files">Доступно по ссылке</string>
+    <string name="drawer_item_settings">Настройки</string>
+    <string name="drawer_item_uploads_list">Загрузки</string>
+    <string name="drawer_close">Закрыть</string>
+    <string name="drawer_open">Открыть</string>
+    <string name="drawer_loading_quota">Загрузка данных о квоте</string>
+    <string name="drawer_exceeded_quota">Хранилище заполнено</string>
+    <string name="drawer_nearing_quota">Хранилище почти заполнено</string>
+    <string name="drawer_critical_quota">Хранилище практически заполнено</string>
+    <string name="drawer_unavailable_used_storage">Нет данных об использовании хранилища</string>
+    <string name="drawer_feedback">Обсуждения на GitHub</string>
+    <string name="drawer_help">Помощь</string>
+    <string name="prefs_category_general">Общее</string>
+    <string name="prefs_appearance_light">Светлые</string>
+    <string name="prefs_appearance_dark">Темные</string>
+    <string name="prefs_subsection_logging">Логирование</string>
+    <string name="prefs_subsection_more">Ещё</string>
+    <string name="prefs_subsection_security">Безопасность</string>
+    <string name="prefs_subsection_whatsnew">Что нового в последней версии\?</string>
+    <string name="prefs_subsection_security_summary">Настройте блокировку доступа к приложению и разрешите взаимодействие с другими видимыми окнами</string>
+    <string name="prefs_subsection_logging_summary">Отслеживать логи, создаваемые при работе приложения</string>
+    <string name="prefs_subsection_more_summary">О приложении, обратная связь, и другое</string>
+    <string name="prefs_accounts">Аккаунты</string>
+    <string name="prefs_manage_accounts">Управление аккаунтами</string>
+    <string name="prefs_passcode">Блокировка по паролю</string>
+    <string name="prefs_biometric">Биометрическая блокировка</string>
+    <string name="prefs_biometric_summary">Включите блокировку по паролю или графическому ключу, чтобы активировать эту функцию</string>
+    <string name="prefs_lock_application">Заблокировать приложение</string>
+    <string name="prefs_lock_application_entries_immediately">Немедленно</string>
+    <string name="prefs_lock_application_entries_1minute">Через 1 минуту</string>
+    <string name="prefs_lock_application_entries_5minutes">Через 5 минут</string>
+    <string name="prefs_lock_application_entries_30minutes">Через 30 минут</string>
+    <string name="prefs_lock_access_from_document_provider">Заблокировать доступ через провайдер документов</string>
+    <string name="prefs_lock_access_from_document_provider_summary">Заблокировать доступ к файлам аккаунтов из других приложений через встроенный проводник Android.</string>
+    <string name="prefs_touches_with_other_visible_windows">Взаимодействие с другими видимыми окнами</string>
+    <string name="prefs_touches_with_other_visible_windows_summary">Разрешить касания, когда экран частично закрыт другим видимым окном. Включите для работы с приложениями фильтрации света.</string>
+
+    <!-- mTLS client certificate (per account) -->
+    <string name="auth_connection_button">Connection…</string>
+    <string name="confirmation_touches_with_other_windows_title">Вы уверены, что хотите включить эту функцию\?</string>
+    <string name="confirmation_touches_with_other_windows_message">Используйте эту функцию на свой страх и риск. Вредоносное приложение может попытаться обмануть вас, имитируя интерфейс.</string>
+    <string name="prefs_subsection_picture_uploads">Автоматическая загрузка фотографий</string>
+    <string name="prefs_subsection_video_uploads">Автоматическая загрузка видео</string>
+    <string name="prefs_camera_video_upload_path_title">Video upload path</string>
+    <string name="prefs_show_hidden_files">Показывать скрытые файлы</string>
+    <string name="prefs_log_title">Enable logging</string>
+    <string name="prefs_help">Помощь</string>
+    <string name="prefs_recommend">Recommend to a friend</string>
+    <string name="prefs_feedback">Feedback</string>
+    <string name="prefs_imprint">Imprint</string>
+    <string name="prefs_enable_logging">Enable logging</string>
+    <string name="prefs_send_feedback">Send feedback</string>
+    <!-- Bottom navigation bar -->
+    <string name="bottom_nav_files">Файлы</string>
+    <string name="bottom_nav_personal">Персональное</string>
+    <string name="bottom_nav_uploads">Загрузки</string>
+    <string name="bottom_nav_offline">Offline</string>
+    <string name="bottom_nav_links">Links</string>
+    <string name="bottom_nav_shares">Ресурсы совместного доступа</string>
+
+    <string name="auth_oauth_failure_snackbar_action">Sign in</string>
+    <string name="auth_username">Имя пользователя</string>
+    <string name="auth_password">Пароль</string>
+    <string name="sync_string_files">Файлы</string>
+    <string name="setup_btn_login">Войти</string>
+    <string name="uploader_btn_upload_text">Загрузить</string>
+    <string name="spaces_list_empty_title">No spaces</string>
+    <string name="shares_list_empty_title">Нет ресурсов с совместным доступом</string>
+    <string name="file_list_loading">Loading…</string>
+    <string name="file_list_folder">папка</string>
+    <string name="file_list_file">файл</string>
+    <string name="pick_document_type">Pick a document type to create:</string>
+    <string name="filedetails_download">Скачать</string>
+    <string name="action_share">Предоставить совместный доступ</string>
+    <string name="common_back">Back</string>
+    <string name="common_error">Ошибка</string>
+    <string name="common_loading">Loading…</string>
+    <string name="common_unknown">unknown</string>
+    <string name="common_pending">Pending</string>
+    <string name="change_password">Изменить пароль</string>
+    <string name="uploader_info_dirname">Имя папки</string>
+    <string name="uploader_upload_failed_ticker">Ошибка загрузки</string>
+    <string name="uploader_upload_text_filename_hint">Имя файла</string>
+    <string name="uploads_view_title">Загрузки</string>
+    <string name="uploads_view_upload_status_unknown_fail">Неизвестная ошибка</string>
+    <string name="uploader_upload_canceled_ticker">Загрузка прервана</string>
+    <string name="downloader_download_failed_ticker">Ошибка скачивания</string>
+    <string name="common_rename">Переименовать</string>
+    <string name="common_remove">Удалить</string>
+    <string name="file_already_exists">Файл уже существует</string>
+    <string name="folder_already_exists">Папка уже существует</string>
+    <string name="ssl_validator_btn_details_see">Детали</string>
+    <string name="ssl_validator_btn_details_hide">Скрыть</string>
+    <string name="confirmation_disable_camera_uploads_title">Подтвердить</string>
+    <string name="conflict_keep_both">Сохранить оба</string>
+    <string name="conflict_replace">Заменить</string>
+
+    <string name="activity_chooser_send_file_title">Отправить</string>
+
+    <string name="copy_link">Скопировать ссылку</string>
+    <string name="prefs_category_accounts">Аккаунты</string>
+    <string name="prefs_add_account">Add account</string>
+    <string name="drawer_manage_accounts">Управление аккаунтами</string>
+    <string name="manage_accounts_quota">%1$s of %2$s</string>
+    <string name="actionbar_select_all">Выбрать все</string>
+    <string name="actionbar_move">Move</string>
+    <string name="folder_picker_choose_button_text">Выбрать</string>
+    <string name="folder_picker_move_here_button_text">Move here</string>
+    <string name="folder_picker_copy_here_button_text">Копировать сюда</string>
+    <string name="shared_subject_header">shared</string>
+    <string name="username">Имя пользователя</string>
+
+    <string name="share_dialog_title">Предоставить совместный доступ</string>
+    <string name="share_via_link_section_title">Публичные ссылки</string>
+    <string name="share_via_link_name_label">Имя ссылки</string>
+    <string name="share_cancel_public_link_button">Отмена</string>
+    <string name="share_confirm_public_link_button">Сохранить</string>
+    <string name="share_via_link_password_label">Пароль</string>
+    <string name="share_via_link_generate_password_button">Сгенерировать</string>
+    <string name="share_via_link_copy_password_button">Скопировать</string>
+    <string name="share_via_link_edit_permission_read_only_label">Download / View</string>
+    <string name="share_with_title">Share with</string>
+    <string name="share_search">Посик</string>
+
+    <string name="action_upload_clear">Clear</string>
+
+    <string name="upload_notification_channel_name">Загрузки</string>
+    <!-- Welcome to oC intro features -->
+    <string name="welcome_feature_skip_button">Пропустить</string>
+    <string name="security_enforced_first_option">Блокировка по паролю</string>
+    <!-- Webfinger -->
+    <string name="global_proceed">Proceed</string>
+    <!-- Release Notes -->
+    <string name="release_notes_header">New in %1$s</string>
+    <string name="release_notes_proceed">Proceed</string>
+    <string name="tab_label_ascii">Text</string>
+
+    <string name="apply_to_all_conflicts">Применить ко всем %1$s конфликтам</string>
+    <string name="prefs_delete_local_files_entries_never">Никогда</string>
+    <string name="insecure_http_url_continue_button">Продолжить</string>
+
+    <string name="content_description_menu">Меню</string>
+    <string name="content_description_manage_accounts">Управление аккаунтами</string>
+    <string name="content_description_search">Посик</string>
+    <string name="content_description_get_edit_public_link">Редактировать публичную ссылку</string>
+    <string name="content_description_edit_share">Изменить ресурс</string>
+    <string name="create_shortcut_dialog_url">URL</string>
+    <string name="open_shortcut_title">Open link</string>
+
+    <string name="link_role_accessibility">Ссылка</string>
+    <string name="pattern_label">Pattern</string>
+    <string name="login_label">Логин</string>
+    <string name="details_label">Детали</string>
+    </resources>

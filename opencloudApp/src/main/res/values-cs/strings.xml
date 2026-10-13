@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- GLOBAL -->
+    <string name="global_name">Název</string>
+    <string name="global_date">Datum</string>
+    <string name="global_size">Velikost</string>
+    <string name="actionbar_search">Prohledat tuto složku</string>
+    <string name="actionbar_search_space">Prohledat prostory</string>
+    <string name="actionbar_sync">Obnovit účet</string>
+    <string name="actionbar_upload">Nahrát</string>
+    <string name="actionbar_upload_from_apps">Obsah z dalších aplikací</string>
+    <string name="actionbar_upload_files">Soubory</string>
+    <string name="actionbar_open_with">Otevřít s</string>
+    <string name="actionbar_open_with_read_only"> Otevřít s (jen pro čtení)</string>
+    <string name="actionbar_mkdir">Nová složka</string>
+    <string name="actionbar_settings">Nastavení</string>
+    <string name="actionbar_see_details">Podrobnosti</string>
+    <string name="actionbar_send_file">Odeslat</string>
+    <string name="actionbar_descending">Sestupně</string>
+    <string name="actionbar_sort_title">Seřadit podle</string>
+    <string name="fab_new_file">Nový dokument</string>
+    <string name="fab_new_shortcut">Nový zástupce</string>
+    <string name="fab_take_photo">Pořídit fotku</string>
+    <string name="drawer_item_all_files">Všechny soubory</string>
+    <string name="drawer_item_only_available_offline">K dispozici offline</string>
+    <string name="drawer_item_shared_by_link_files">Sdíleno odkazem</string>
+    <string name="drawer_item_settings">Nastavení</string>
+    <string name="drawer_item_uploads_list">Nahrané soubory</string>
+    <string name="drawer_close">Zavřít</string>
+    <string name="drawer_open">Otevřít</string>
+    <string name="drawer_loading_quota">Načítám kvótu</string>
+    <string name="drawer_quota">Využito %1$s z %2$s (%3$s%%)</string>
+    <string name="drawer_exceeded_quota">Úložiště je plné</string>
+    <string name="drawer_nearing_quota">Úložiště je téměř plné</string>
+    <string name="drawer_critical_quota">Úložiště je skoro zcela zaplněné</string>
+    <string name="drawer_unavailable_free_storage">Využito %1$s</string>
+    <string name="drawer_feedback">GitHub diskuze</string>
+    <string name="drawer_help">Nápověda</string>
+    <string name="prefs_category_general">Obecné</string>
+    <string name="prefs_appearance_light">Světlý</string>
+    <string name="prefs_appearance_dark">Tmavý</string>
+    <string name="prefs_subsection_logging">Logování</string>
+    <string name="prefs_subsection_more"> Více</string>
+    <string name="prefs_subsection_security">Zabezpečení</string>
+    <string name="prefs_subsection_whatsnew">Co je nového v poslední verzi\?</string>
+    <string name="prefs_accounts">Účty</string>
+    <string name="prefs_manage_accounts">Spravovat účty</string>
+    <string name="prefs_passcode">Zámek PIN</string>
+    <string name="prefs_biometric">Biometrický zámek</string>
+    <string name="prefs_biometric_summary">Pro povolení této volby nejprve nastavte zámek PIN nebo zámek gestem</string>
+    <string name="prefs_lock_application">Zamknout aplikaci</string>
+    <string name="prefs_lock_application_entries_immediately">Okamžitě</string>
+    <string name="prefs_lock_application_entries_1minute">Po 1 minutě</string>
+    <string name="prefs_lock_application_entries_5minutes">Po 5 minutách</string>
+    <string name="prefs_lock_application_entries_30minutes">Po 30 minutách</string>
+    <!-- mTLS client certificate (per account) -->
+    <string name="auth_connection_button">Připojení…</string>
+    <string name="auth_mtls_cert_selected">Certifikát: %1$s</string>
+    <string name="account_mtls_button">Klientský certifikát</string>
+    <string name="prefs_camera_video_upload_path_title">Video upload path</string>
+    <string name="prefs_log_title">Povolit logování</string>
+    <string name="prefs_log_title_history">Historie logů</string>
+    <string name="prefs_log_summary_history">Zobrazí zaznamenané logy.</string>
+    <string name="prefs_log_delete_history_button">Smazat historii</string>
+    <string name="prefs_help">Nápověda</string>
+    <string name="prefs_recommend">Recommend to a friend</string>
+    <string name="prefs_feedback">Feedback</string>
+    <string name="prefs_imprint">Imprint</string>
+    <string name="prefs_enable_logging">Povolit logování</string>
+    <string name="prefs_send_feedback">Send feedback</string>
+    <!-- Bottom navigation bar -->
+    <string name="bottom_nav_files">Soubory</string>
+    <string name="bottom_nav_personal">Osobní</string>
+    <string name="bottom_nav_uploads">Nahrané soubory</string>
+    <string name="bottom_nav_offline">Offline</string>
+    <string name="bottom_nav_links">Links</string>
+    <string name="bottom_nav_shares">Sdílení</string>
+
+    <string name="auth_oauth_failure_snackbar_action">Sign in</string>
+    <string name="auth_host_url">Adresa serveru https://…</string>
+    <string name="auth_username">Uživatelské jméno</string>
+    <string name="auth_password">Heslo</string>
+    <string name="sync_string_files">Soubory</string>
+    <string name="setup_btn_login">Přihlásit</string>
+    <string name="uploader_btn_upload_text">Nahrát</string>
+    <string name="spaces_list_empty_title">No spaces</string>
+    <string name="light_users_subtitle">Osobní prostor není dostupný</string>
+    <string name="file_list_loading">Nahrávám…</string>
+    <string name="file_list_folder">složka</string>
+    <string name="file_list_file">soubor</string>
+    <string name="pick_document_type">Pick a document type to create:</string>
+    <string name="filedetails_download">Stáhnout</string>
+    <string name="action_share">Sdílení</string>
+    <string name="common_back">Zpět</string>
+    <string name="common_error">Chyba</string>
+    <string name="common_loading">Nahrávám…</string>
+    <string name="common_unknown">unknown</string>
+    <string name="common_pending">Pending</string>
+    <string name="change_password">Změnit heslo</string>
+    <string name="delete_account">Odstranit účet</string>
+    <string name="uploader_info_dirname">Název složky</string>
+    <string name="uploader_upload_in_progress_ticker">Nahrává se…</string>
+    <string name="uploader_upload_failed_ticker">Nahrávání se nezdařilo</string>
+    <string name="uploader_upload_text_filename_hint">Název souboru</string>
+    <string name="uploads_view_title">Nahrané soubory</string>
+    <string name="uploads_view_upload_status_cancelled">Zrušeno</string>
+    <string name="uploads_view_upload_status_unknown_fail">Neznámá chyba</string>
+    <string name="uploader_upload_canceled_ticker">Nahrávání zrušeno</string>
+    <string name="downloader_download_in_progress_ticker">Stahuje se…</string>
+    <string name="auth_getting_authorization">Získávání autorizace…</string>
+    <string name="auth_trying_to_login">Probíhá přihlašování…</string>
+    <string name="auth_connecting_auth_server">Připojování k autentizačnímu serveru…</string>
+    <string name="common_rename">Přejmenovat</string>
+    <string name="common_remove">Odebrat</string>
+    <string name="file_already_exists">Soubor už existuje</string>
+    <string name="folder_already_exists">Složka už existuje</string>
+    <string name="new_remote_version_found_msg">Na serveru je k dispozici nová verze. Stahuje se…</string>
+    <string name="oauth_login_connection">Připojování k serveru OAuth2…</string>
+
+    <string name="ssl_validator_btn_details_see">Podrobnosti</string>
+    <string name="ssl_validator_btn_details_hide">Skrýt</string>
+    <string name="confirmation_disable_camera_uploads_title">Potvrdit</string>
+    <string name="conflict_replace">Nahradit</string>
+
+    <string name="preview_image_description">Náhled obrázku</string>
+    <string name="activity_chooser_send_file_title">Odeslat</string>
+
+    <string name="copy_link">Kopírovat odkaz</string>
+    <string name="prefs_category_accounts">Účty</string>
+    <string name="prefs_add_account">Add account</string>
+    <string name="drawer_manage_accounts">Spravovat účty</string>
+    <string name="manage_accounts_quota">%1$s of %2$s</string>
+    <string name="actionbar_logger">Logy</string>
+    <string name="log_send_history_button">Odeslat historii</string>
+    <string name="log_progress_dialog_text">Načítání dat…</string>
+
+    <string name="actionbar_move">Move</string>
+    <string name="folder_picker_choose_button_text">Zvolit</string>
+    <string name="folder_picker_move_here_button_text">Přesunout zde</string>
+    <string name="folder_picker_copy_here_button_text">Kopírovat sem</string>
+    <string name="shared_subject_header">shared</string>
+    <string name="auth_refresh_button">Obnovit připojení</string>
+    <string name="username">Uživatelské jméno</string>
+
+    <string name="upload_copy_files">Kopírovat soubor</string>
+    <string name="share_dialog_title">Sdílení</string>
+    <string name="share_via_link_section_title">Veřejné odkazy</string>
+    <string name="share_via_link_name_label">Název odkazu</string>
+    <string name="share_cancel_public_link_button">Zrušit</string>
+    <string name="share_confirm_public_link_button">Uložit</string>
+    <string name="share_via_link_password_label">Heslo</string>
+    <string name="share_via_link_generate_password_button">Vytvořit</string>
+    <string name="share_via_link_copy_password_button">Kopírovat</string>
+    <string name="share_via_link_edit_permission_read_only_label">Download / View</string>
+    <string name="share_with_title">Share with</string>
+    <string name="share_search">Hledat</string>
+
+    <string name="action_upload_clear">Clear</string>
+
+    <string name="upload_notification_channel_name">Nahrané soubory</string>
+    <!-- Welcome to oC intro features -->
+    <string name="welcome_feature_skip_button">Přeskočit</string>
+    <string name="welcome_feature_1_text">Můžete kopírovat, přesouvat, mazat</string>
+    <string name="spaces_sync_failed">Prostory se nepodařilo obnovit</string>
+
+    <string name="scoped_storage_wizard_migration_in_progress_button">Probíhá zpracování… Čekejte prosím</string>
+    <string name="security_enforced_first_option">Zámek PIN</string>
+    <!-- Webfinger -->
+    <string name="global_proceed">Proceed</string>
+    <!-- Release Notes -->
+    <string name="release_notes_header">New in %1$s</string>
+    <string name="release_notes_proceed">Proceed</string>
+    <string name="release_notes_4_5_0_subtitle_light_users">Uživatelé Light (uživatelé bez osobního prostoru) jsou nyní v aplikaci podporováni</string>
+    <string name="tab_label_ascii">Text</string>
+
+    <string name="fab_refresh_text">Obnovit</string>
+    <string name="fab_refresh_sync_in_progress">Synchronizace již probíhá</string>
+
+    <string name="prefs_delete_local_files_entries_never">Nikdy</string>
+    <string name="prefs_delete_local_files_entries_1hour">1 hodina</string>
+    <string name="prefs_delete_local_files_entries_12hours">12 hodin</string>
+    <string name="prefs_delete_local_files_entries_1day">1 den</string>
+    <string name="prefs_delete_local_files_entries_30days">30 dní</string>
+    <string name="prefs_delete_local_files">Smazat místní kopie</string>
+    <string name="insecure_http_url_continue_button">Pokračovat</string>
+
+    <string name="clean_data_account_title">Odstranit místní úložiště</string>
+    <string name="clean_data_account_button_yes">Vymazat data</string>
+
+    <string name="content_description_manage_accounts">Spravovat účty</string>
+    <string name="content_description_search">Hledat</string>
+    <string name="content_description_type_view">Typ zobrazení</string>
+    <string name="content_description_add_public_link">Přidat veřejný odkaz</string>
+    <string name="content_description_get_private_link">Získat soukromý odkaz</string>
+    <string name="content_description_get_public_link">Získat veřejný odkaz</string>
+    <string name="content_description_delete_public_link">Smazat veřejný odkaz</string>
+    <string name="content_description_get_edit_public_link">Upravit veřejný odkaz</string>
+    <string name="content_description_remove_account">Odstranit účet</string>
+    <string name="content_description_add_new_content">Přidat nový obsah</string>
+    <string name="content_description_logo">Logo</string>
+    <string name="content_description_add_share">Přidat sdílení</string>
+    <string name="content_description_edit_share">Upravit sdílení</string>
+    <string name="content_description_delete_share">Smazat sdílení</string>
+    <string name="content_description_sort_by_name_ascending">Seřadit podle %1$s vzestupně</string>
+    <string name="content_description_create_new_folder">Vytvořit novou složku</string>
+
+    <string name="create_shortcut_dialog_title">Vytvořit zkratku</string>
+    <string name="create_shortcut_dialog_url">URL</string>
+    <string name="create_shortcut_dialog_url_extension">.url</string>
+    <string name="open_shortcut_title">Otevřít odkaz</string>
+
+    <string name="link_role_accessibility">Odkaz</string>
+    <string name="button_role_accessibility">Tlačítko</string>
+
+    <string name="folder_picker_label">Výběr složky</string>
+    <string name="pattern_label">Pattern</string>
+    <string name="video_preview_label">Náhled videa</string>
+    <string name="release_notes_label">Poznámky k vydání</string>
+    <string name="image_preview_label">Náhled obrázku</string>
+    <string name="login_label">Přihlášení</string>
+    <string name="whats_new_label">Co je nového</string>
+    <string name="audio_preview_label">Náhled zvuku</string>
+    <string name="details_label">Podrobnosti</string>
+    <string name="text_preview_label">Náhled textu</string>
+    </resources>
