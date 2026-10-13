@@ -38,6 +38,9 @@
     <string name="drawer_feedback">Discussions GitHub</string>
     <string name="drawer_help">Aide...</string>
     <string name="prefs_category_general">Général</string>
+    <string name="prefs_appearance">Apparence</string>
+    <string name="prefs_appearance_light">Lumineux</string>
+    <string name="prefs_appearance_dark">Sombre</string>
     <string name="prefs_subsection_logging">connexion</string>
     <string name="prefs_subsection_more">Plus</string>
     <string name="prefs_subsection_security">Sécurité</string>
@@ -59,6 +62,9 @@
     <string name="prefs_lock_access_from_document_provider_summary">Verrouiller l\'accès des autres applications aux fichiers d\'utilisateurs de l\'application via le navigateur de fichiers natif d\'Android.</string>
     <string name="prefs_touches_with_other_visible_windows">Interactions avec d\'autres fenêtres visibles</string>
     <string name="prefs_touches_with_other_visible_windows_summary">Autoriser les interactions quand une autre fenêtre visible se superpose à l\'affichage. Activer pour utiliser le fonctionnement des applications de filtre lumineux.</string>
+
+    <!-- mTLS client certificate (per account) -->
+    <string name="auth_connection_button">Connection…</string>
     <string name="confirmation_touches_with_other_windows_title">Êtes-vous sûr de vouloir activer cette fonctionnalité \?</string>
     <string name="confirmation_touches_with_other_windows_message">Utilisez cette fonctionnalité à vos propres risques. Une application malveillante pourrait tenter de vous pousser à effectuer des actions en falsifiant l\'affichage.</string>
     <string name="prefs_subsection_picture_uploads">Téléversement automatique des images</string>
