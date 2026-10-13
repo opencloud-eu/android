@@ -383,7 +383,7 @@ class MainFileListViewModel(
     }
 
     /**
-     * Attaches the selected folder and enqueues the prepared export. This deliberately outlives
+     * Attaches the selected folder and enqueues the prepared export. This outlives
      * the ViewModel: the picker can return while its Activity is already finishing.
      */
     fun exportFilesToDevice(exportJobId: Long, targetFolderTreeUri: String) {
