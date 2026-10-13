@@ -62,6 +62,7 @@ import eu.opencloud.android.databinding.AccountSetupBinding
 import eu.opencloud.android.domain.authentication.oauth.model.ClientRegistrationInfo
 import eu.opencloud.android.domain.authentication.oauth.model.ResponseType
 import eu.opencloud.android.domain.authentication.oauth.model.TokenRequest
+import eu.opencloud.android.domain.authentication.oauth.model.TokenResponse
 import eu.opencloud.android.domain.exceptions.ForbiddenException
 import eu.opencloud.android.domain.exceptions.NoNetworkConnectionException
 import eu.opencloud.android.domain.exceptions.OpencloudVersionNotSupportedException
@@ -72,6 +73,7 @@ import eu.opencloud.android.domain.exceptions.SpecificForbiddenException
 import eu.opencloud.android.domain.exceptions.UnauthorizedException
 import eu.opencloud.android.domain.exceptions.UnhandledHttpCodeException
 import eu.opencloud.android.domain.server.model.ServerInfo
+import eu.opencloud.android.domain.utils.Event
 import eu.opencloud.android.extensions.checkPasscodeEnforced
 import eu.opencloud.android.extensions.goToUrl
 import eu.opencloud.android.extensions.manageOptionLockSelected
@@ -114,6 +116,7 @@ private const val KEY_OIDC_SUPPORTED = "KEY_OIDC_SUPPORTED"
 private const val KEY_CODE_VERIFIER = "KEY_CODE_VERIFIER"
 private const val KEY_CODE_CHALLENGE = "KEY_CODE_CHALLENGE"
 private const val KEY_OIDC_STATE = "KEY_OIDC_STATE"
+private const val KEY_AUTHORIZATION_REQUEST_LAUNCHED = "KEY_AUTHORIZATION_REQUEST_LAUNCHED"
 private const val KEY_AUTH_SERVER_BASE_URL = "KEY_AUTH_SERVER_BASE_URL"
 private const val KEY_AUTH_OIDC_SUPPORTED = "KEY_AUTH_OIDC_SUPPORTED"
 private const val KEY_AUTH_LOGIN_ACTION = "KEY_AUTH_LOGIN_ACTION"
@@ -167,6 +170,13 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
     private var resultBundle: Bundle? = null
     private var pendingAuthorizationIntent: Intent? = null
 
+    /**
+     * True once the browser has been opened for the current attempt. Kept across recreation so a
+     * replayed serverInfo result cannot launch a second authorization request: the activity is not
+     * configChanges-proof and its ViewModel re-delivers the last result to every new instance.
+     */
+    private var authorizationRequestLaunched = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -207,6 +217,7 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
             savedInstanceState.getString(KEY_CODE_VERIFIER)?.let { authenticationViewModel.codeVerifier = it }
             savedInstanceState.getString(KEY_CODE_CHALLENGE)?.let { authenticationViewModel.codeChallenge = it }
             savedInstanceState.getString(KEY_OIDC_STATE)?.let { authenticationViewModel.oidcState = it }
+            authorizationRequestLaunched = savedInstanceState.getBoolean(KEY_AUTHORIZATION_REQUEST_LAUNCHED)
         }
 
         // edge-to-edge
@@ -272,9 +283,9 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
 
         initBrandableOptionsUI()
 
-        binding.thumbnail.setOnClickListener { checkOcServer() }
+        binding.thumbnail.setOnClickListener { userRequestedServerCheck() }
 
-        binding.embeddedCheckServerButton.setOnClickListener { checkOcServer() }
+        binding.embeddedCheckServerButton.setOnClickListener { userRequestedServerCheck() }
 
         setupHostUrlEnterAction()
 
@@ -494,6 +505,12 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
             }
         }
 
+        // Registered once, and with EventObserver so the result is consumed: a re-delivered or
+        // doubly-observed token response would otherwise start a second parallel login.
+        authenticationViewModel.requestToken.observe(this, Event.EventObserver { uiResult ->
+            onRequestTokenResult(uiResult)
+        })
+
         authenticationViewModel.baseUrl.observe(this) { event ->
             when (val uiResult = event.peekContent()) {
                 is UIResult.Loading -> {}
@@ -547,12 +564,22 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
             val hardwareEnterPressed =
                 event?.keyCode == KeyEvent.KEYCODE_ENTER && event.action == KeyEvent.ACTION_DOWN
             if (imeActionTriggered || hardwareEnterPressed) {
-                checkOcServer()
+                userRequestedServerCheck()
                 true
             } else {
                 false
             }
         }
+    }
+
+    /**
+     * A server check the user actually asked for, which starts a new attempt and so may open the
+     * browser again. Kept apart from [checkOcServer] because that one is also reached from replayed
+     * LiveData observers after the activity is recreated, where re-opening the browser is the bug.
+     */
+    private fun userRequestedServerCheck() {
+        authorizationRequestLaunched = false
+        checkOcServer()
     }
 
     private fun checkOcServer() {
@@ -861,6 +888,10 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
         clientId: String = getString(R.string.oauth2_client_id),
         webFingerScopes: List<String>? = null,
     ) {
+        if (authorizationRequestLaunched) {
+            Timber.d("Authorization request already launched for this attempt, not opening the browser again")
+            return
+        }
         Timber.d("A browser should be opened now to authenticate this user.")
 
         val customTabsBuilder: CustomTabsIntent.Builder = CustomTabsIntent.Builder()
@@ -902,6 +933,7 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
                 this,
                 authorizationEndpointUri
             )
+            authorizationRequestLaunched = true
         } catch (e: ActivityNotFoundException) {
             binding.serverStatusText.visibility = INVISIBLE
             showMessageInSnackbar(message = this.getString(R.string.file_list_no_app_for_perform_action))
@@ -923,6 +955,7 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
     }
 
     private fun handleGetAuthorizationCodeResponse(intent: Intent) {
+        authorizationRequestLaunched = false
         val authorizationCode = intent.data?.getQueryParameter("code")
         val state = intent.data?.getQueryParameter("state")
 
@@ -1011,60 +1044,66 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
         )
 
         authenticationViewModel.requestToken(requestToken)
+    }
 
-        authenticationViewModel.requestToken.observe(this) {
-            when (val uiResult = it.peekContent()) {
-                is UIResult.Loading -> {}
-                is UIResult.Success -> {
-                    Timber.d("Tokens received ${uiResult.data}, trying to login, creating account and adding it to account manager")
-                    val tokenResponse = uiResult.data ?: return@observe
+    /**
+     * Handles the result of the token request. Registered once in [initLiveDataObservers].
+     */
+    private fun onRequestTokenResult(uiResult: UIResult<TokenResponse>) {
+        val clientRegistrationInfo = authenticationViewModel.registerClient.value?.peekContent()?.getStoredData()
+        val serverInfo = authenticationViewModel.serverInfo.value?.peekContent()?.getStoredData()
 
-                    // Extract preferred_username from id_token for login_hint on re-login
-                    preferredUsername = extractPreferredUsernameFromIdToken(tokenResponse.idToken)
-                    Timber.d("Preferred username from id_token: $preferredUsername")
+        when (uiResult) {
+            is UIResult.Loading -> {}
+            is UIResult.Success -> {
+                Timber.d("Tokens received ${uiResult.data}, trying to login, creating account and adding it to account manager")
+                val tokenResponse = uiResult.data ?: return
 
-                    // When webfinger provides a client_id without dynamic registration,
-                    // store it so AccountAuthenticator can use it for token refresh
-                    val effectiveClientRegistrationInfo = clientRegistrationInfo
-                        ?: (serverInfo as? ServerInfo.OIDCServer)?.webFingerClientId?.let { wfClientId ->
-                            ClientRegistrationInfo(
-                                clientId = wfClientId,
-                                clientSecret = null,
-                                clientIdIssuedAt = null,
-                                clientSecretExpiration = 0,
-                            )
-                        }
+                // Extract preferred_username from id_token for login_hint on re-login
+                preferredUsername = extractPreferredUsernameFromIdToken(tokenResponse.idToken)
+                Timber.d("Preferred username from id_token: $preferredUsername")
 
-                    // Scope priority: webfinger scopes > MDM/string-resource > token response
-                    val webFingerScopes = if (serverInfo is ServerInfo.OIDCServer) {
-                        serverInfo.webFingerScopes
-                    } else {
-                        null
-                    }
-                    val effectiveScope = if (!oidcSupported) {
-                        tokenResponse.scope
-                    } else if (webFingerScopes != null) {
-                        webFingerScopes.joinToString(" ")
-                    } else {
-                        mdmProvider.getBrandingString(CONFIGURATION_OAUTH2_OPEN_ID_SCOPE, R.string.oauth2_openid_scope)
+                // When webfinger provides a client_id without dynamic registration,
+                // store it so AccountAuthenticator can use it for token refresh
+                val effectiveClientRegistrationInfo = clientRegistrationInfo
+                    ?: (serverInfo as? ServerInfo.OIDCServer)?.webFingerClientId?.let { wfClientId ->
+                        ClientRegistrationInfo(
+                            clientId = wfClientId,
+                            clientSecret = null,
+                            clientIdIssuedAt = null,
+                            clientSecretExpiration = 0,
+                        )
                     }
 
-                    authenticationViewModel.loginOAuth(
-                        serverBaseUrl = serverBaseUrl,
-                        username = tokenResponse.additionalParameters?.get(KEY_USER_ID).orEmpty(),
-                        authTokenType = OAUTH_TOKEN_TYPE,
-                        accessToken = tokenResponse.accessToken,
-                        refreshToken = tokenResponse.refreshToken.orEmpty(),
-                        scope = effectiveScope,
-                        updateAccountWithUsername = if (loginAction != ACTION_CREATE) userAccount?.name else null,
-                        clientRegistrationInfo = effectiveClientRegistrationInfo
-                    )
+                // Scope priority: webfinger scopes > MDM/string-resource > token response
+                val webFingerScopes = if (serverInfo is ServerInfo.OIDCServer) {
+                    serverInfo.webFingerScopes
+                } else {
+                    null
+                }
+                val effectiveScope = if (!oidcSupported) {
+                    tokenResponse.scope
+                } else if (webFingerScopes != null) {
+                    webFingerScopes.joinToString(" ")
+                } else {
+                    mdmProvider.getBrandingString(CONFIGURATION_OAUTH2_OPEN_ID_SCOPE, R.string.oauth2_openid_scope)
                 }
 
-                is UIResult.Error -> {
-                    Timber.e(uiResult.error, "OAuth request to exchange authorization code for tokens failed")
-                    updateOAuthStatusIconAndText(uiResult.error)
-                }
+                authenticationViewModel.loginOAuth(
+                    serverBaseUrl = serverBaseUrl,
+                    username = tokenResponse.additionalParameters?.get(KEY_USER_ID).orEmpty(),
+                    authTokenType = OAUTH_TOKEN_TYPE,
+                    accessToken = tokenResponse.accessToken,
+                    refreshToken = tokenResponse.refreshToken.orEmpty(),
+                    scope = effectiveScope,
+                    updateAccountWithUsername = if (loginAction != ACTION_CREATE) userAccount?.name else null,
+                    clientRegistrationInfo = effectiveClientRegistrationInfo
+                )
+            }
+
+            is UIResult.Error -> {
+                Timber.e(uiResult.error, "OAuth request to exchange authorization code for tokens failed")
+                updateOAuthStatusIconAndText(uiResult.error)
             }
         }
     }
@@ -1117,7 +1156,7 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
 
     override fun onSavedCertificate() {
         Timber.d("Server certificate is trusted")
-        checkOcServer()
+        userRequestedServerCheck()
     }
 
     override fun onCancelCertificate() {
@@ -1173,7 +1212,7 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
         binding.hostUrlFrame.isVisible = showInput
         binding.centeredRefreshButton.isVisible = !showInput
         if (!showInput) {
-            binding.centeredRefreshButton.setOnClickListener { checkOcServer() }
+            binding.centeredRefreshButton.setOnClickListener { userRequestedServerCheck() }
         }
 
         val url = mdmProvider.getBrandingString(mdmKey = CONFIGURATION_SERVER_URL, stringKey = R.string.server_url)
@@ -1331,6 +1370,7 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
         outState.putString(KEY_CODE_VERIFIER, authenticationViewModel.codeVerifier)
         outState.putString(KEY_CODE_CHALLENGE, authenticationViewModel.codeChallenge)
         outState.putString(KEY_OIDC_STATE, authenticationViewModel.oidcState)
+        outState.putBoolean(KEY_AUTHORIZATION_REQUEST_LAUNCHED, authorizationRequestLaunched)
         outState.putString(KEY_AUTH_MTLS_CERT_ALIAS, clientCertAlias)
         outState.putBoolean(KEY_AUTH_MTLS_CERT_ALIAS_CHANGED, clientCertAliasChangedByUser)
     }
