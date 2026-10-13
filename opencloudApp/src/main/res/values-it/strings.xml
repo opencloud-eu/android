@@ -38,6 +38,8 @@
     <string name="drawer_feedback">Discussioni GitHub</string>
     <string name="drawer_help">Aiuto</string>
     <string name="prefs_category_general">Generale</string>
+    <string name="prefs_appearance_light">Chiaro</string>
+    <string name="prefs_appearance_dark">Scuro</string>
     <string name="prefs_subsection_logging">Registrazione</string>
     <string name="prefs_subsection_more">Altro</string>
     <string name="prefs_subsection_security">Sicurezza</string>
@@ -59,6 +61,9 @@
     <string name="prefs_lock_access_from_document_provider_summary">Impedisci ad altre app di accedere ai file degli account dell\'app tramite l\'esploratore file nativo di Android.</string>
     <string name="prefs_touches_with_other_visible_windows">Tocchi con altre finestre visibili</string>
     <string name="prefs_touches_with_other_visible_windows_summary">Consenti tocchi quando la vista è oscurata da un\'altra finestra visibile. Attiva per utilizzare app con filtro luminosità.</string>
+
+    <!-- mTLS client certificate (per account) -->
+    <string name="auth_connection_button">Connection…</string>
     <string name="confirmation_touches_with_other_windows_title">Vuoi davvero abilitare questa funzione?</string>
     <string name="confirmation_touches_with_other_windows_message">Usa questa funzione a tuo rischio. Un\'applicazione dannosa potrebbe tentare di indurti a eseguire azioni all\'insaputa, utilizzando altre viste.</string>
     <string name="prefs_subsection_picture_uploads">Caricamento automatico foto</string>
