@@ -74,7 +74,7 @@ class ExportFilesToDeviceUseCase(
 
     /**
      * Removes a selection whose picker was cancelled. A job that already has a target URI belongs
-     * to WorkManager and is deliberately left alone.
+     * to WorkManager and is left alone.
      */
     fun discardPendingExport(exportJobId: Long) {
         synchronized(ENQUEUE_LOCK) {
