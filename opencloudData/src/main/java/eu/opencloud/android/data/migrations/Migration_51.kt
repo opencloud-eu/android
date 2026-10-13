@@ -4,7 +4,7 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import eu.opencloud.android.data.ProviderMeta.ProviderTableMeta
 
-val MIGRATION_49_50 = object : Migration(49, 50) {
+val MIGRATION_50_51 = object : Migration(50, 51) {
     override fun migrate(database: SupportSQLiteDatabase) {
         database.execSQL(
             "CREATE TABLE IF NOT EXISTS `${ProviderTableMeta.EXPORT_JOBS_TABLE_NAME}` (" +

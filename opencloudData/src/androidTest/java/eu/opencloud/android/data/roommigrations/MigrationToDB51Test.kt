@@ -23,22 +23,22 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.test.filters.SmallTest
 import eu.opencloud.android.data.ProviderMeta.ProviderTableMeta.EXPORT_JOBS_TABLE_NAME
 import eu.opencloud.android.data.ProviderMeta.ProviderTableMeta.FILES_TABLE_NAME
-import eu.opencloud.android.data.migrations.MIGRATION_49_50
+import eu.opencloud.android.data.migrations.MIGRATION_50_51
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 @SmallTest
-class MigrationToDB50Test : MigrationTest() {
+class MigrationToDB51Test : MigrationTest() {
 
     @Test
-    fun migrationFrom49to50_preservesFilesAndAddsExportJobs() {
+    fun migrationFrom50to51_preservesFilesAndAddsExportJobs() {
         performMigrationTest(
-            previousVersion = 49,
-            currentVersion = 50,
+            previousVersion = 50,
+            currentVersion = 51,
             insertData = { database -> insertFileToTest(database) },
-            validateMigration = { database -> validateMigrationTo50(database) },
-            listOfMigrations = arrayOf(MIGRATION_49_50)
+            validateMigration = { database -> validateMigrationTo51(database) },
+            listOfMigrations = arrayOf(MIGRATION_50_51)
         )
     }
 
@@ -68,7 +68,7 @@ class MigrationToDB50Test : MigrationTest() {
         )
     }
 
-    private fun validateMigrationTo50(database: SupportSQLiteDatabase) {
+    private fun validateMigrationTo51(database: SupportSQLiteDatabase) {
         database.query("SELECT * FROM `$FILES_TABLE_NAME`").use { cursor ->
             assertTrue(cursor.moveToFirst())
             assertEquals("user@example.com", cursor.getString(cursor.getColumnIndex("owner")))
