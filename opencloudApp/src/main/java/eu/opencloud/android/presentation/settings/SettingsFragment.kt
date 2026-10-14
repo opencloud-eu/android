@@ -27,6 +27,8 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.preference.ListPreference
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.PreferenceScreen
@@ -47,6 +49,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
     private val releaseNotesViewModel by viewModel<ReleaseNotesViewModel>()
 
     private var settingsScreen: PreferenceScreen? = null
+    private var prefAppearance: ListPreference? = null
     private var subsectionPictureUploads: Preference? = null
     private var subsectionVideoUploads: Preference? = null
     private var subsectionMore: Preference? = null
@@ -59,6 +62,22 @@ class SettingsFragment : PreferenceFragmentCompat() {
         setPreferencesFromResource(R.xml.settings, rootKey)
 
         settingsScreen = findPreference(SCREEN_SETTINGS)
+        prefAppearance = findPreference<ListPreference>(AppearanceMode.PREFERENCE_KEY)?.apply {
+            entries = arrayOf(
+                getString(R.string.prefs_appearance_system),
+                getString(R.string.prefs_appearance_light),
+                getString(R.string.prefs_appearance_dark)
+            )
+            entryValues = AppearanceMode.entries.map { it.name }.toTypedArray()
+            value = AppearanceMode.fromPreferenceValue(value).name
+            summary = entry
+            setOnPreferenceChangeListener { preference, newValue ->
+                val appearanceMode = AppearanceMode.fromPreferenceValue(newValue as String)
+                preference.summary = entries[findIndexOfValue(appearanceMode.name)]
+                AppCompatDelegate.setDefaultNightMode(appearanceMode.nightMode)
+                true
+            }
+        }
         subsectionPictureUploads = findPreference(SUBSECTION_PICTURE_UPLOADS)
         subsectionVideoUploads = findPreference(SUBSECTION_VIDEO_UPLOADS)
         subsectionMore = findPreference(SUBSECTION_MORE)

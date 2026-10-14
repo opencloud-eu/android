@@ -73,7 +73,7 @@ class BottomSheetFragmentItemView @JvmOverloads constructor(
 
     fun setSelected(iconAdditional: Int) {
         itemAdditionalIcon = ContextCompat.getDrawable(context, iconAdditional)
-        val selectedColor = ContextCompat.getColor(context, R.color.primary)
+        val selectedColor = ContextCompat.getColor(context, R.color.theme_color_selected_foreground)
         binding.itemIcon.setColorFilter(selectedColor)
         binding.itemTitle.setTextColor(selectedColor)
         binding.itemAdditionalIcon.setColorFilter(selectedColor)

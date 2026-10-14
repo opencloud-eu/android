@@ -375,7 +375,7 @@ fun Activity.openFeedbackDialog() {
 
     val getInContactDescriptionTextView = TextView(this).apply {
         text = spannableString
-        setTextColor(getColor(android.R.color.black))
+        setTextColor(getColor(R.color.theme_color_on_surface))
         setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f)
         movementMethod = LinkMovementMethod.getInstance()
     }

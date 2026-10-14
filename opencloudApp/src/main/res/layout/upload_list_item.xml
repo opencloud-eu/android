@@ -41,7 +41,7 @@
             android:layout_gravity="center_vertical"
             android:ellipsize="middle"
             android:singleLine="true"
-            android:textColor="@color/textColor"
+            android:textColor="?attr/colorOnSurface"
             tools:text="@string/placeholder_filename"
             android:textSize="16sp" />
 
@@ -54,7 +54,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:gravity="start"
-                android:textColor="@color/list_item_lastmod_and_filesize_text"
+                android:textColor="?attr/colorOnSurfaceVariant"
                 android:ellipsize="middle"
                 android:singleLine="true"
                 tools:text="@string/placeholder_filesize"
@@ -64,7 +64,7 @@
                 android:id="@+id/upload_date"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="@color/list_item_lastmod_and_filesize_text"
+                android:textColor="?attr/colorOnSurfaceVariant"
                 tools:text="@string/placeholder_timestamp"
                 android:textSize="12sp" />
 
@@ -72,7 +72,7 @@
                 android:id="@+id/upload_status"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="@color/list_item_lastmod_and_filesize_text"
+                android:textColor="?attr/colorOnSurfaceVariant"
                 tools:text="@string/uploads_view_upload_status_succeeded"
                 android:textSize="12sp" />
 
@@ -89,7 +89,7 @@
             android:id="@+id/upload_account"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="@color/list_item_lastmod_and_filesize_text"
+            android:textColor="?attr/colorOnSurfaceVariant"
             android:singleLine="true"
             tools:text="@string/auth_username"
             android:textSize="12sp" />

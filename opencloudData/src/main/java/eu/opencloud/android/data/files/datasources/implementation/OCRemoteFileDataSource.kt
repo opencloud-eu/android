@@ -237,6 +237,7 @@ class OCRemoteFileDataSource(
                 privateLink = privateLink,
                 sharedWithSharee = sharedWithSharee,
                 sharedByLink = sharedByLink,
+                hasPreview = hasPreview,
             )
 
         @VisibleForTesting

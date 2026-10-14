@@ -30,6 +30,7 @@ import eu.opencloud.android.data.ProviderMeta.ProviderTableMeta.FILE_CONTENT_TYP
 import eu.opencloud.android.data.ProviderMeta.ProviderTableMeta.FILE_CREATION
 import eu.opencloud.android.data.ProviderMeta.ProviderTableMeta.FILE_ETAG
 import eu.opencloud.android.data.ProviderMeta.ProviderTableMeta.FILE_ETAG_IN_CONFLICT
+import eu.opencloud.android.data.ProviderMeta.ProviderTableMeta.FILE_HAS_PREVIEW
 import eu.opencloud.android.data.ProviderMeta.ProviderTableMeta.FILE_REMOTE_ETAG
 import eu.opencloud.android.data.ProviderMeta.ProviderTableMeta.FILE_IS_DOWNLOADING
 import eu.opencloud.android.data.ProviderMeta.ProviderTableMeta.FILE_KEEP_IN_SYNC
@@ -94,6 +95,8 @@ data class OCFileEntity(
     val sharedWithSharee: Boolean? = false,
     var sharedByLink: Boolean = false,
     val spaceId: String? = null,
+    @ColumnInfo(name = FILE_HAS_PREVIEW, defaultValue = "0")
+    val hasPreview: Boolean = false,
 ) {
     @PrimaryKey(autoGenerate = true)
     var id: Long = 0

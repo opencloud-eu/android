@@ -32,7 +32,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:foreground="?android:attr/selectableItemBackground"
-        app:cardBackgroundColor="@color/spaces_card_background_color"
+        app:cardBackgroundColor="?attr/colorSurface"
         app:cardCornerRadius="10dp"
         app:cardElevation="0dp">
 
@@ -59,7 +59,7 @@
                 android:layout_height="wrap_content"
                 android:layout_margin="@dimen/standard_half_margin"
                 android:singleLine="true"
-                android:textColor="@color/textColor"
+                android:textColor="?attr/colorOnSurface"
                 android:textSize="18sp"
                 android:textStyle="bold"
                 tools:text="Name" />
@@ -71,7 +71,7 @@
                 android:layout_marginHorizontal="@dimen/standard_half_margin"
                 android:layout_marginBottom="@dimen/standard_half_margin"
                 android:singleLine="true"
-                android:textColor="@color/textColor"
+                android:textColor="?attr/colorOnSurfaceVariant"
                 android:textSize="15sp"
                 tools:text="Subtitle" />
 

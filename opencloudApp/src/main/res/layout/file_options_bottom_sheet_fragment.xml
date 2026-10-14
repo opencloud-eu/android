@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@color/white"
+    android:background="?attr/colorSurface"
     android:padding="@dimen/standard_padding">
 
     <ImageView
@@ -22,7 +22,7 @@
         android:layout_marginHorizontal="@dimen/standard_half_margin"
         android:ellipsize="end"
         android:maxLines="3"
-        android:textColor="@color/textColor"
+        android:textColor="?attr/colorOnSurface"
         android:textSize="@dimen/two_line_primary_text_size"
         app:layout_constraintEnd_toStartOf="@id/close_bottom_sheet"
         app:layout_constraintStart_toEndOf="@id/thumbnail_bottom_sheet"
@@ -33,7 +33,7 @@
         android:id="@+id/file_size_bottom_sheet"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textColor="@color/list_item_lastmod_and_filesize_text"
+        android:textColor="?attr/colorOnSurfaceVariant"
         android:textSize="@dimen/two_line_secondary_text_size"
         app:layout_constraintStart_toStartOf="@+id/file_name_bottom_sheet"
         app:layout_constraintTop_toBottomOf="@+id/file_name_bottom_sheet"
@@ -45,7 +45,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text=","
-        android:textColor="@color/list_item_lastmod_and_filesize_text"
+        android:textColor="?attr/colorOnSurfaceVariant"
         android:textSize="@dimen/two_line_secondary_text_size"
         app:layout_constraintStart_toEndOf="@+id/file_size_bottom_sheet"
         app:layout_constraintTop_toBottomOf="@+id/file_name_bottom_sheet" />
@@ -55,7 +55,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/standard_quarter_margin"
-        android:textColor="@color/list_item_lastmod_and_filesize_text"
+        android:textColor="?attr/colorOnSurfaceVariant"
         android:textSize="@dimen/two_line_secondary_text_size"
         app:layout_constraintEnd_toEndOf="@+id/file_name_bottom_sheet"
         app:layout_constraintStart_toEndOf="@+id/file_separator_bottom_sheet"
@@ -80,7 +80,7 @@
         android:layout_width="0dp"
         android:layout_height="@dimen/bottom_sheet_fragment_divider_height"
         android:layout_marginTop="@dimen/standard_margin"
-        android:background="@color/bottom_sheet_fragment_item_color"
+        android:background="?attr/colorOutline"
         app:layout_constraintBottom_toTopOf="@id/scroll_bottom_sheet"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
