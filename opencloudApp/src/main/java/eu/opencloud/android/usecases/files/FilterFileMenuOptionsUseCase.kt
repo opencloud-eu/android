@@ -37,27 +37,43 @@ class FilterFileMenuOptionsUseCase(
     private val getSpaceWithSpecialsByIdForAccountUseCase: GetSpaceWithSpecialsByIdForAccountUseCase,
 ) : BaseUseCase<MutableList<FileMenuOption>, FilterFileMenuOptionsUseCase.Params>() {
     override fun run(params: Params): MutableList<FileMenuOption> {
-        val optionsToShow = mutableListOf<FileMenuOption>()
         val files = params.files
-
         if (files.isEmpty()) {
             return mutableListOf()
         }
+        val state = buildMenuState(params)
+        return buildMenuOptions(files, params, state)
+    }
 
+    private data class MenuState(
+        val isAnyFileSynchronizing: Boolean,
+        val isAnyFileVideoStreaming: Boolean,
+        val hasRenamePermission: Boolean,
+        val hasMovePermission: Boolean,
+        val hasRemovePermission: Boolean,
+        val hasResharePermission: Boolean,
+        val isPersonalSpace: Boolean,
+        val resharingAllowed: Boolean,
+    )
+
+    private fun buildMenuState(params: Params): MenuState {
+        val files = params.files
         val filesSyncInfo = params.filesSyncInfo
         val capability = capabilityRepository.getStoredCapabilities(params.accountName)
-        val space = getSpaceWithSpecialsByIdForAccountUseCase(GetSpaceWithSpecialsByIdForAccountUseCase.Params(
-            spaceId = files.first().spaceId,
-            accountName = params.accountName,
-        ))
-
+        val space = getSpaceWithSpecialsByIdForAccountUseCase(
+            GetSpaceWithSpecialsByIdForAccountUseCase.Params(
+                spaceId = files.first().spaceId,
+                accountName = params.accountName,
+            )
+        )
         val isAnyFileSynchronizing: Boolean = if (filesSyncInfo.isEmpty()) {
             anyFileSynchronizingLookingIntoWorkers(files, params.accountName)
         } else {
             anyFileSynchronizingLookingIIntoFilesSyncInfo(filesSyncInfo)
         }
         val isAnyFileVideoPreviewing = params.isAnyFileVideoPreviewing
-        val isAnyFileVideoStreaming = isAnyFileVideoPreviewing && !anyFileDownloaded(files)
+        val isAnyFileVideoStreaming =
+            isAnyFileVideoPreviewing && !anyFileDownloaded(files)
         val hasRenamePermission: Boolean = if (isSingleSelection(files)) {
             files.first().hasRenamePermission
         } else {
@@ -71,85 +87,109 @@ class FilterFileMenuOptionsUseCase(
             false
         }
         val isPersonalSpace = space?.isPersonal ?: true
-        val resharingAllowed = capability?.let { !anyFileSharedWithMe(files) || it.filesSharingResharing.isTrue } ?: false
-        val displaySelectAll = params.displaySelectAll
-        val displaySelectInverse = params.displaySelectInverse
-        val onlyAvailableOfflineFiles = params.onlyAvailableOfflineFiles
-        val onlySharedByLinkFiles = params.onlySharedByLinkFiles
-        val shareViaLinkAllowed = params.shareViaLinkAllowed
-        val shareWithUsersAllowed = params.shareWithUsersAllowed
-        val sendAllowed = params.sendAllowed
+        val resharingAllowed = capability?.let {
+            !anyFileSharedWithMe(files) || it.filesSharingResharing.isTrue
+        } ?: false
+        return MenuState(
+            isAnyFileSynchronizing = isAnyFileSynchronizing,
+            isAnyFileVideoStreaming = isAnyFileVideoStreaming,
+            hasRenamePermission = hasRenamePermission,
+            hasMovePermission = hasMovePermission,
+            hasRemovePermission = hasRemovePermission,
+            hasResharePermission = hasResharePermission,
+            isPersonalSpace = isPersonalSpace,
+            resharingAllowed = resharingAllowed,
+        )
+    }
 
-        val noSyncAndPreviewing = !isAnyFileSynchronizing && !isAnyFileVideoPreviewing
-        val noSyncAndStreaming = !isAnyFileSynchronizing && !isAnyFileVideoStreaming
-        val shareViaLinkOrWithUsersAllowed = shareViaLinkAllowed || shareWithUsersAllowed
-        val noFilesDownloadedOrIsSingleFile = allFilesDownloaded(files) || isSingleFile(files)
+    private fun buildMenuOptions(
+        files: List<OCFile>,
+        params: Params,
+        state: MenuState,
+    ): MutableList<FileMenuOption> {
+        val optionsToShow = mutableListOf<FileMenuOption>()
+        val noSyncAndPreviewing =
+            !state.isAnyFileSynchronizing && !params.isAnyFileVideoPreviewing
+        val noSyncAndStreaming =
+            !state.isAnyFileSynchronizing && !state.isAnyFileVideoStreaming
+        val shareViaLinkOrWithUsersAllowed =
+            params.shareViaLinkAllowed || params.shareWithUsersAllowed
+        val noFilesDownloadedOrIsSingleFile =
+            allFilesDownloaded(files) || isSingleFile(files)
 
-        // Select all
-        if (displaySelectAll) {
+        if (params.displaySelectAll) {
             optionsToShow.add(FileMenuOption.SELECT_ALL)
         }
-        // Select inverse
-        if (displaySelectInverse) {
+        if (params.displaySelectInverse) {
             optionsToShow.add(FileMenuOption.SELECT_INVERSE)
         }
-        // Share
-        if (!onlyAvailableOfflineFiles && shareViaLinkOrWithUsersAllowed && resharingAllowed &&
-            isPersonalSpace && hasResharePermission) {
+        if (!params.onlyAvailableOfflineFiles && shareViaLinkOrWithUsersAllowed &&
+            state.resharingAllowed && state.isPersonalSpace &&
+            state.hasResharePermission
+        ) {
             optionsToShow.add(FileMenuOption.SHARE)
         }
-        // Open with (different to preview!)
-        if (!isAnyFileSynchronizing && isSingleFile(files)) {
+        if (!state.isAnyFileSynchronizing && isSingleFile(files)) {
             optionsToShow.add(FileMenuOption.OPEN_WITH)
         }
-        // Download
-        if (noSyncAndPreviewing && !onlyAvailableOfflineFiles && !onlySharedByLinkFiles &&
-            !anyFolder(files) && !anyFileDownloaded(files)) {
+        if (noSyncAndPreviewing && !params.onlyAvailableOfflineFiles &&
+            !params.onlySharedByLinkFiles && !anyFolder(files) &&
+            !anyFileDownloaded(files)
+        ) {
             optionsToShow.add(FileMenuOption.DOWNLOAD)
         }
-        // Synchronize
-        if (!isAnyFileSynchronizing && !onlyAvailableOfflineFiles && !onlySharedByLinkFiles &&
-            (anyFileDownloaded(files) || anyFolder(files))) {
+        if (!state.isAnyFileSynchronizing && !params.onlyAvailableOfflineFiles &&
+            !params.onlySharedByLinkFiles &&
+            (anyFileDownloaded(files) || anyFolder(files))
+        ) {
             optionsToShow.add(FileMenuOption.SYNC)
         }
-        // Cancel sync
-        if (isAnyFileSynchronizing && !onlyAvailableOfflineFiles && !onlySharedByLinkFiles && !anyAvailableOfflineFile(files)) {
+        if (state.isAnyFileSynchronizing && !params.onlyAvailableOfflineFiles &&
+            !params.onlySharedByLinkFiles &&
+            !anyAvailableOfflineFile(files)
+        ) {
             optionsToShow.add(FileMenuOption.CANCEL_SYNC)
         }
-        // Rename
-        if (noSyncAndPreviewing && !onlyAvailableOfflineFiles && !onlySharedByLinkFiles &&
-            hasRenamePermission) {
+        if (noSyncAndPreviewing && !params.onlyAvailableOfflineFiles &&
+            !params.onlySharedByLinkFiles && state.hasRenamePermission
+        ) {
             optionsToShow.add(FileMenuOption.RENAME)
         }
-        // Move
-        if (noSyncAndPreviewing && !onlyAvailableOfflineFiles && !onlySharedByLinkFiles &&
-            hasMovePermission) {
+        if (noSyncAndPreviewing && !params.onlyAvailableOfflineFiles &&
+            !params.onlySharedByLinkFiles && state.hasMovePermission
+        ) {
             optionsToShow.add(FileMenuOption.MOVE)
         }
-        // Copy
-        if (noSyncAndPreviewing && !onlyAvailableOfflineFiles && !onlySharedByLinkFiles) {
+        if (noSyncAndPreviewing && !params.onlyAvailableOfflineFiles &&
+            !params.onlySharedByLinkFiles
+        ) {
             optionsToShow.add(FileMenuOption.COPY)
         }
-        // Send
-        if (noSyncAndStreaming && !onlyAvailableOfflineFiles && !anyFolder(files) &&
-            noFilesDownloadedOrIsSingleFile && sendAllowed) {
+        if (noSyncAndStreaming && !params.onlyAvailableOfflineFiles &&
+            !anyFolder(files) && noFilesDownloadedOrIsSingleFile &&
+            params.sendAllowed
+        ) {
             optionsToShow.add(FileMenuOption.SEND)
         }
-        // Set as available offline
-        if (!isAnyFileSynchronizing && anyNotAvailableOfflineFile(files) && !isAnyFileVideoStreaming) {
+        if (!state.isAnyFileSynchronizing &&
+            anyNotAvailableOfflineFile(files) &&
+            !state.isAnyFileVideoStreaming
+        ) {
             optionsToShow.add(FileMenuOption.SET_AV_OFFLINE)
         }
-        // Unset as available offline
-        if (anyAvailableOfflineFile(files) && !isAnyFileVideoStreaming) {
+        if (anyAvailableOfflineFile(files) && !state.isAnyFileVideoStreaming) {
             optionsToShow.add(FileMenuOption.UNSET_AV_OFFLINE)
         }
-        // Details
         if (isSingleFile(files)) {
             optionsToShow.add(FileMenuOption.DETAILS)
         }
-        // Remove
-        if (!isAnyFileSynchronizing && !onlyAvailableOfflineFiles && !onlySharedByLinkFiles && hasRemovePermission) {
+        if (!state.isAnyFileSynchronizing && !params.onlyAvailableOfflineFiles &&
+            !params.onlySharedByLinkFiles && state.hasRemovePermission
+        ) {
             optionsToShow.add(FileMenuOption.REMOVE)
+        }
+        if (isSingleSelection(files) && anyFolder(files)) {
+            optionsToShow.add(FileMenuOption.ADD_TO_HOME_SCREEN)
         }
 
         return optionsToShow
