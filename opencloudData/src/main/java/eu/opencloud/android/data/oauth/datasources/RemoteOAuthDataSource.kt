@@ -25,7 +25,7 @@ import eu.opencloud.android.domain.authentication.oauth.model.TokenRequest
 import eu.opencloud.android.domain.authentication.oauth.model.TokenResponse
 
 interface RemoteOAuthDataSource {
-    fun performOIDCDiscovery(baseUrl: String): OIDCServerConfiguration
+    fun performOIDCDiscovery(baseUrl: String, clientCertAlias: String? = null): OIDCServerConfiguration
     fun performTokenRequest(tokenRequest: TokenRequest): TokenResponse
 
     fun registerClient(clientRegistrationRequest: ClientRegistrationRequest): ClientRegistrationInfo
