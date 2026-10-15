@@ -50,6 +50,7 @@ import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
@@ -202,6 +203,17 @@ class FileDisplayActivity : FileActivity(),
     private var isLightUser = false
     private var isMultiPersonal = false
 
+    private val onBackPressedCallback = object : OnBackPressedCallback(true) {
+        override fun handleOnBackPressed() {
+            onBackPressed()
+        }
+    }
+
+    fun addOnBackPressedCallback() {
+        onBackPressedCallback.remove()
+        onBackPressedDispatcher.addCallback(this, onBackPressedCallback)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         Timber.v("onCreate() start")
 
@@ -306,6 +318,8 @@ class FileDisplayActivity : FileActivity(),
                 bottomMargin = insets.bottom
             }
         }
+
+        addOnBackPressedCallback()
 
         Timber.v("onCreate() end")
     }
@@ -536,6 +550,7 @@ class FileDisplayActivity : FileActivity(),
         transaction.replace(R.id.right_fragment_container, fragment, TAG_SECOND_FRAGMENT)
         transaction.commitNow()
         updateFragmentsVisibility(true)
+        mainFileListFragment?.collapseFab()
     }
 
     private fun showBottomNavBar(show: Boolean) {
@@ -747,6 +762,8 @@ class FileDisplayActivity : FileActivity(),
         fileOperationsViewModel.performOperation(copyOperation)
     }
 
+
+    // This is no longer directly called in newer Android versions, see also onBackPressedCallback.
     override fun onBackPressed() {
         val isFabOpen = mainFileListFragment?.isFabExpanded() ?: false
 
