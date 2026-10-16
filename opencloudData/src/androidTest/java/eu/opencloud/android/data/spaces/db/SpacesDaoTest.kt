@@ -84,6 +84,11 @@ class SpacesDaoTest {
     }
 
     @Test
+    fun insertOrDeleteSpacesWithEmptyListDoesNotCrash() = runTest {
+        spacesDao.insertOrDeleteSpaces(emptyList(), emptyList())
+    }
+
+    @Test
     fun insertOrDeleteSpacesWithSpacesAlreadyInDatabaseNotAttachedToAccountAnymore() = runTest {
         val accountName = OC_SPACE_PROJECT_WITHOUT_IMAGE.accountName
 
