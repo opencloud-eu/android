@@ -96,6 +96,10 @@ class OAuthUtils {
             return "Basic " + Base64.encodeToString(credentials.toByteArray(), Base64.NO_WRAP)
         }
 
+        fun getCreateAccountPrompt(scope: String): String =
+            // Request offline consent while still requiring fresh authentication.
+            if ("offline_access" in scope.split(' ')) "login consent" else "login"
+
         fun buildAuthorizationRequest(
             authorizationEndpoint: Uri,
             redirectUri: String,
