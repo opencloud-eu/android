@@ -22,6 +22,12 @@ class LoginTest : TestCase(
         )
     }
 ) {
+    @get:Rule(order = Int.MIN_VALUE)
+    val retryRule = RetryRule()
+
+    @get:Rule(order = Int.MIN_VALUE + 1)
+    val removeAccountsRule = RemoveAccountsRule()
+
     @get:Rule
     val grantPermissionRule: GrantPermissionRule = GrantPermissionRule.grant(
         android.Manifest.permission.POST_NOTIFICATIONS

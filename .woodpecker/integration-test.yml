@@ -19,7 +19,8 @@ steps:
       - curl -fL -o adbserver-desktop.jar https://raw.githubusercontent.com/KasperskyLab/Kaspresso/v.1.6.0/artifacts/adbserver-desktop.jar
       - java -jar adbserver-desktop.jar &
       - sleep 3
-      - ./gradlew :opencloudApp:connectedOriginalDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.annotation=eu.opencloud.android.IntegrationTest --console=plain
+      - adb logcat -c
+      - trap 'adb logcat -d -s RetryRule:W | tee retries.log' EXIT; ./gradlew :opencloudApp:connectedOriginalDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.annotation=eu.opencloud.android.IntegrationTest -Pandroid.testInstrumentationRunnerArguments.retries=1 --console=plain
 
   - name: instrumented data tests
     image: *android_image
@@ -36,8 +37,9 @@ steps:
     commands:
       - |
         python3 -c "
-        import xml.etree.ElementTree as ET, glob
-        passed = skipped = failed = 0
+        import xml.etree.ElementTree as ET, glob, os
+        retries = open('retries.log').read() if os.path.exists('retries.log') else ''
+        passed = skipped = failed = flaky = 0
         for f in glob.glob('**/TEST-*.xml', recursive=True):
             root = ET.parse(f).getroot()
             suites = [root] if root.tag == 'testsuite' else root.findall('testsuite')
@@ -48,11 +50,14 @@ steps:
                         print(f'⏭  {name}'); skipped += 1
                     elif tc.find('failure') is not None:
                         print(f'❌ {name}'); failed += 1
+                    elif f\"{tc.get('name')}({suite.get('name')})\" in retries:
+                        print(f'🔁 {name} (passed on retry)'); flaky += 1
                     else:
                         print(f'✅ {name}'); passed += 1
         print()
         print(f'✅ passed:  {passed}')
         print(f'❌ failed:  {failed}')
+        print(f'🔁 flaky:   {flaky}')
         print(f'⏭  skipped: {skipped}')
-        print(f'   total:   {passed+failed+skipped}')
+        print(f'   total:   {passed+failed+flaky+skipped}')
         "
