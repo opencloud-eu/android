@@ -97,8 +97,8 @@ class OAuthUtils {
         }
 
         fun getCreateAccountPrompt(scope: String): String =
-            // Request offline consent while still requiring fresh authentication.
-            if ("offline_access" in scope.split(' ')) "login consent" else "login"
+            // Request offline consent without forcing fresh authentication.
+            if ("offline_access" in scope.split(' ')) "consent" else "login"
 
         fun buildAuthorizationRequest(
             authorizationEndpoint: Uri,

@@ -12,9 +12,9 @@ import org.robolectric.annotation.Config
 @Config(manifest = Config.NONE, sdk = [28])
 class OAuthPromptTest {
     @Test
-    fun offlineAccessRequiresLoginAndConsent() {
-        assertEquals("login consent", OAuthUtils.getCreateAccountPrompt("openid profile email groups offline_access"))
-        assertEquals("login consent", OAuthUtils.getCreateAccountPrompt(" offline_access  openid "))
+    fun offlineAccessRequiresConsentOnly() {
+        assertEquals("consent", OAuthUtils.getCreateAccountPrompt("openid profile email groups offline_access"))
+        assertEquals("consent", OAuthUtils.getCreateAccountPrompt(" offline_access  openid "))
     }
 
     @Test
@@ -39,8 +39,8 @@ class OAuthPromptTest {
             username = null,
             sendLoginHintAndUser = false,
         )
-        assertEquals(listOf("login consent"), uri.getQueryParameters("prompt"))
-        assertTrue(uri.encodedQuery!!.contains("prompt=login%20consent"))
+        assertEquals(listOf("consent"), uri.getQueryParameters("prompt"))
+        assertTrue(uri.encodedQuery!!.contains("prompt=consent"))
         assertEquals("oc://android.opencloud.eu", uri.getQueryParameter("redirect_uri"))
         assertEquals("OpenCloudAndroid", uri.getQueryParameter("client_id"))
         assertEquals(scope, uri.getQueryParameter("scope"))
