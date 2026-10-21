@@ -54,7 +54,7 @@ data class OwnerResponse(
 data class QuotaResponse(
     val remaining: Long?,
     val state: String?,
-    val total: Long,
+    val total: Long?,
     val used: Long?,
 )
 
