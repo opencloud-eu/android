@@ -23,6 +23,7 @@ package eu.opencloud.android.presentation.viewmodels.security
 import android.os.SystemClock
 import eu.opencloud.android.R
 import eu.opencloud.android.data.providers.SharedPreferencesProvider
+import eu.opencloud.android.presentation.security.AppLockSecretHash
 import eu.opencloud.android.presentation.security.PREFERENCE_LAST_UNLOCK_ATTEMPT_TIMESTAMP
 import eu.opencloud.android.presentation.security.PREFERENCE_LAST_UNLOCK_TIMESTAMP
 import eu.opencloud.android.presentation.security.passcode.PassCodeViewModel
@@ -30,6 +31,7 @@ import eu.opencloud.android.presentation.viewmodels.ViewModelTest
 import eu.opencloud.android.presentation.security.passcode.PassCodeActivity
 import eu.opencloud.android.presentation.security.passcode.PassCodeActivity.Companion.PREFERENCE_PASSCODE
 import eu.opencloud.android.presentation.security.passcode.PassCodeActivity.Companion.PREFERENCE_PASSCODE_D
+import eu.opencloud.android.presentation.security.passcode.PassCodeActivity.Companion.PREFERENCE_PASSCODE_LENGTH
 import eu.opencloud.android.presentation.security.passcode.PassCodeActivity.Companion.PREFERENCE_SET_PASSCODE
 import eu.opencloud.android.presentation.security.passcode.PasscodeAction
 import eu.opencloud.android.presentation.security.passcode.PasscodeType
@@ -72,6 +74,7 @@ class PassCodeViewModelTest : ViewModelTest() {
         for (i in 0..4) {
             every { preferencesProvider.getString(PREFERENCE_PASSCODE_D + i, null) } returns passcodeD  //loadPinFromOldFormatIfPossible()
         }
+        every { preferencesProvider.getInt(PREFERENCE_PASSCODE_LENGTH, any()) } returns (passcode?.length ?: passcodeDigits)
         every { preferencesProvider.getInt(PREFERENCE_LOCK_ATTEMPTS, any()) } returns lockAttempts    //getNumberOfAttempts()
         every { preferencesProvider.getLong(PREFERENCE_LAST_UNLOCK_ATTEMPT_TIMESTAMP, any()) } returns lastUnlockAttempt   //getTimeToUnlockLeft()
     }
@@ -234,7 +237,11 @@ class PassCodeViewModelTest : ViewModelTest() {
         assertEquals(Status(PasscodeAction.CREATE, PasscodeType.CONFIRM), passCodeViewModel.status.value)
 
         verify(exactly = 1) {
-            preferencesProvider.putString(PREFERENCE_PASSCODE, any())
+            preferencesProvider.putString(
+                PREFERENCE_PASSCODE,
+                match { it != OC_PASSCODE_4_DIGITS && AppLockSecretHash.verify(OC_PASSCODE_4_DIGITS, it) }
+            )
+            preferencesProvider.putInt(PREFERENCE_PASSCODE_LENGTH, OC_PASSCODE_4_DIGITS.length)
             preferencesProvider.putBoolean(PREFERENCE_SET_PASSCODE, true)
         }
     }
