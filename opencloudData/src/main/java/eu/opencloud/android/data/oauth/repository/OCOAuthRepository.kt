@@ -30,8 +30,8 @@ class OCOAuthRepository(
     private val oidcRemoteOAuthDataSource: RemoteOAuthDataSource,
 ) : OAuthRepository {
 
-    override fun performOIDCDiscovery(baseUrl: String): OIDCServerConfiguration =
-        oidcRemoteOAuthDataSource.performOIDCDiscovery(baseUrl)
+    override fun performOIDCDiscovery(baseUrl: String, clientCertAlias: String?): OIDCServerConfiguration =
+        oidcRemoteOAuthDataSource.performOIDCDiscovery(baseUrl, clientCertAlias)
 
     override fun performTokenRequest(tokenRequest: TokenRequest): TokenResponse =
         oidcRemoteOAuthDataSource.performTokenRequest(tokenRequest)

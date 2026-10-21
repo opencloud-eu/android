@@ -41,8 +41,8 @@ class OCRemoteOAuthDataSource(
     private val oidcService: OIDCService,
 ) : RemoteOAuthDataSource {
 
-    override fun performOIDCDiscovery(baseUrl: String): OIDCServerConfiguration {
-        val openCloudClient = clientManager.getClientForAnonymousCredentials(baseUrl, false)
+    override fun performOIDCDiscovery(baseUrl: String, clientCertAlias: String?): OIDCServerConfiguration {
+        val openCloudClient = clientManager.getClientForAnonymousCredentials(baseUrl, false, clientCertAlias = clientCertAlias)
 
         val serverConfiguration = executeRemoteOperation {
             oidcService.getOIDCServerDiscovery(openCloudClient)
@@ -54,7 +54,12 @@ class OCRemoteOAuthDataSource(
     override fun performTokenRequest(tokenRequest: TokenRequest): TokenResponse {
         // For token refreshments, a new client is required, otherwise it could keep outdated credentials or data.
         val requiresNewClient = tokenRequest is TokenRequest.RefreshToken
-        val openCloudClient = clientManager.getClientForAnonymousCredentials(path = tokenRequest.baseUrl, requiresNewClient = requiresNewClient)
+        val clientCertAlias = (tokenRequest as? TokenRequest.RefreshToken)?.clientCertAlias
+        val openCloudClient = clientManager.getClientForAnonymousCredentials(
+            path = tokenRequest.baseUrl,
+            requiresNewClient = requiresNewClient,
+            clientCertAlias = clientCertAlias
+        )
 
         val tokenResponse = executeRemoteOperation {
             oidcService.performTokenRequest(
