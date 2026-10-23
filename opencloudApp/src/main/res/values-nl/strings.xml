@@ -57,6 +57,8 @@
     <string name="prefs_lock_application_entries_30minutes">Na 30 minuten</string>
     <string name="prefs_lock_access_from_document_provider">Toegang blokkeren vanuit bestandsbeheer</string>
     <string name="prefs_lock_access_from_document_provider_summary">Blokkeer de toegang van andere apps tot de bestanden van accounts in de app via Android bestandsbeheer.</string>
+    <string name="prefs_pretend_local_title">Lokale opslag simuleren</string>
+    <string name="prefs_pretend_local_summary">Hiermee kunnen externe apps OpenCloud zien wanneer ze specifiek om lokale bestanden vragen. Dit omzeilt standaard Android-beperkingen, maar kan bij een trage netwerkverbinding leiden tot vastlopers in de gebruikersinterface van sommige apps.</string>
     <string name="prefs_touches_with_other_visible_windows">Raakt andere zichtbare vensters</string>
     <string name="prefs_touches_with_other_visible_windows_summary">Sta aanrakingen toe als de weergave door een ander zichtbaar venster wordt bedekt. Schakel dit in om apps voor lichtfiltering te kunnen gebruiken.</string>
     <string name="confirmation_touches_with_other_windows_title">Weet u zeker dat u deze functie wilt inschakelen\?</string>

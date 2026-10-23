@@ -39,7 +39,10 @@ class FileCursor(projection: Array<String>?) : MatrixCursor(projection ?: DEFAUL
         cursorExtras = Bundle().apply { putBoolean(DocumentsContract.EXTRA_LOADING, hasMoreToSync) }
     }
 
-    fun addFile(file: OCFile) {
+    fun addFile(
+        file: OCFile,
+        documentId: String = requireNotNull(file.id).toString(),
+    ) {
         val iconRes = MimetypeIconUtil.getFileTypeIconId(file.mimeType, file.fileName)
         val mimeType = if (file.isFolder) Document.MIME_TYPE_DIR else file.mimeType
         val imagePath = if (file.isImage && file.isAvailableLocally) file.storagePath else null
@@ -57,7 +60,7 @@ class FileCursor(projection: Array<String>?) : MatrixCursor(projection ?: DEFAUL
         }
 
         newRow()
-            .add(Document.COLUMN_DOCUMENT_ID, file.id.toString())
+            .add(Document.COLUMN_DOCUMENT_ID, documentId)
             .add(Document.COLUMN_DISPLAY_NAME, file.fileName)
             .add(Document.COLUMN_LAST_MODIFIED, file.modificationTimestamp)
             .add(Document.COLUMN_SIZE, file.length)
