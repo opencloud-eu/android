@@ -38,6 +38,8 @@
     <string name="drawer_feedback">Dyskusje na GitHubie</string>
     <string name="drawer_help">Pomoc</string>
     <string name="prefs_category_general">Ogólne</string>
+    <string name="prefs_appearance_light">Jasny</string>
+    <string name="prefs_appearance_dark">Ciemny</string>
     <string name="prefs_subsection_logging">Logowanie</string>
     <string name="prefs_subsection_more">Więcej</string>
     <string name="prefs_subsection_security">Bezpieczeństwo</string>
@@ -59,6 +61,9 @@
     <string name="prefs_lock_access_from_document_provider_summary">Wymagaj kodu PIN</string>
     <string name="prefs_touches_with_other_visible_windows">Zezwalaj na dotyk przy innych widocznych oknach</string>
     <string name="prefs_touches_with_other_visible_windows_summary">Zezwalaj na interakcję przy nakładających się oknach</string>
+
+    <!-- mTLS client certificate (per account) -->
+    <string name="auth_connection_button">Connection…</string>
     <string name="confirmation_touches_with_other_windows_title">Czy na pewno chcesz aktywować tę funkcję\?</string>
     <string name="confirmation_touches_with_other_windows_message">Czy na pewno chcesz to włączyć?</string>
     <string name="prefs_subsection_picture_uploads">Przesyłanie zdjęć</string>
