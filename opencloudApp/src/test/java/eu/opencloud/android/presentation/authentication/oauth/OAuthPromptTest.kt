@@ -1,6 +1,14 @@
 package eu.opencloud.android.presentation.authentication.oauth
 
 import android.net.Uri
+import eu.opencloud.android.R
+import eu.opencloud.android.presentation.authentication.ACTION_CREATE
+import eu.opencloud.android.presentation.authentication.ACTION_UPDATE_EXPIRED_TOKEN
+import eu.opencloud.android.presentation.authentication.ACTION_UPDATE_TOKEN
+import eu.opencloud.android.providers.MdmProvider
+import eu.opencloud.android.utils.CONFIGURATION_OAUTH2_OPEN_ID_PROMPT
+import io.mockk.every
+import io.mockk.mockk
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -12,15 +20,14 @@ import org.robolectric.annotation.Config
 @Config(manifest = Config.NONE, sdk = [28])
 class OAuthPromptTest {
     @Test
-    fun offlineAccessRequiresConsentOnly() {
-        assertEquals("consent", OAuthUtils.getCreateAccountPrompt("openid profile email groups offline_access"))
-        assertEquals("consent", OAuthUtils.getCreateAccountPrompt(" offline_access  openid "))
-    }
+    fun promptIsTheConfiguredValueForEveryAction() {
+        val mdmProvider = mockk<MdmProvider>()
+        every {
+            mdmProvider.getBrandingString(CONFIGURATION_OAUTH2_OPEN_ID_PROMPT, R.string.oauth2_openid_prompt)
+        } returns "consent"
 
-    @Test
-    fun otherScopesKeepLogin() {
-        for (scope in listOf("", "openid profile email", "openid not_offline_access", "offline_access_extra")) {
-            assertEquals("login", OAuthUtils.getCreateAccountPrompt(scope))
+        for (action in listOf(ACTION_CREATE, ACTION_UPDATE_TOKEN, ACTION_UPDATE_EXPIRED_TOKEN)) {
+            assertEquals("consent", OAuthUtils.getPrompt(action, mdmProvider))
         }
     }
 
@@ -33,7 +40,7 @@ class OAuthPromptTest {
             clientId = "OpenCloudAndroid",
             responseType = "code",
             scope = scope,
-            prompt = OAuthUtils.getCreateAccountPrompt(scope),
+            prompt = "consent",
             codeChallenge = "test-challenge",
             state = "test-state",
             username = null,

@@ -99,7 +99,6 @@ import eu.opencloud.android.ui.activity.FileDisplayActivity
 import eu.opencloud.android.ui.activity.enableEdgeToEdgePostSetContentView
 import eu.opencloud.android.ui.activity.enableEdgeToEdgePreSetContentView
 import eu.opencloud.android.ui.dialog.SslUntrustedCertDialog
-import eu.opencloud.android.utils.CONFIGURATION_OAUTH2_OPEN_ID_PROMPT
 import eu.opencloud.android.utils.CONFIGURATION_OAUTH2_OPEN_ID_SCOPE
 import eu.opencloud.android.utils.CONFIGURATION_SEND_LOGIN_HINT_AND_USER
 import eu.opencloud.android.utils.CONFIGURATION_SERVER_URL
@@ -916,8 +915,7 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
             clientId = clientId,
             responseType = ResponseType.CODE.string,
             scope = scope,
-            prompt = if (!oidcSupported) "" else if (loginAction == ACTION_CREATE) OAuthUtils.getCreateAccountPrompt(scope)
-            else mdmProvider.getBrandingString(CONFIGURATION_OAUTH2_OPEN_ID_PROMPT, R.string.oauth2_openid_prompt),
+            prompt = if (oidcSupported) OAuthUtils.getPrompt(loginAction, mdmProvider) else "",
             codeChallenge = authenticationViewModel.codeChallenge,
             state = authenticationViewModel.oidcState,
             username = username,
