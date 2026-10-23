@@ -1,0 +1,79 @@
+package eu.opencloud.android.presentation.files.addtohomescreen
+
+import android.app.PendingIntent
+import android.content.Context
+import android.content.Intent
+import android.content.pm.ShortcutInfo
+import android.content.pm.ShortcutManager
+import android.graphics.drawable.Icon
+import android.os.Build
+import android.widget.Toast
+import androidx.annotation.RequiresApi
+import eu.opencloud.android.R
+import eu.opencloud.android.domain.files.model.OCFile
+
+object FolderShortcutHelper {
+
+    const val EXTRA_SHORTCUT_FOLDER_REMOTE_ID = "SHORTCUT_FOLDER_REMOTE_ID"
+    const val EXTRA_SHORTCUT_FOLDER_REMOTE_PATH = "SHORTCUT_FOLDER_REMOTE_PATH"
+    const val EXTRA_SHORTCUT_FOLDER_SPACE_ID = "SHORTCUT_FOLDER_SPACE_ID"
+    const val EXTRA_SHORTCUT_FOLDER_ACCOUNT = "SHORTCUT_FOLDER_ACCOUNT"
+    const val ACTION_OPEN_SHORTCUT =
+        "eu.opencloud.android.ui.activity.action.OPEN_SHORTCUT"
+    const val ACTION_PIN_SHORTCUT_RESULT =
+        "eu.opencloud.android.presentation.files.action.PIN_SHORTCUT_RESULT"
+
+    const val MAX_SHORT_LABEL_LENGTH = 10
+    const val MAX_LONG_LABEL_LENGTH = 25
+
+    fun createPinnedShortcut(context: Context, folder: OCFile, shortcutName: String) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            createPinnedShortcutApi26(context, folder, shortcutName)
+        } else {
+            Toast.makeText(context, context.getString(R.string.add_to_home_screen_shortcut_not_supported), Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun createPinnedShortcutApi26(context: Context, folder: OCFile, shortcutName: String) {
+        val shortcutManager = context.getSystemService(ShortcutManager::class.java)
+
+        if (shortcutManager?.isRequestPinShortcutSupported != true) {
+            Toast.makeText(context, context.getString(R.string.add_to_home_screen_shortcut_not_supported), Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val shortcutId = "folder_${folder.id}"
+
+        val shortcutIntent = Intent(context, ShortcutTrampolineActivity::class.java).apply {
+            action = ACTION_OPEN_SHORTCUT
+            putExtra(EXTRA_SHORTCUT_FOLDER_REMOTE_ID, folder.remoteId)
+            putExtra(EXTRA_SHORTCUT_FOLDER_REMOTE_PATH, folder.remotePath)
+            putExtra(EXTRA_SHORTCUT_FOLDER_SPACE_ID, folder.spaceId)
+            putExtra(EXTRA_SHORTCUT_FOLDER_ACCOUNT, folder.owner)
+            flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+        }
+
+        val shortcut = ShortcutInfo.Builder(context, shortcutId)
+            .setShortLabel(shortcutName.truncateForLabel(MAX_SHORT_LABEL_LENGTH))
+            .setLongLabel(shortcutName.truncateForLabel(MAX_LONG_LABEL_LENGTH))
+            .setIcon(Icon.createWithResource(context, R.mipmap.icon))
+            .setIntent(shortcutIntent)
+            .build()
+
+        val pinResultCallback = PendingIntent.getBroadcast(
+            context,
+            0,
+            Intent(context, ShortcutPinResultReceiver::class.java).setAction(ACTION_PIN_SHORTCUT_RESULT),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val requestAccepted = shortcutManager.requestPinShortcut(shortcut, pinResultCallback.intentSender)
+        if (!requestAccepted) {
+            Toast.makeText(context, context.getString(R.string.add_to_home_screen_shortcut_failed), Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun String.truncateForLabel(maxLength: Int): String =
+        if (length > maxLength) take(maxLength - 1) + "…" else this
+}

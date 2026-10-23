@@ -32,6 +32,7 @@ import android.content.pm.ResolveInfo
 import android.net.Uri
 import android.text.method.LinkMovementMethod
 import android.util.TypedValue
+import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.webkit.MimeTypeMap
 import android.widget.LinearLayout
@@ -93,8 +94,14 @@ fun Activity.showMessageInSnackbar(
     duration: Int = Snackbar.LENGTH_LONG
 ) {
     // edge-to-edge
-    val view = if (layoutId == android.R.id.content) window.decorView else findViewById(layoutId)
-    Snackbar.make(view, message, duration).show()
+    val view = if (layoutId == android.R.id.content) window.decorView else findViewById<View>(layoutId)
+    if (view != null) {
+        Snackbar.make(view, message, duration).show()
+    } else {
+        // The requested layout may not be attached yet (e.g. during activity creation).
+        // Fall back to a Toast, which only needs a Context, so we never crash.
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+    }
 }
 
 fun Activity.showErrorInToast(
