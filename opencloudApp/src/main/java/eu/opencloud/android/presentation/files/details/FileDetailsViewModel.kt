@@ -192,6 +192,9 @@ class FileDetailsViewModel(
                     shareViaLinkAllowed = shareViaLinkAllowed,
                     shareWithUsersAllowed = shareWithUsersAllowed,
                     sendAllowed = sendAllowed,
+                    // Exporting to a device folder is offered from the file list (single and
+                    // multi-select), not from the details screen.
+                    exportAllowed = false,
                 )
             )
             result.apply {
