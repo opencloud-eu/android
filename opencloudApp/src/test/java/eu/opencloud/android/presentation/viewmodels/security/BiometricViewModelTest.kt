@@ -100,14 +100,4 @@ class BiometricViewModelTest : ViewModelTest() {
             contextProvider.getInt(R.integer.passcode_digits)
         }
     }
-
-    @Test
-    fun `remove passcode - ok`() {
-        biometricViewModel.removePassCode()
-
-        verify(exactly = 1) {
-            preferencesProvider.removePreference(PassCodeActivity.PREFERENCE_PASSCODE)
-            preferencesProvider.putBoolean(PassCodeActivity.PREFERENCE_SET_PASSCODE, false)
-        }
-    }
 }

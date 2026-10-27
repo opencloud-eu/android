@@ -32,6 +32,7 @@ import eu.opencloud.android.presentation.security.LockTimeout
 import eu.opencloud.android.presentation.security.PREFERENCE_LAST_UNLOCK_TIMESTAMP
 import eu.opencloud.android.presentation.security.PREFERENCE_LOCK_TIMEOUT
 import eu.opencloud.android.presentation.security.bayPassUnlockOnce
+import eu.opencloud.android.presentation.security.biometric.BiometricActivity
 import eu.opencloud.android.presentation.security.biometric.BiometricManager
 import kotlin.math.abs
 
@@ -54,10 +55,13 @@ object PassCodeManager {
             }
 
             askUserForPasscode(activity = activity, biometricHasFailed = false)
-        } else if (preferencesProvider.getBoolean(PassCodeActivity.PREFERENCE_MIGRATION_REQUIRED, false)) {
+        } else if (!exemptOfPasscodeActivities.contains(activity.javaClass) && activity !is BiometricActivity &&
+            preferencesProvider.getBoolean(PassCodeActivity.PREFERENCE_MIGRATION_REQUIRED, false)
+        ) {
+            // Only reached by installs that went through the old migration, which removed the passcode first.
+            // No REORDER_TO_FRONT/SINGLE_TOP: an existing PassCodeActivity would get the intent in onNewIntent and ignore it
             val intent = Intent(appContext, PassCodeActivity::class.java).apply {
                 action = PassCodeActivity.ACTION_CREATE
-                flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or Intent.FLAG_ACTIVITY_SINGLE_TOP
                 putExtra(PassCodeActivity.EXTRAS_MIGRATION, true)
             }
             activity.startActivity(intent)

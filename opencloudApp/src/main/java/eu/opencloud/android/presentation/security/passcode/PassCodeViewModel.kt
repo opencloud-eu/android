@@ -66,7 +66,7 @@ class PassCodeViewModel(
     private var confirmingPassCode = false
 
     init {
-        numberOfPasscodeDigits = (getPassCode()?.length ?: getNumberOfPassCodeDigits())
+        numberOfPasscodeDigits = getNumberOfDigitsToEnter()
     }
 
     fun onNumberClicked(number: Int) {
@@ -112,12 +112,9 @@ class PassCodeViewModel(
             // pass code accepted in request, user is allowed to access the app
             setLastUnlockTimestamp()
             val passCode = getPassCode()
-            if (passCode != null && passCode.length < getNumberOfPassCodeDigits()) {
-                setMigrationRequired(true)
-                removePassCode()
-                _status.postValue(Status(PasscodeAction.CHECK, PasscodeType.MIGRATION))
-            }
-            _status.postValue(Status(PasscodeAction.CHECK, PasscodeType.OK))
+            // Keep the old passcode until the new one is saved, so the app stays locked if the migration is abandoned
+            val type = if (passCode != null && passCode.length < getNumberOfPassCodeDigits()) PasscodeType.MIGRATION else PasscodeType.OK
+            _status.postValue(Status(PasscodeAction.CHECK, type))
             resetNumberOfAttempts()
         } else {
             increaseNumberOfAttempts()
@@ -155,13 +152,13 @@ class PassCodeViewModel(
     fun setPassCode() {
         preferencesProvider.putString(PassCodeActivity.PREFERENCE_PASSCODE, firstPasscode)
         preferencesProvider.putBoolean(PassCodeActivity.PREFERENCE_SET_PASSCODE, true)
-        numberOfPasscodeDigits = (getPassCode()?.length ?: getNumberOfPassCodeDigits())
+        numberOfPasscodeDigits = getNumberOfDigitsToEnter()
     }
 
     fun removePassCode() {
         preferencesProvider.removePreference(PassCodeActivity.PREFERENCE_PASSCODE)
         preferencesProvider.putBoolean(PassCodeActivity.PREFERENCE_SET_PASSCODE, false)
-        numberOfPasscodeDigits = (getPassCode()?.length ?: getNumberOfPassCodeDigits())
+        numberOfPasscodeDigits = getNumberOfDigitsToEnter()
     }
 
     fun checkPassCodeIsValid(passcode: String): Boolean {
@@ -174,6 +171,13 @@ class PassCodeViewModel(
         val numberOfPassCodeDigits = contextProvider.getInt(R.integer.passcode_digits)
         return maxOf(numberOfPassCodeDigits, PassCodeActivity.PASSCODE_MIN_LENGTH)
     }
+
+    /**
+     * A new passcode always uses the configured length; an existing one is checked with its own length.
+     */
+    fun getNumberOfDigitsToEnter(): Int =
+        if (action == PasscodeAction.CREATE) getNumberOfPassCodeDigits()
+        else getPassCode()?.length ?: getNumberOfPassCodeDigits()
 
     fun setMigrationRequired(required: Boolean) =
         preferencesProvider.putBoolean(PassCodeActivity.PREFERENCE_MIGRATION_REQUIRED, required)

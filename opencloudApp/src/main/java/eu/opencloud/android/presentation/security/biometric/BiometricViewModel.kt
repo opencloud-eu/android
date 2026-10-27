@@ -93,11 +93,6 @@ class BiometricViewModel(
         return (passCode != null && passCode.length < passCodeDigits)
     }
 
-    fun removePassCode() {
-        preferencesProvider.removePreference(PassCodeActivity.PREFERENCE_PASSCODE)
-        preferencesProvider.putBoolean(PassCodeActivity.PREFERENCE_SET_PASSCODE, false)
-    }
-
     /**
      * Generate encryption key involved in biometric authentication process and store it securely on the device using
      * the Android Keystore system
