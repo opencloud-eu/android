@@ -92,7 +92,7 @@ class BiometricActivity : AppCompatActivity() {
                         authError(biometricHasFailed = true)
                     } else {
                         if (biometricViewModel.shouldAskForNewPassCode()) {
-                            biometricViewModel.removePassCode()
+                            // Keep the old passcode until the new one is saved, so the app stays locked if the migration is abandoned
                             val intent = Intent(baseContext, PassCodeActivity::class.java)
                             intent.action = PassCodeActivity.ACTION_CREATE
                             intent.putExtra(PassCodeActivity.EXTRAS_MIGRATION, true)
@@ -124,6 +124,10 @@ class BiometricActivity : AppCompatActivity() {
             PassCodeManager.onBiometricCancelled(this, biometricHasFailed)
         } else if (PatternManager.isPatternEnabled()) {
             PatternManager.onBiometricCancelled(this, biometricHasFailed)
+        } else {
+            // No fallback lock available: close the app instead of revealing the activity below
+            finishAffinity()
+            return
         }
 
         finish()
