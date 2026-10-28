@@ -201,6 +201,7 @@ class FileDisplayActivity : FileActivity(),
 
     private var isLightUser = false
     private var isMultiPersonal = false
+    private var shortcutFolderToNavigate: OCFile? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         Timber.v("onCreate() start")
@@ -253,6 +254,8 @@ class FileDisplayActivity : FileActivity(),
         binding = ActivityMainBinding.inflate(layoutInflater)
         val view = binding.root
         setContentView(view)
+
+        handleShortcutIntent()
 
         // setup toolbar
         setupRootToolbar(
@@ -310,6 +313,18 @@ class FileDisplayActivity : FileActivity(),
         Timber.v("onCreate() end")
     }
 
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleShortcutIntent()
+    }
+
+    override fun onResumeFragments() {
+        super.onResumeFragments()
+        // New intents can arrive while fragment state is saved. Navigate after it is safe to commit.
+        navigateToShortcutFolder()
+    }
+
     private fun checkNotificationPermission() {
         // Ask for permission only in case it's api >= 33 and notifications are not granted.
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
@@ -348,7 +363,12 @@ class FileDisplayActivity : FileActivity(),
             })
             isLightUser = manageAccountsViewModel.checkUserLight(account.name)
             isMultiPersonal = capabilitiesViewModel.checkMultiPersonal()
-            navigateTo(fileListOption, initialState = true)
+
+            if (shortcutFolderToNavigate != null) {
+                navigateToShortcutFolder()
+            } else {
+                navigateTo(fileListOption, initialState = true)
+            }
 
         }
 
@@ -1964,6 +1984,72 @@ class FileDisplayActivity : FileActivity(),
         intent.data?.let { uri ->
             fileOperationsViewModel.handleDeepLink(uri, getCurrentOpenCloudAccount(baseContext).name)
         }
+    }
+
+    private fun handleShortcutIntent() {
+        val sc = eu.opencloud.android.presentation.files.addtohomescreen.FolderShortcutHelper
+        if (intent?.action != sc.ACTION_OPEN_SHORTCUT) return
+
+        val shortcutRemotePath = intent?.getStringExtra(sc.EXTRA_SHORTCUT_FOLDER_REMOTE_PATH)
+        val shortcutSpaceId = intent?.getStringExtra(sc.EXTRA_SHORTCUT_FOLDER_SPACE_ID)
+        val shortcutAccountName = intent?.getStringExtra(sc.EXTRA_SHORTCUT_FOLDER_ACCOUNT)
+
+        shortcutFolderToNavigate = null
+        intent?.removeExtra(sc.EXTRA_SHORTCUT_FOLDER_REMOTE_ID)
+        intent?.removeExtra(sc.EXTRA_SHORTCUT_FOLDER_REMOTE_PATH)
+        intent?.removeExtra(sc.EXTRA_SHORTCUT_FOLDER_SPACE_ID)
+        intent?.removeExtra(sc.EXTRA_SHORTCUT_FOLDER_ACCOUNT)
+
+        if (shortcutRemotePath != null &&
+            !shortcutAccountName.isNullOrBlank() &&
+            shortcutAccountName != account?.name
+        ) {
+            val targetAccount = eu.opencloud.android.presentation.authentication.AccountUtils
+                .getOpenCloudAccountByName(this, shortcutAccountName)
+            if (targetAccount != null) {
+                MainApp.initDependencyInjection()
+                // Recreate account-scoped state instead of delivering another intent to this instance.
+                finish()
+                startActivity(Intent(this, FileDisplayActivity::class.java).apply {
+                    action = sc.ACTION_OPEN_SHORTCUT
+                    putExtra(EXTRA_ACCOUNT, targetAccount)
+                    putExtra(sc.EXTRA_SHORTCUT_FOLDER_REMOTE_PATH, shortcutRemotePath)
+                    putExtra(sc.EXTRA_SHORTCUT_FOLDER_SPACE_ID, shortcutSpaceId)
+                    putExtra(sc.EXTRA_SHORTCUT_FOLDER_ACCOUNT, shortcutAccountName)
+                    flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+                })
+            } else {
+                showMessageInSnackbar(
+                    R.id.list_layout,
+                    getString(R.string.add_to_home_screen_shortcut_folder_missing)
+                )
+            }
+            return
+        }
+
+        if (shortcutRemotePath != null && account != null) {
+            val file = storageManager.getFileByPath(shortcutRemotePath, shortcutSpaceId)
+            if (file != null) {
+                shortcutFolderToNavigate = file
+            } else {
+                showMessageInSnackbar(
+                    R.id.list_layout,
+                    getString(R.string.add_to_home_screen_shortcut_folder_missing)
+                )
+            }
+        }
+    }
+
+    private fun navigateToShortcutFolder() {
+        val folder = shortcutFolderToNavigate ?: return
+        shortcutFolderToNavigate = null
+        fileListOption = FileListOption.ALL_FILES
+        setFile(folder)
+        cleanSecondFragment()
+        initAndShowListOfFiles(fileListOption)
+        refreshListOfFilesFragment()
+        updateToolbar(folder)
+        setCheckedItemAtBottomBar(getMenuItemForFileListOption(fileListOption))
     }
 
     private fun onDeepLinkManaged() {
