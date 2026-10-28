@@ -1,0 +1,867 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- GLOBAL -->
+    <string name="global_name">Namn</string>
+    <string name="global_date">Datum</string>
+    <string name="global_size">Storlek</string>
+    <string name="actionbar_search">Sök i den här mappen</string>
+    <string name="actionbar_search_space">Sök efter ytor</string>
+    <string name="actionbar_sync">Uppdatera konto</string>
+    <string name="actionbar_upload">Ladda upp</string>
+    <string name="actionbar_upload_from_apps">Innehåll från andra appar</string>
+    <string name="actionbar_upload_files">Filer</string>
+    <string name="actionbar_open_with">Öppna med</string>
+    <string name="actionbar_open_with_read_only">Öppna med (skrivskyddat)</string>
+    <string name="actionbar_mkdir">Ny mapp</string>
+    <string name="actionbar_settings">Inställningar</string>
+    <string name="actionbar_see_details">Detaljer</string>
+    <string name="actionbar_send_file">Skicka</string>
+    <string name="actionbar_descending">Fallande</string>
+    <string name="actionbar_sort_title">Sortera efter</string>
+    <string name="fab_new_file">Nytt dokument</string>
+    <string name="fab_new_shortcut">Ny genväg</string>
+    <string name="fab_take_photo">Ta ett foto</string>
+    <string name="drawer_item_all_files">Alla filer</string>
+    <string name="drawer_item_only_available_offline">Tillgänglig offline</string>
+    <string name="drawer_item_shared_by_link_files">Delad via länk</string>
+    <string name="drawer_item_settings">Inställningar</string>
+    <string name="drawer_item_uploads_list">Uppladdningar</string>
+    <string name="drawer_close">Stäng</string>
+    <string name="drawer_open">Öppen</string>
+    <string name="drawer_loading_quota">Läser in kvot</string>
+    <string name="drawer_quota">%1$s av %2$s används (%3$s %%)</string>
+    <string name="drawer_exceeded_quota">Lagringsutrymmet är fullt</string>
+    <string name="drawer_nearing_quota">Lagringsutrymmet är nästan fullt</string>
+    <string name="drawer_critical_quota">Lagringsutrymmet är nästan helt fullt</string>
+    <string name="drawer_unavailable_free_storage">%1$s används</string>
+    <string name="drawer_unavailable_used_storage">Ingen information om lagringsanvändning är tillgänglig</string>
+    <string name="drawer_feedback">GitHub Discussions</string>
+    <string name="drawer_help">Hjälp</string>
+    <string name="prefs_category_general">Allmänt</string>
+    <string name="prefs_appearance_light">Ljus</string>
+    <string name="prefs_appearance_dark">Mörkt</string>
+    <string name="prefs_subsection_logging">Loggning</string>
+    <string name="prefs_subsection_more">Mer</string>
+    <string name="prefs_subsection_security">Säkerhet</string>
+    <string name="prefs_subsection_whatsnew">Vad är nytt i den senaste versionen\?</string>
+    <string name="prefs_subsection_security_summary">Ställ in lås för åtkomst till appen och tillåt tryck i andra synliga fönster</string>
+    <string name="prefs_subsection_logging_summary">Håll reda på loggar som skapas när appen körs</string>
+    <string name="prefs_subsection_more_summary">Appinformation, återkoppling och annat</string>
+    <string name="prefs_accounts">Konton</string>
+    <string name="prefs_manage_accounts">Hantera konton</string>
+    <string name="prefs_passcode">Kodlås</string>
+    <string name="prefs_biometric">Biometriskt lås</string>
+    <string name="prefs_biometric_summary">Aktivera kod- eller mönsterlås för att aktivera det här alternativet</string>
+    <string name="prefs_lock_application">Lås appen</string>
+    <string name="prefs_lock_application_entries_immediately">Omedelbart</string>
+    <string name="prefs_lock_application_entries_1minute">Efter 1 minut</string>
+    <string name="prefs_lock_application_entries_5minutes">Efter 5 minuter</string>
+    <string name="prefs_lock_application_entries_30minutes">Efter 30 minuter</string>
+    <string name="prefs_lock_access_from_document_provider">Lås åtkomst från dokumentleverantören</string>
+    <string name="prefs_lock_access_from_document_provider_summary">Lås andra appars åtkomst till filer för kontona i appen via Androids inbyggda filutforskare.</string>
+    <string name="prefs_touches_with_other_visible_windows">Tryck i andra synliga fönster</string>
+    <string name="prefs_touches_with_other_visible_windows_summary">Tillåt tryck när vyn täcks av ett annat synligt fönster. Aktivera det om du använder ljusfiltrerande appar.</string>
+
+    <!-- mTLS client certificate (per account) -->
+    <string name="auth_connection_button">Anslutning…</string>
+    <string name="auth_mtls_cert_selected">Certifikat: %1$s</string>
+    <string name="account_mtls_button">Klientcertifikat</string>
+    <string name="account_mtls_set_cert">Ange klientcertifikat</string>
+    <string name="account_mtls_clear_cert">Ta bort klientcertifikat</string>
+    <string name="account_mtls_cert_selected">Klientcertifikat har angetts: %1$s</string>
+    <string name="account_mtls_cert_cleared">Klientcertifikat har tagits bort</string>
+    <string name="confirmation_touches_with_other_windows_title">Är du säker på att du vill aktivera den här funktionen\?</string>
+    <string name="confirmation_touches_with_other_windows_message">Använd den här funktionen på egen risk. En skadlig app kan försöka lura dig att ovetande utföra vissa åtgärder med hjälp av andra vyer.</string>
+    <string name="prefs_subsection_picture_uploads">Automatisk uppladdning av bilder</string>
+    <string name="prefs_subsection_picture_uploads_summary">Hantera plats och beteende för bilder som laddas upp automatiskt</string>
+    <string name="prefs_subsection_video_uploads">Automatisk uppladdning av videor</string>
+    <string name="prefs_subsection_video_uploads_summary">Hantera plats och beteende för videor som laddas upp automatiskt</string>
+    <string name="prefs_camera_picture_upload">Bilduppladdningar</string>
+    <string name="prefs_camera_picture_upload_summary">Ladda upp bilder som tas med kameran automatiskt</string>
+    <string name="prefs_camera_picture_upload_path_title">Sökväg för bilduppladdning</string>
+    <string name="prefs_camera_picture_upload_conditions_title">Villkor för att utföra uppladdningar</string>
+    <string name="prefs_camera_picture_upload_conditions_summary">Uppladdningar startas när alla valda alternativ är uppfyllda</string>
+    <string name="prefs_camera_picture_upload_on_wifi">Ladda endast upp bilder via Wi-Fi</string>
+    <string name="prefs_camera_picture_upload_on_charging">Ladda endast upp bilder vid laddning</string>
+    <string name="prefs_camera_upload_on_charging_summary">Aktivera uppladdning endast via Wi-Fi för att aktivera det här alternativet</string>
+    <string name="prefs_camera_video_upload">Videouppladdningar</string>
+    <string name="prefs_camera_video_upload_summary">Ladda upp videor som spelas in med kameran automatiskt</string>
+    <string name="prefs_camera_video_upload_path_title">Sökväg för videouppladdning</string>
+    <string name="prefs_camera_video_upload_on_wifi">Ladda endast upp videor via Wi-Fi</string>
+    <string name="prefs_camera_video_upload_on_charging">Ladda endast upp videor vid laddning</string>
+    <string name="prefs_automatic_uploads_not_available_users_light">Automatiska uppladdningar är inte tillgängliga för användare med rollen Light</string>
+    <string name="prefs_subsection_advanced">Avancerat</string>
+    <string name="prefs_subsection_notifications">Hantera aviseringar</string>
+    <string name="prefs_show_hidden_files">Visa dolda filer</string>
+    <string name="prefs_log_open_logs_list_view">Loggfiler</string>
+    <string name="prefs_log_no_logs_list_view">Tom loggmapp!</string>
+    <string name="prefs_log_empty_subtitle">Aktivera loggning så visas loggfilerna här.</string>
+    <string name="prefs_log_title">Aktivera loggning</string>
+    <string name="prefs_log_summary">Detta används för att logga problem.</string>
+    <string name="prefs_log_title_history">Logghistorik</string>
+    <string name="prefs_log_summary_history">Här visas de registrerade loggarna.</string>
+    <string name="prefs_log_delete_history_button">Radera historik</string>
+    <string name="prefs_help">Hjälp</string>
+    <string name="prefs_sync_calendar_contacts">Synkronisera dina kontakter, kalendrar och uppgifter</string>
+    <string name="prefs_sync_calendar_contacts_summary">Installera DAVx⁵</string>
+    <string name="prefs_access_document_provider">Åtkomst till dokumentleverantören</string>
+    <string name="prefs_access_document_provider_summary">Föreslagen app för att bläddra bland filerna på enheten via Androids inbyggda filutforskare</string>
+    <string name="prefs_recommend">Rekommendera till en vän</string>
+    <string name="prefs_feedback">Återkoppling</string>
+    <string name="prefs_imprint">Avtryck</string>
+    <string name="prefs_remember_last_share_location">Kom ihåg plats för delning</string>
+    <string name="prefs_remember_last_upload_location_summary">Kom ihåg den senaste uppladdningsplatsen för delning</string>
+    <string name="prefs_pattern"> Mönsterlås </string>
+    <string name="prefs_enable_logging">Aktivera loggning</string>
+    <string name="prefs_enable_logging_summary">När loggning är aktiverad kan den påverka prestandan och innehålla känslig information. Loggarna skickas dock inte automatiskt till OpenCloud-servrar. Det är helt användarens ansvar att dela loggar med andra.</string>
+    <string name="prefs_send_feedback">Skicka återkoppling</string>
+    <string name="prefs_app_version">Appversion</string>
+    <string name="prefs_app_version_summary">%1$s %2$s version %3$s (%4$s)</string>
+    <string name="pattern_enter_pattern">Ange ditt mönster</string>
+    <string name="pattern_configure_pattern">Ange ditt mönster</string>
+    <string name="pattern_remove_pattern">Ta bort ditt mönster</string>
+    <string name="pattern_incorrect_pattern">Felaktigt mönster</string>
+    <string name="pattern_reenter_pattern">Ange ditt mönster igen.</string>
+    <string name="pattern_not_same_pattern">Mönstren är inte samma.</string>
+    <string name="pattern_error_set">Ett fel uppstod när mönsterlåset ställdes in.</string>
+    <string name="pattern_error_remove">Ett fel uppstod när mönsterlåset togs bort.</string>
+    <string name="pattern_already_set">Mönster- och kodlås kan inte aktiveras samtidigt. Inaktivera först mönsterlåset.</string>
+    <string name="passcode_already_set">Mönster- och kodlås kan inte aktiveras samtidigt. Inaktivera först kodlåset.</string>
+    <string name="pattern_no_longer_required">Mönstret kommer inte längre att efterfrågas.</string>
+    <string name="pattern_configure_your_pattern_explanation">Mönstret kommer att efterfrågas varje gång appen startas.</string>
+    <string name="document_provider_locked">Låst</string>
+    <string name="illegal_argument_exception_message">En giltig ACTION krävs i intent som skickas till</string>
+
+    <!-- Bottom navigation bar -->
+    <string name="bottom_nav_files">Filer</string>
+    <string name="bottom_nav_personal">Personlig</string>
+    <string name="bottom_nav_uploads">Uppladdningar</string>
+    <string name="bottom_nav_offline">Offline</string>
+    <string name="bottom_nav_links">Länkar</string>
+    <string name="bottom_nav_shares">Delningar</string>
+
+    <string name="recommend_subject">Prova %1$s på din smarttelefon!</string>
+    <string name="recommend_text">Jag vill bjuda in dig att använda %1$s på din smarttelefon!\nLadda ner här: %2$s</string>
+
+    <string name="error_reason">eftersom</string>
+    <string name="auth_failure_snackbar">Autentiseringen misslyckades. Logga in igen för att få åtkomst.</string>
+    <string name="server_not_supported">Din serverversion är lägre än 10 och stöds därför inte. Uppgradera servern till en nyare version.</string>
+    <string name="auth_failure_snackbar_action">Byt konto</string>
+    <string name="auth_oauth_failure">Åtkomsttoken har gått ut eller blivit ogiltig. Logga in igen för att få åtkomst.</string>
+    <string name="auth_oauth_failure_snackbar_action">Logga in</string>
+    <string name="auth_check_server">Kontrollera server</string>
+    <string name="auth_host_url">Serveradress https://…</string>
+    <string name="auth_username">Användarnamn</string>
+    <string name="auth_password">Lösenord</string>
+    <string name="auth_register">Ny hos %1$s\?</string>
+    <string name="sync_string_files">Filer</string>
+    <string name="setup_btn_login">Logga in</string>
+    <string name="uploader_btn_upload_text">Ladda upp</string>
+    <string name="uploader_top_message">Välj uppladdningsmapp</string>
+    <string name="choose_upload_space">Välj uppladdningsyta</string>
+    <string name="uploader_wrn_no_account_title">Inget konto hittades</string>
+    <string name="uploader_wrn_no_account_text">Det finns inga %1$s-konton på enheten. Konfigurera först ett konto.</string>
+    <string name="uploader_wrn_no_account_setup_btn_text">Konfigurera</string>
+    <string name="uploader_wrn_no_account_quit_btn_text">Avsluta</string>
+    <string name="uploader_error_title_no_file_to_upload">Ingen fil att ladda upp</string>
+    <string name="uploader_error_message_received_piece_of_text">%1$s kan inte ladda upp en text som en fil.</string>
+    <string name="uploader_error_message_no_file_to_upload">De mottagna uppgifterna innehåller ingen giltig fil.</string>
+    <string name="uploader_error_title_file_cannot_be_uploaded">Filen kan inte laddas upp</string>
+    <string name="uploader_error_message_read_permission_not_granted">%1$s har inte behörighet att läsa en mottagen fil.</string>
+    <string name="uploader_error_message_source_file_not_found">Filen som ska laddas upp hittades inte på sin plats. Kontrollera att filen finns.</string>
+    <string name="uploader_error_message_source_file_not_copied">Ett fel uppstod när filen kopierades till en tillfällig mapp. Försök skicka igen.</string>
+    <string name="file_list_seconds_ago">sekunder sedan</string>
+    <string name="file_list_empty_title_all_files">Det finns inga filer här</string>
+    <string name="spaces_list_empty_title">Inga ytor</string>
+    <string name="space_label">Yta:</string>
+    <string name="file_list_empty_title_available_offline">Inga filer tillgängliga offline</string>
+    <string name="file_list_empty_title_shared_by_links">Inga delade länkar</string>
+    <string name="file_list_empty_subtitle_all_files">Ladda upp innehåll eller synkronisera med dina enheter!</string>
+    <string name="light_users_subtitle">Den personliga ytan är inte tillgänglig</string>
+    <string name="shares_list_empty_title">Inga aktier</string>
+    <string name="shares_list_empty_subtitle">Du samarbetar inte kring andra personers resurser.</string>
+    <string name="spaces_list_empty_subtitle">Du har inte åtkomst till någon yta!</string>
+    <string name="file_list_empty_subtitle_available_offline">Filer och mappar som du markerar som tillgängliga offline visas här.</string>
+    <string name="file_list_empty_subtitle_shared_by_links">Filer och mappar som du delar via länk visas här.</string>
+    <string name="file_list_loading">Läser in…</string>
+    <string name="file_list_no_app_for_file_type">Ingen app hittades för filtypen</string>
+    <string name="file_list_no_app_for_perform_action">Ingen app hittades för den här åtgärden</string>
+    <string name="local_file_list_empty">Det finns inga filer i den här mappen.</string>
+    <string name="local_file_list_empty_just_folders">Det finns inga mappar i den här mappen.</string>
+    <string name="local_file_list_search_with_no_matches">Inga träffar för den här sökningen</string>
+    <string name="upload_list_empty">Inga uppladdningar tillgängliga.</string>
+    <string name="upload_list_empty_subtitle">Ladda upp något så visas det här.</string>
+    <string name="file_list_folder">mapp</string>
+    <string name="file_list_folders">mappar</string>
+    <string name="file_list_file">fil</string>
+    <string name="file_list_files">filer</string>
+    <string name="filedetails_select_file">Tryck på en fil för att visa ytterligare information.</string>
+    <string name="upload_to">Ladda upp till %1$s</string>
+    <string name="pick_document_type">Välj en dokumenttyp att skapa:</string>
+    <string name="upload_files_title"> Filer </string>
+    <string name="filedetails_size">Storlek:</string>
+    <string name="filedetails_type">Typ:</string>
+    <string name="filedetails_created">Skapad:</string>
+    <string name="filedetails_last_sync">Senaste synkronisering:</string>
+    <string name="filedetails_path">Sökväg:</string>
+    <string name="filedetails_modified">Ändrad:</string>
+    <string name="filedetails_download">Ladda ner</string>
+    <string name="filedetails_file_image_content_description">Bildfil</string>
+    <string name="filedetails_cancel_btn_content_description">Knapp för att avbryta nedladdning</string>
+    <string name="filedetails_sync_file">Synkronisera</string>
+    <string name="filedetails_renamed_in_upload_msg">Filen bytte namn till %1$s under uppladdningen</string>
+    <string name="list_layout">Listvy</string>
+    <string name="action_share">Dela</string>
+    <string name="login_account_preparing">Förbereder kontot inför första starten</string>
+    <string name="common_yes">Ja</string>
+    <string name="common_no">Nej</string>
+    <string name="common_remove_upload">Ta bort uppladdning</string>
+    <string name="common_retry_upload">Försök ladda upp igen</string>
+    <string name="common_cancel_sync">Avbryt synkronisering</string>
+    <string name="common_back">Tillbaka</string>
+    <string name="common_save_exit">Spara och avsluta</string>
+    <string name="common_error">Fel</string>
+    <string name="common_loading">Läser in…</string>
+    <string name="common_unknown">okänd</string>
+    <string name="common_error_unknown">okänt fel</string>
+    <string name="error_http_code">Servern returnerade ett oväntat fel (HTTP %1$d)</string>
+    <string name="common_pending">Väntande</string>
+    <string name="common_important">Viktigt</string>
+    <string name="change_password">Ändra lösenord</string>
+    <string name="delete_account">Ta bort konto</string>
+    <string name="create_account">Skapa konto</string>
+    <string name="upload_chooser_title">Ladda upp från</string>
+    <string name="uploader_info_dirname">Mappnamn</string>
+    <string name="uploader_upload_in_progress_ticker">Laddar upp…</string>
+    <string name="uploader_upload_in_progress_content">%1$d%% laddar upp %2$s</string>
+    <string name="uploader_upload_succeeded_ticker">Uppladdningen lyckades</string>
+    <string name="uploader_upload_succeeded_content_single">%1$s har laddats upp</string>
+    <string name="uploader_upload_failed_ticker">Uppladdning misslyckades</string>
+    <string name="uploader_upload_failed_content_single">Uppladdningen av %1$s kunde inte slutföras.</string>
+    <string name="uploader_upload_failed_credentials_error">Uppladdningen misslyckades. Du måste logga in igen.</string>
+    <string name="uploader_upload_failed_ssl_certificate_not_trusted">Servercertifikatet är inte betrott.</string>
+    <string name="uploader_upload_text_dialog_title">Ange ett namn på den nya filen.</string>
+    <string name="uploader_upload_text_dialog_filename_error_empty">Filnamnet får inte vara tomt.</string>
+    <string name="uploader_upload_text_dialog_filename_error_length_max">Filnamnet får inte vara längre än %d tecken.</string>
+    <string name="uploader_upload_text_filename_hint">Filnamn</string>
+    <string name="uploader_upload_camera_upload_files">Laddar upp filer från kamerauppladdning</string>
+    <string name="uploader_upload_picture_upload_files">%d nya bilder kommer att laddas upp.</string>
+    <string name="uploader_upload_video_upload_files">%d nya videor kommer att laddas upp.</string>
+    <string name="uploader_upload_camera_upload_source_path_error">Kamerauppladdningar misslyckades.</string>
+    <string name="uploader_upload_picture_upload_error">Källsökvägen för bilduppladdning är inte längre giltig.</string>
+    <string name="uploader_upload_video_upload_error">Källsökvägen för videouppladdning är inte längre giltig.</string>
+    <string name="uploader_upload_available_offline_files">Laddar upp filer som är tillgängliga offline</string>
+    <string name="uploader_upload_requested_from_wifi_files">Laddar upp filer som begärts via Wi-Fi</string>
+    <string name="ssl_certificate_not_trusted">Servercertifikatet är inte betrott.</string>
+    <string name="uploads_view_title">Uppladdningar</string>
+    <string name="uploads_view_group_current_uploads">Pågående</string>
+    <string name="uploads_view_group_failed_uploads">Misslyckades (tryck för att försöka igen)</string>
+    <string name="uploads_view_group_finished_uploads">Uppladdat</string>
+    <string name="uploads_view_group_queued_uploads">Kölagd</string>
+    <string name="uploads_view_group_file_count">%d filer</string>
+    <string name="uploads_view_group_file_count_single">%d fil</string>
+    <string name="uploads_view_upload_status_succeeded">Slutförd</string>
+    <string name="uploads_view_upload_status_cancelled">Avbruten</string>
+    <string name="uploads_view_upload_status_paused">Pausad</string>
+    <string name="uploads_view_upload_status_failed_connection_error">Anslutningsfel</string>
+    <string name="uploads_view_upload_status_failed_retry">Uppladdningen kommer snart att försökas igen</string>
+    <string name="uploads_view_upload_status_failed_credentials_error">Autentiseringsfel</string>
+    <string name="uploads_view_upload_status_failed_folder_error">Mappfel</string>
+    <string name="uploads_view_upload_status_failed_file_error">Filfel</string>
+    <string name="uploads_view_upload_status_failed_localfile_error">Lokal fil hittades inte</string>
+    <string name="uploads_view_upload_status_failed_permission_error">Behörighetsfel</string>
+    <string name="uploads_view_upload_status_failed_firewall_error">Förbjudet på grund av en brandväggsregel</string>
+    <string name="uploads_view_upload_status_conflict">Konflikt</string>
+    <string name="uploads_view_upload_status_service_interrupted">Appen avslutades</string>
+    <string name="uploads_view_upload_status_unknown_fail">Okänt fel</string>
+    <string name="uploads_view_upload_status_waiting_for_wifi">Väntar på Wi-Fi-anslutning</string>
+    <string name="uploads_view_upload_status_queued">Kölagd</string>
+    <string name="uploads_view_later_waiting_to_upload">Väntar på uppladdning</string>
+    <string name="uploads_view_unsupported_media_type">Mediatypen stöds inte</string>
+    <string name="uploader_upload_enqueued_ticker">Uppladdningen av %1$s har kölagts</string>
+    <string name="uploader_upload_canceled_ticker">Uppladdningen avbruten</string>
+    <string name="downloader_download_canceled_ticker">Nedladdningen avbröts</string>
+    <string name="downloader_download_enqueued_ticker">Nedladdningen av %1$s har kölagts</string>
+    <string name="downloader_download_in_progress_ticker">Laddar ner…</string>
+    <string name="downloader_download_in_progress_content">%1$d%% laddar ner %2$s</string>
+    <string name="downloader_download_succeeded_ticker">Nedladdningen lyckades</string>
+    <string name="downloader_download_succeeded_content">%1$s har laddats ner</string>
+    <string name="downloader_download_failed_ticker">Nedladdning misslyckades</string>
+    <string name="downloader_preview_failed_ticker">Det går inte att visa filen</string>
+    <string name="downloader_download_failed_content">Nedladdningen av %1$s kunde inte slutföras</string>
+    <string name="downloader_not_downloaded_yet">Har inte laddats ner ännu</string>
+    <string name="downloader_download_failed_credentials_error">Nedladdningen misslyckades. Du måste logga in igen.</string>
+    <string name="downloader_download_forbidden_permissions">för att ladda ner den här filen</string>
+    <string name="common_choose_account">Välj konto</string>
+    <string name="sync_fail_ticker">Synkroniseringen misslyckades</string>
+    <string name="sync_fail_ticker_unauthorized">Synkroniseringen misslyckades. Du måste logga in igen.</string>
+    <string name="sync_fail_content">Synkroniseringen av %1$s kunde inte slutföras.</string>
+    <string name="sync_fail_content_unauthorized">Ogiltigt lösenord för %1$s</string>
+    <string name="sync_conflicts_in_favourites_ticker">Konflikter hittades</string>
+    <string name="sync_conflicts_in_favourites_content">%1$d filer som hålls synkroniserade kunde inte synkroniseras</string>
+    <string name="sync_fail_in_favourites_ticker">Filer som hålls synkroniserade misslyckades</string>
+    <string name="sync_fail_in_favourites_content">Innehållet i %1$d filer kunde inte synkroniseras (%2$d konflikter)</string>
+    <string name="sync_current_folder_was_removed">Mappen %1$s finns inte längre.</string>
+
+    <string name="pass_code_enter_pass_code">Ange din kod.</string>
+    <string name="pass_code_configure_your_pass_code">Ange din kod.</string>
+    <string name="pass_code_configure_your_pass_code_migration">Ange en ny %1$d-siffrig kod.</string>
+    <string name="pass_code_configure_your_pass_code_explanation">Koden kommer att efterfrågas varje gång appen startas.</string>
+    <string name="pass_code_reenter_your_pass_code">Ange din kod igen.</string>
+    <string name="pass_code_remove_your_pass_code">Ta bort din kod.</string>
+    <string name="pass_code_mismatch">Koderna är inte samma.</string>
+    <string name="pass_code_wrong">Felaktig kod</string>
+    <string name="pass_code_error_set">Ett fel uppstod när kodlåset ställdes in.</string>
+    <string name="pass_code_error_remove">Ett fel uppstod när kodlåset togs bort.</string>
+    <string name="numberkeyboard_backspace_button_content_description">Backstegsknapp</string>
+    <string name="numberkeyboard_biometric_button_content_description">Biometrisk knapp</string>
+
+    <string name="numberkeyboard_zero">0</string>
+    <string name="numberkeyboard_one">1</string>
+    <string name="numberkeyboard_two">2</string>
+    <string name="numberkeyboard_three">3</string>
+    <string name="numberkeyboard_four">4</string>
+    <string name="numberkeyboard_five">5</string>
+    <string name="numberkeyboard_six">6</string>
+    <string name="numberkeyboard_seven">7</string>
+    <string name="numberkeyboard_eight">8</string>
+    <string name="numberkeyboard_nine">9</string>
+
+    <string name="lock_time_try_again">Försök igen om %1$s</string>
+
+    <string name="biometric_not_enrolled">Registrera minst ett biometriskt kännetecken för att använda den här funktionen.</string>
+    <string name="biometric_prompt_title">Biometrisk inloggning</string>
+    <string name="biometric_prompt_subtitle">Logga in med ditt biometriska kännetecken.</string>
+    <string name="biometric_dialog_title">Vill du även aktivera biometrisk säkerhet\?</string>
+    <string name="biometric_not_available">Biometrisk upplåsning är inte tillgänglig eftersom systemet inte kunde tillhandahålla</string>
+
+    <string name="media_notif_ticker">Musikspelaren %1$s</string>
+    <string name="media_state_playing">%1$s (spelas upp)</string>
+    <string name="media_state_loading">%1$s (läser in)</string>
+    <string name="media_event_done">Uppspelningen av %1$s är klar</string>
+    <string name="media_err_nothing_to_play">Ingen mediefil hittades</string>
+    <string name="media_err_no_account">Inget konto angavs</string>
+    <string name="media_err_not_in_opencloud">Filen finns inte i ett giltigt konto</string>
+    <string name="media_err_unsupported">Mediakodeken stöds inte</string>
+    <string name="media_err_io">Mediefilen kunde inte läsas</string>
+    <string name="media_err_malformed">Mediefilen är inte korrekt kodad</string>
+    <string name="media_err_timeout">Tidsgränsen överskreds vid uppspelning</string>
+    <string name="media_err_invalid_progressive_playback">Mediefilen kan inte strömmas</string>
+    <string name="media_err_unknown">Mediefilen kan inte spelas upp med den förinstallerade mediespelaren</string>
+    <string name="media_err_security_ex">Säkerhetsfel vid uppspelning av %1$s</string>
+    <string name="media_err_io_ex">Indatafel vid uppspelning av %1$s</string>
+    <string name="media_err_unexpected">Oväntat fel vid uppspelning av %1$s</string>
+    <string name="media_rewind_description">Knapp för att spola tillbaka</string>
+    <string name="media_play_pause_description">Knapp för att spela upp eller pausa</string>
+    <string name="media_forward_description">Knapp för att spola framåt</string>
+    <string name="upload_from_camera_title">Bild från kamera</string>
+
+    <string name="auth_getting_authorization">Hämtar behörighet…</string>
+    <string name="auth_trying_to_login">Försöker logga in…</string>
+    <string name="auth_no_net_conn_title">Ingen nätverksanslutning</string>
+    <string name="auth_nossl_plain_ok_title">Säker anslutning är inte tillgänglig.</string>
+    <string name="auth_connection_established">Anslutning upprättad</string>
+    <string name="auth_testing_connection">Testar anslutning</string>
+    <string name="auth_not_configured_title">Felaktigt formaterad serverkonfiguration</string>
+    <string name="auth_account_not_new">Ett konto för samma användare och server finns redan på enheten.</string>
+    <string name="auth_account_not_the_same">Den angivna användaren stämmer inte överens med användaren för det här kontot.</string>
+    <string name="auth_unknown_error_title">Ett okänt fel uppstod!</string>
+    <string name="auth_incorrect_path_title">Serverinstansen hittades inte</string>
+    <string name="auth_incorrect_address_title">Felaktigt format för serveradress</string>
+    <string name="auth_ssl_general_error_title">SSL-initieringen misslyckades</string>
+    <string name="auth_bad_oc_version_title">Serverversionen känns inte igen</string>
+    <string name="auth_wrong_connection_title">Det gick inte att upprätta anslutningen</string>
+    <string name="auth_secure_connection">Säker anslutning upprättad</string>
+    <string name="auth_unauthorized">Fel användarnamn eller lösenord</string>
+    <string name="auth_oauth_error">Auktoriseringen misslyckades</string>
+    <string name="auth_oauth_error_access_denied">Åtkomst nekades av auktoriseringsservern</string>
+    <string name="auth_wtf_reenter_URL">Oväntat tillstånd. Ange serveradressen igen</string>
+    <string name="auth_expired_oauth_token_toast">Din auktorisering har gått ut. Auktorisera igen</string>
+    <string name="auth_expired_basic_auth_toast">Ange det nuvarande lösenordet</string>
+    <string name="auth_connecting_auth_server">Ansluter till autentiseringsservern …</string>
+    <string name="auth_unsupported_auth_method">Servern stöder inte den här autentiseringsmetoden</string>
+    <string name="auth_forbidden_check_client_cert">Servern nekade anslutningen. Om den kräver ett klientcertifikat kontrollerar du det som valts under Anslutning.</string>
+    <string name="auth_fail_get_user_name">Din server returnerar inte ett korrekt användar-ID. Kontakta en administratör.</string>
+    <string name="auth_can_not_auth_against_server">Det går inte att autentisera mot den här servern</string>
+    <string name="auth_account_does_not_exist">Kontot finns ännu inte på enheten</string>
+
+    <string name="set_available_offline">Gör tillgänglig offline</string>
+    <string name="unset_available_offline">Ta bort offline-tillgänglighet</string>
+    <string name="confirmation_set_available_offline">Filen har gjorts tillgänglig offline</string>
+    <string name="confirmation_unset_available_offline">Filen har inte längre offline-tillgänglighet</string>
+    <string name="common_rename">Byt namn</string>
+    <string name="common_remove">Ta bort</string>
+    <string name="confirmation_remove_file_alert">Vill du verkligen ta bort %1$s\?</string>
+    <string name="confirmation_remove_folder_alert">Vill du verkligen ta bort %1$s och dess innehåll\?</string>
+    <string name="confirmation_remove_local">Endast lokalt</string>
+    <string name="confirmation_remove_account_alert">Vill du verkligen ta bort kontot %1$s\?</string>
+    <string name="confirmation_remove_account_alert_camera_uploads">Det här kontot har kamerauppladdningar kopplade till sig. Om du tar bort kontot inaktiveras kamerauppladdningarna. Vill du verkligen ta bort kontot %1$s\?</string>
+    <string name="confirmation_remove_public_share_title">Ta bort länk</string>
+    <string name="confirmation_remove_private_share_title">Ta bort privat delning</string>
+    <string name="confirmation_remove_share_message">Vill du verkligen ta bort delningen av %1$s\?</string>
+    <string name="remove_success_msg">Borttagningen lyckades</string>
+    <string name="remove_fail_msg">Borttagningen misslyckades</string>
+    <string name="rename_dialog_title">Ange ett nytt namn</string>
+    <string name="available_offline_inherited_msg">En mapp som innehåller den här filen är tillgänglig offline.</string>
+    <string name="rename_local_fail_msg">Den lokala kopian kunde inte byta namn. Försök med ett annat namn</string>
+    <string name="rename_server_fail_msg">Namnbytet kunde inte slutföras</string>
+    <string name="file_already_exists">Filen finns redan</string>
+    <string name="folder_already_exists">Mappen finns redan</string>
+    <string name="file_already_exists_description">Det finns redan en fil med namnet %1$s.</string>
+    <string name="folder_already_exists_description">Det finns redan en mapp med namnet %1$s.</string>
+    <string name="sync_file_fail_msg">Det gick inte att kontrollera fjärrfilen</string>
+    <string name="sync_file_nothing_to_do_msg">Filinnehållet är redan synkroniserat</string>
+    <string name="sync_file_not_found_msg">Filen hittades inte</string>
+    <string name="new_remote_version_found_msg">En ny version hittades på servern. Laddar ner…</string>
+    <string name="download_enqueued_msg">Nedladdningen har kölagts</string>
+    <string name="upload_enqueued_msg">Uppladdningen har kölagts</string>
+    <string name="create_dir_fail_msg">Mappen kunde inte skapas</string>
+    <string name="create_file_fail_msg">Filen kunde inte skapas</string>
+    <string name="filename_forbidden_characters">Förbjudna tecken: / \</string>
+    <string name="filename_forbidden_characters_from_server">Filnamnet innehåller minst ett ogiltigt tecken</string>
+    <string name="filename_empty">Filnamnet får inte vara tomt</string>
+    <string name="filename_too_long">Filnamnet får inte vara så långt</string>
+    <string name="wait_a_moment">Vänta en stund</string>
+    <string name="wait_checking_credentials">Kontrollerar sparade inloggningsuppgifter</string>
+    <string name="filedisplay_unexpected_bad_get_content">Oväntat problem. Välj filen från en annan app</string>
+    <string name="filedisplay_no_file_selected">Ingen fil valdes</string>
+    <string name="activity_chooser_title">Skicka länk till</string>
+    <string name="wait_for_tmp_copy_from_private_storage">Kopierar fil från privat lagring</string>
+
+    <string name="oauth_check_onoff">Logga in med OAuth2</string>
+    <string name="oauth_login_connection">Ansluter till OAuth2-servern…</string>
+
+    <string name="ssl_connection_not_secure">Anslutningen är inte säker. HTTP-trafik tillåts inte.</string>
+    <string name="ssl_validator_header">Serverns identitet kunde inte verifieras.</string>
+    <string name="ssl_validator_reason_cert_not_trusted">- Servercertifikatet är inte betrott.</string>
+    <string name="ssl_validator_reason_cert_expired">- Servercertifikatet har gått ut.</string>
+    <string name="ssl_validator_reason_cert_not_yet_valid">- Servercertifikatets giltighetsdatum ligger i framtiden.</string>
+    <string name="ssl_validator_reason_hostname_not_verified">- URL:en matchar inte värdnamnet i certifikatet</string>
+    <string name="ssl_validator_question">Vill du ändå lita på det här certifikatet\?</string>
+    <string name="ssl_validator_not_saved">Certifikatet kunde inte sparas.</string>
+    <string name="ssl_validator_btn_details_see">Detaljer</string>
+    <string name="ssl_validator_btn_details_hide">Dölj</string>
+    <string name="ssl_validator_label_subject">Utfärdat till:</string>
+    <string name="ssl_validator_label_issuer">Utfärdat av:</string>
+    <string name="ssl_validator_label_CN">Allmänt namn:</string>
+    <string name="ssl_validator_label_O">Organisation:</string>
+    <string name="ssl_validator_label_OU">Organisationsenhet:</string>
+    <string name="ssl_validator_label_C">Land:</string>
+    <string name="ssl_validator_label_ST">Delstat/provins:</string>
+    <string name="ssl_validator_label_L">Plats:</string>
+    <string name="ssl_validator_label_validity">Giltighet:</string>
+    <string name="ssl_validator_label_validity_from">Från:</string>
+    <string name="ssl_validator_label_validity_to">Till:</string>
+    <string name="ssl_validator_label_signature">Signatur:</string>
+    <string name="ssl_validator_label_signature_algorithm">Algoritm:</string>
+    <string name="digest_algorithm_not_available">Den här hashalgoritmen är inte tillgänglig på telefonen.</string>
+    <string name="ssl_validator_label_certificate_fingerprint">Fingeravtryck:</string>
+    <string name="certificate_load_problem">Det gick inte att läsa in certifikatet.</string>
+    <string name="ssl_validator_null_cert">Certifikatet kunde inte visas.</string>
+    <string name="ssl_validator_no_info_about_error">- Ingen information om felet</string>
+
+    <string name="placeholder_sentence">Det här är en platshållare.</string>
+    <string name="placeholder_filename">placeholder.txt</string>
+    <string name="placeholder_filetype">PNG-bild</string>
+    <string name="placeholder_filesize">389 kB</string>
+    <string name="placeholder_timestamp">2012-05-18 12:23</string>
+    <string name="placeholder_media_time">12:23:45</string>
+
+    <string name="confirmation_disable_camera_uploads_title">Bekräfta</string>
+    <string name="confirmation_disable_pictures_upload_message">Är du säker på att du vill inaktivera den här funktionen\? Väntande bilder kommer inte att laddas upp.</string>
+    <string name="confirmation_disable_videos_upload_message">Är du säker på att du vill inaktivera den här funktionen\? Väntande videor kommer inte att laddas upp.</string>
+    <string name="proper_pics_folder_warning_camera_upload">Kontrollera att den valda mappen är den där kameran du använder sparar tagna bilder. Annars kan funktionen inte upptäcka dina bilder. Bilder laddas upp tidigast 15 minuter efter att de tagits.</string>
+    <string name="proper_videos_folder_warning_camera_upload">Kontrollera att den valda mappen är den där kameran du använder sparar inspelade videor. Annars kan funktionen inte upptäcka dina videor. Videor laddas upp tidigast 15 minuter efter inspelningen.</string>
+    <string name="conflict_title">Filkonflikt</string>
+    <string name="conflict_description">Det finns en konflikt i filen %1$s. Tryck för att lösa den.</string>
+    <string name="conflict_message">Vilka filer vill du behålla\? Om du väljer båda versionerna läggs ett nummer till i den lokala filens namn.</string>
+    <string name="conflict_keep_both">Behåll båda</string>
+    <string name="conflict_use_local_version">lokal version</string>
+    <string name="conflict_use_server_version">serverversion</string>
+    <string name="error_conflict">Ett fel uppstod i målmappen.</string>
+    <string name="conflict_replace">Ersätt</string>
+
+    <string name="preview_image_description">Bildförhandsvisning</string>
+    <string name="preview_image_error_unknown_format">Den här bilden kan inte visas.</string>
+
+    <string name="error__upload__local_file_not_copied">%1$s kunde inte kopieras till den lokala mappen %2$s.</string>
+
+    <string name="get_shares_error">Det gick inte att hämta delningarna från servern</string>
+    <string name="get_sharees_error">Det gick inte att hämta användare och grupper från servern</string>
+    <string name="get_capabilities_error">Det gick inte att hämta funktionerna från servern</string>
+    <string name="share_link_no_support_share_api">Delning är tyvärr inte aktiverad på servern. Kontakta administratören.</string>
+    <string name="share_link_file_error">Det gick inte att dela den här filen eller mappen</string>
+    <string name="unshare_link_file_error">Det gick inte att sluta dela den här filen eller mappen</string>
+    <string name="update_link_file_error">Det gick inte att uppdatera den här filen eller mappen</string>
+    <string name="share_link_password_title">Ange ett lösenord</string>
+    <string name="share_link_empty_password">Du måste ange ett lösenord.</string>
+
+    <string name="activity_chooser_send_file_title">Skicka</string>
+
+    <string name="copy_link">Kopiera länk</string>
+    <string name="clipboard_text_copied">Kopierades till urklipp</string>
+    <string name="clipboard_no_text_to_copy">Ingen text togs emot för att kopiera till urklipp</string>
+    <string name="clipboard_uxexpected_error">Oväntat fel vid kopiering till urklipp</string>
+    <string name="clipboard_label">Text kopierades från %1$s</string>
+
+    <string name="error_cant_bind_to_operations_service">Kritiskt fel: det går inte att utföra åtgärder</string>
+
+    <string name="network_error_socket_exception">Ett fel uppstod vid anslutningen till servern.</string>
+    <string name="network_error_socket_timeout_exception">Servern tog för lång tid på sig att svara.</string>
+    <string name="network_error_connect_timeout_exception">Servern tog för lång tid på sig att ansluta.</string>
+    <string name="network_host_not_available">Servern kunde inte nås.</string>
+    <string name="network_error_message">Ett fel uppstod i nätverket.</string>
+    <string name="resource_locked_error_message">Resursen är låst</string>
+
+    <string name="forbidden_permissions">Du har inte behörighet %s</string>
+
+    <string name="forbidden_permissions_rename">att byta namn på den här filen</string>
+    <string name="forbidden_permissions_delete">att ta bort den här filen</string>
+    <string name="share_link_forbidden_permissions">att dela den här filen</string>
+    <string name="unshare_link_forbidden_permissions">att sluta dela den här filen</string>
+    <string name="update_link_forbidden_permissions">att uppdatera den här delningen</string>
+    <string name="forbidden_permissions_create">att skapa filen</string>
+    <string name="uploader_upload_forbidden_permissions">att ladda upp i den här mappen</string>
+    <string name="uploader_upload_forbidden">Uppladdning är inte tillåten</string>
+    <string name="downloader_download_file_not_found">Filen är inte längre tillgänglig på servern.</string>
+
+    <string name="prefs_category_accounts">Konton</string>
+    <string name="prefs_add_account">Lägg till konto</string>
+    <string name="drawer_manage_accounts">Hantera konton</string>
+    <string name="manage_accounts_quota">%1$s av %2$s</string>
+    <string name="used_quota_title_manage_accounts">Använt:</string>
+    <string name="auth_redirect_non_secure_connection_title">En säker anslutning omdirigeras via en osäker väg.</string>
+
+    <string name="actionbar_logger">Loggar</string>
+    <string name="log_send_history_button">Skicka historik</string>
+    <string name="log_send_no_mail_app">Ingen app för att skicka loggar hittades. Installera en e-postapp.</string>
+    <string name="log_send_mail_subject">Loggar för %1$s Android-app</string>
+    <string name="log_progress_dialog_text">Läser in data…</string>
+
+    <string name="actionbar_select_all">Välj alla</string>
+    <string name="actionbar_select_inverse">Invertera markering</string>
+
+    <string name="actionbar_move">Flytta</string>
+    <string name="file_list_empty_moving">Det finns inget här. Du kan lägga till en mapp!</string>
+    <string name="folder_picker_choose_button_text">Välj</string>
+    <string name="folder_picker_move_here_button_text">Flytta hit</string>
+    <string name="folder_picker_copy_here_button_text">Kopiera här</string>
+    <string name="folder_picker_no_permissions_message_text">Du har inte behörighet att lägga till innehåll här!</string>
+
+    <string name="move_file_not_found">Det gick inte att flytta. Kontrollera att filen finns.</string>
+    <string name="move_file_invalid_into_descendent">Det går inte att flytta en mapp till en undermapp.</string>
+    <string name="move_file_invalid_overwrite">Filen finns redan i målmappen.</string>
+    <string name="move_file_error">Ett fel uppstod när den här filen eller mappen skulle flyttas.</string>
+    <string name="forbidden_permissions_move">att flytta den här filen</string>
+
+    <string name="copy_file_not_found">Det gick inte att kopiera. Kontrollera att filen finns.</string>
+    <string name="copy_file_invalid_into_descendent">Det går inte att kopiera en mapp till en undermapp.</string>
+    <string name="copy_file_invalid_overwrite">Filen finns redan i målmappen.</string>
+    <string name="copy_file_error">Ett fel uppstod när den här filen eller mappen skulle kopieras.</string>
+    <string name="forbidden_permissions_copy">att kopiera den här filen</string>
+
+    <string name="prefs_category_camera_upload">Kamerauppladdningar</string>
+
+    <string name="sync_folder_failed_content">Synkroniseringen av mappen %1$s kunde inte slutföras</string>
+
+    <string name="shared_subject_header">delad</string>
+    <string name="with_you_subject_header">med dig</string>
+
+    <string name="subject_user_shared_with_you">%1$s delade ”%2$s” med dig</string>
+    <string name="subject_shared_with_you">”%1$s” har delats med dig</string>
+
+    <string name="auth_refresh_button">Uppdatera anslutning</string>
+    <string name="auth_host_address">Serveradress</string>
+    <string name="common_error_out_memory">Inte tillräckligt med minne</string>
+
+    <string name="username">Användarnamn</string>
+
+    <string name="file_list__footer__folder">1 mapp</string>
+    <string name="file_list__footer__folders">%1$d mappar</string>
+    <string name="file_list__footer__file">1 fil</string>
+    <string name="file_list__footer__file_and_folder">1 fil, 1 mapp</string>
+    <string name="file_list__footer__file_and_folders">1 fil, %1$d mappar</string>
+    <string name="file_list__footer__files">%1$d filer</string>
+    <string name="file_list__footer__files_and_folder">%1$d filer, 1 mapp</string>
+    <string name="file_list__footer__files_and_folders">%1$d filer, %2$d mappar</string>
+    <string name="prefs_picture_upload_account">Konto för bilduppladdning</string>
+    <string name="prefs_video_upload_account">Konto för videouppladdning</string>
+    <string name="prefs_camera_upload_source_path_title">Kameramapp (%1$s)</string>
+    <string name="prefs_camera_upload_source_path_title_required">krävs</string>
+    <string name="prefs_camera_upload_behaviour_dialog_title">Ursprungsfilen kommer att</string>
+    <string name="prefs_camera_upload_behaviour_title">Ursprungsfilen kommer att</string>
+    <string name="prefs_camera_upload_last_sync_title">Senaste synkronisering</string>
+    <string name="notifications_permission_denied">Du kan uppdatera dina inställningar under Inställningar</string>
+    <string name="upload_copy_files">Kopiera fil</string>
+    <string name="upload_move_files">Flytta fil</string>
+
+    <string name="pref_behaviour_entries_keep_file">behållas i ursprungsmappen</string>
+    <string name="pref_behaviour_entries_remove_original_file">tas bort från ursprungsmappen</string>
+
+    <string name="share_dialog_title">Dela</string>
+    <string name="share_file">Dela %1$s</string>
+    <string name="share_with_user_section_title">Användare och grupper</string>
+    <string name="share_no_users">Inga data har delats med användare ännu</string>
+    <string name="share_incompatible_version">För att dela med andra användare måste servern ha minst version 8.2</string>
+    <string name="share_add_user_or_group">Lägg till användare eller grupp</string>
+    <string name="share_via_link_section_title">Offentliga länkar</string>
+    <string name="share_via_link_create_title">Skapa länkdelning</string>
+    <string name="share_via_link_edit_title">Redigera länkdelning</string>
+    <string name="share_via_link_name_label">Länknamn</string>
+    <string name="share_cancel_public_link_button">Avbryt</string>
+    <string name="share_confirm_public_link_button">Spara</string>
+    <string name="share_via_link_expiration_date_label">Utgångsdatum</string>
+    <string name="share_via_link_password_label">Lösenord</string>
+    <string name="share_via_link_password_title">Skyddad</string>
+    <string name="share_via_link_generate_password_button">Generera</string>
+    <string name="share_via_link_copy_password_button">Kopiera</string>
+    <string name="share_via_link_edit_permission_read_only_label">Ladda ner / Visa</string>
+    <string name="share_via_link_edit_permission_read_and_write_label">Ladda ner/Visa/Ladda upp</string>
+    <string name="share_via_link_edit_permission_upload_only_label">Endast uppladdning (filinlämning)</string>
+    <string name="share_get_public_link_button">Hämta länk</string>
+    <string name="share_with_title">Dela med</string>
+    <string name="share_with_edit_title">Dela med %1$s</string>
+
+    <string name="share_search">Sök</string>
+
+    <string name="search_users_and_groups_hint">Sök efter användare och grupper</string>
+    <string name="share_group_clarification">%1$s (grupp)</string>
+    <string name="share_remote_clarification">%1$s (fjärr)</string>
+    <string name="share_known_remote_clarification">%1$s ( hos %2$s )</string>
+
+    <string name="share_sharee_unavailable">Tyvärr tillåter serverversionen inte delning med användare från klienter.\nKontakta administratören</string>
+    <string name="share_privilege_can_share">kan dela</string>
+    <string name="share_privilege_can_edit">kan redigera</string>
+    <string name="share_privilege_can_edit_create">skapa</string>
+    <string name="share_privilege_can_edit_change">ändra</string>
+    <string name="share_privilege_can_edit_delete">ta bort</string>
+    <string name="edit_share_unshare">Sluta dela</string>
+    <string name="edit_share_done">klar</string>
+
+    <string name="action_upload_retry">Försök igen</string>
+    <string name="action_upload_clear">Rensa</string>
+
+    <string name="local_file_not_found_toast">Filen hittades inte i det lokala filsystemet</string>
+    <string name="confirmation_remove_files_alert">Vill du verkligen ta bort dessa %s objekt\?</string>
+    <string name="confirmation_remove_folders_alert">Vill du verkligen ta bort de valda objekten och deras innehåll\?</string>
+    <string name="failed_upload_quota_exceeded_text">Inte tillräckligt med utrymme på kontot</string>
+    <string name="auth_forbidden">Förbjuden autentisering</string>
+
+    <string name="actionbar_privacy_policy">Integritetspolicy</string>
+    <string name="prefs_privacy_policy">Integritetspolicy</string>
+    <string name="privacy_policy_error">Ett fel har uppstått: </string>
+    <string name="service_unavailable">Servern är inte tillgänglig.</string>
+
+    <string name="streaming_certificate_error">Strömning kan inte initieras eftersom servercertifikatet inte är betrott. Filnedladdningen startar automatiskt.</string>
+    <string name="streaming_unrecognized_input">Det här videoformatet stöds inte.</string>
+    <string name="streaming_file_not_found_error">Den här videofilen är inte längre tillgänglig på servern.</string>
+    <string name="streaming_crossed_redirection">Strömning tillåts inte via korsande omdirigeringar.</string>
+    <string name="previewing_video_common_error">Den här videon kan inte spelas upp.</string>
+
+    <string name="previewing_video_not_supported">Videoförhandsvisning stöds inte i din Android-version. Filnedladdningen startar automatiskt.</string>
+    <string name="streaming_position_not_available">”Position inte tillgänglig”</string>
+    <string name="error_no_network_connection">Enheten är inte ansluten till ett nätverk.</string>
+    <string name="share_no_public_links">Inga offentliga länkar har skapats ännu.</string>
+    <string name="share_no_link_in_this_share">Den här delningen har ingen länk.</string>
+    <string name="share_warning_about_forwarding_public_links">Alla som har länken har åtkomst till filen/mappen.</string>
+    <string name="share_via_link_default_password">*****</string>
+    <string name="share_via_link_password_enforced_label">Lösenord *</string>
+    <string name="share_via_link_expiration_date_enforced_label">Utgångsdatum *</string>
+    <string name="share_via_link_expiration_date_explanation_label">Den offentliga länken upphör senast %1$d dagar efter att den skapats.</string>
+    <string name="share_via_link_default_name_template">Länk till %1$s</string>
+    <string name="share_via_link_empty_password">Lösenordet är tomt.</string>
+    <string name="private_link_info">Privat länk: endast personer som har åtkomst till filen/mappen kan använda den. Använd den som en permanent länk för dig själv eller för att hänvisa andra till filer inom delningar.</string>
+    <string name="file_private_link_error">Privat länk är inte tillgänglig för den här filen.</string>
+    <string name="download_notification_channel_name">Nedladdningar</string>
+    <string name="download_notification_channel_description">Visa nedladdningsfilens namn och förlopp.</string>
+    <string name="upload_notification_channel_name">Uppladdningar</string>
+    <string name="upload_notification_channel_description">Visa uppladdningsfilens namn och förlopp.</string>
+    <string name="media_service_notification_channel_name">Musikspelare</string>
+    <string name="media_service_notification_channel_description">Visa musikspelaren</string>
+    <string name="file_sync_notification_channel_name">Filsynkronisering</string>
+    <string name="file_sync_notification_channel_description">Visa resultatet av filsynkroniseringen</string>
+    <string name="file_sync_conflict_notification_channel_name">Filkonflikter</string>
+    <string name="file_sync_conflict_notification_channel_description">Visa filkonflikter när de uppstår.</string>
+    <string name="clicks_to_be_developer">Du behöver trycka %1$d gånger till för att aktivera utvecklarmenyerna</string>
+
+    <string name="rate_dialog_title">Betygsätt %1$s!</string>
+    <string name="rate_dialog_description">Om du tycker om att använda den här appen, kan du ta en stund och betygsätta den\? Din återkoppling är mycket viktig för oss. </string>
+    <string name="button_no_thanks_name">NEJ, TACK</string>
+    <string name="button_later_name">SENARE</string>
+    <string name="button_rate_now_name">BETYGSÄTT NU</string>
+    <plurals name="items_selected_count">
+        <item quantity="one">%d markerad</item>
+        <item quantity="other">%d markerade</item>
+    </plurals>
+
+    <!-- Welcome to oC intro features -->
+    <string name="welcome_feature_skip_button">Hoppa över</string>
+    <string name="welcome_feature_1_title">Hantera alla dina synkroniserade filer</string>
+    <string name="welcome_feature_1_text">Du kan kopiera, flytta och ta bort</string>
+    <string name="welcome_feature_2_title">Dela filer och mappar</string>
+    <string name="welcome_feature_2_text">Du kan dela privat eller offentligt</string>
+    <string name="welcome_feature_3_title">Flera konton</string>
+    <string name="welcome_feature_3_text">Anslut till alla dina OpenCloud-servrar</string>
+    <string name="welcome_feature_4_title">Kamerauppladdningar</string>
+    <string name="welcome_feature_4_text">Dina bilder och videor laddas upp automatiskt</string>
+    <string name="welcome_feature_5_title">Videoströmning</string>
+    <string name="welcome_feature_5_text">Spela upp videor utan att ladda ner dem</string>
+    <string name="no_browser_installed_alert">Ingen webbläsare är installerad. Installera en webbläsare för att möjliggöra säker inloggning.</string>
+    <string name="common_not_found">den hittades inte</string>
+
+    <string name="supports_oauth2_error">Det gick inte att avgöra om OAuth2 stöds.</string>
+    <string name="get_base_url_error">Det gick inte att fastställa serverns bas-URL.</string>
+    <string name="prefs_http_logs">Logga HTTP-begäranden och -svar</string>
+    <string name="prefs_logs_summary">Loggar kan innehålla känslig information. Det är helt användarens ansvar att dela loggar med andra</string>
+
+    <string name="synchronizing_account">Synkroniserar konto</string>
+    <string name="spaces_sync_failed">Det gick inte att uppdatera ytorna</string>
+
+    <!-- Scoped storage migration wizard -->
+    <string name="scoped_storage_wizard_explanation">Hittade %1$s data på din externa lagring. Den flyttas till den säkra lagringen på enheten. Återstående filer tas bort från den externa lagringen efter migreringen för att undvika dubbletter och säkerhetsrisker.</string>
+    <string name="scoped_storage_wizard_intro">Appen har uppdaterats. Den här uppdateringen flyttar dina filer till en säkrare plats på enheten. Den engångsmigreringen av data krävs och kan ta upp till en minut eller mer.</string>
+    <string name="scoped_storage_wizard_intro_button">Kom igång</string>
+    <string name="scoped_storage_wizard_not_enough_space_warning">⚠️ Det finns för närvarande begränsat med ledigt utrymme på enheten. Vissa filer kanske inte migreras. Kontrollera efteråt att alla nedladdade filer fortfarande är nedladdade.</string>
+    <string name="scoped_storage_wizard_migrate_and_clean_button">Migrera nu</string>
+    <string name="scoped_storage_wizard_migration_completed">Migreringen slutfördes. Dina filer är nu säkrare än någonsin.</string>
+    <string name="scoped_storage_wizard_migration_completed_access_files_button">Öppna dina filer</string>
+    <string name="scoped_storage_wizard_migration_in_progress">Migrerar dina filer. Stäng inte av enheten.</string>
+    <string name="scoped_storage_wizard_migration_in_progress_button">Arbetar… Vänta</string>
+    <string name="scoped_storage_wizard_title">Mer säkerhet för dina filer</string>
+
+    <!-- Security Enforced -->
+    <string name="security_enforced_title">Välj ett alternativ för att låsa appen:</string>
+    <string name="security_enforced_first_option">Kodlås</string>
+    <string name="security_enforced_second_option">Mönsterlås</string>
+
+    <string name="folder_upload_some_content_or_sync_devices">Ladda upp innehåll eller synkronisera med dina enheter!</string>
+
+    <!-- Webfinger -->
+    <string name="global_proceed">Fortsätt</string>
+    <string name="error_webfinger_username_empty">Användarnamnet är tomt</string>
+
+    <!-- Release Notes -->
+    <string name="release_notes_header">Nyheter i %1$s</string>
+    <string name="release_notes_footer">Tack för att du använder %1$s.\n♥️</string>
+    <string name="release_notes_proceed">Fortsätt</string>
+    <string name="release_notes_icon">Ikon för versionsinformation</string>
+    <string name="release_notes_bugfixes_title">Mindre felrättningar</string>
+    <string name="release_notes_bugfixes_subtitle">Vissa fel har rättats för att förbättra upplevelsen i appen</string>
+    <string name="release_notes_4_5_0_title_feedback_in_previews">Återkoppling när offline-tillgänglighet ändras i alla förhandsvisningar</string>
+    <string name="release_notes_4_5_0_subtitle_feedback_in_previews">Återkoppling när offline-tillgänglighet ändras i alla förhandsvisningar</string>
+    <string name="release_notes_4_5_0_title_quota_improvements">Förbättringar av visningen av lagringsanvändning</string>
+    <string name="release_notes_4_5_0_subtitle_quota_improvements">Lagringsanvändningen uppdateras ofta vid fil- och uppdateringsåtgärder och visas i kontohanteraren utöver lådmenyn</string>
+    <string name="release_notes_4_5_0_title_light_users">Light-användare</string>
+    <string name="release_notes_4_5_0_subtitle_light_users">Light-användare (användare utan personlig yta) stöds nu i appen</string>
+    <string name="release_notes_4_5_1_title_strange_behaviour_apps_provider">Rättning för att skapa filer via applikationsleverantörer</string>
+    <string name="release_notes_4_5_1_subtitle_strange_behaviour_apps_provider">Filer öppnas nu korrekt när de skapas med applikationsleverantörer</string>
+    <string name="release_notes_title">OpenCloud Client</string>
+    <string name="release_notes_initial_release">Välkommen till den första utgåvan</string>
+
+
+    <!-- Open in web -->
+    <string name="ic_action_open_in_web">Öppna på webben</string>
+    <string name="ic_action_open_with_web">Öppna i %1$s (webben)</string>
+    <string name="open_in_web_error_generic">Det gick inte att öppna på webben</string>
+    <string name="open_in_web_error_not_supported">Det finns inga appar som stöder den här filtypen.</string>
+    <string name="open_in_web_error_too_early">Den begärda filen är inte tillgänglig ännu. Försök igen senare.</string>
+
+    <!-- accounts warning -->
+    <string name="server_accounts_warning_title">Kontovarning</string>
+    <string name="server_accounts_warning_message">Ta bort kontot och logga in igen för att få funktionen ytor.</string>
+    <string name="server_accounts_warning_checkbox_message">Visa inte igen</string>
+    <string name="server_accounts_warning_button">Förstått</string>
+
+    <string name="tab_label_ascii">Text</string>
+
+    <string name="apply_to_all_conflicts">Tillämpa på alla %1$s konflikter</string>
+    <string name="log_file_downloaded">Loggfilen har laddats ner</string>
+    <string name="go_to_download_folder">Gå till Nedladdningar</string>
+    <string name="log_file_downloaded_description">Loggfilen %1$s har laddats ner till mappen Nedladdningar.</string>
+
+    <!-- DeepLinks -->
+    <string name="invalid_deep_link_format">Ogiltigt länkformat</string>
+    <string name="deep_link_user_no_access">Användaren har inte åtkomst till filen</string>
+    <string name="deep_link_loading">Öppnar fil från länk</string>
+
+    <string name="fab_refresh_text">Uppdatera</string>
+    <string name="fab_refresh_sync_in_progress">Synkronisering pågår redan</string>
+
+    <string name="password_policy_min_characters">Minst %1$d tecken långt</string>
+    <string name="password_policy_max_characters">Högst %1$d tecken långt</string>
+    <string name="password_policy_min_digits">Minst %1$d siffror</string>
+    <string name="password_policy_lowercase_characters">Minst %1$d gemener</string>
+    <string name="password_policy_uppercase_characters">Minst %1$d versaler</string>
+    <string name="password_policy_intro">Ange ett lösenord som uppfyller följande krav: \n</string>
+    <string name="password_policy_min_special_character">Minst %1$d av specialtecknen: ”%2$s”</string>
+    <string name="password_policy_error_password_banned">Ditt lösenord är tyvärr vanligt förekommande. Välj ett lösenord som är svårare att gissa för din säkerhets skull.</string>
+
+    <string name="prefs_delete_local_files_entries_never">Aldrig</string>
+    <string name="prefs_delete_local_files_entries_1hour">1 timme</string>
+    <string name="prefs_delete_local_files_entries_12hours">12 timmar</string>
+    <string name="prefs_delete_local_files_entries_1day">1 dag</string>
+    <string name="prefs_delete_local_files_entries_30days">30 dagar</string>
+    <string name="prefs_delete_local_files">Ta bort lokala kopior</string>
+    <string name="prefs_delete_local_files_summary">Ta bort automatiskt nedladdade filer som inte är tillgängliga offline när tiden sedan de senast användes överskrider den valda tiden.\nVald tid: %1$s</string>
+
+    <string name="insecure_http_url_title_dialog">Osäker HTTP-URL</string>
+    <string name="insecure_http_url_message_dialog">Den angivna URL:en använder HTTP i stället för det krypterade HTTPS-protokollet. Om du fortsätter krypteras inte kommunikationen.</string>
+    <string name="insecure_http_url_continue_button">Fortsätt</string>
+
+    <string name="clean_data_account_message">Alla nedladdade filer som inte är tillgängliga offline rensas för kontot %1$s</string>
+    <string name="clean_data_account_title">Ta bort lokal lagring</string>
+    <string name="clean_data_account_button_yes">Rensa data</string>
+
+    <string name="content_description_menu">Meny</string>
+    <string name="content_description_manage_accounts">Hantera konton</string>
+    <string name="content_description_search">Sök</string>
+    <string name="content_description_type_view">Typ av vy</string>
+    <string name="content_description_image_previewed">Bild förhandsvisad</string>
+    <string name="content_description_add_public_link">Lägg till offentlig länk</string>
+    <string name="content_description_get_private_link">Hämta privat länk</string>
+    <string name="content_description_get_public_link">Hämta offentlig länk</string>
+    <string name="content_description_delete_public_link">Ta bort offentlig länk</string>
+    <string name="content_description_get_edit_public_link">Redigera offentlig länk</string>
+    <string name="content_description_remove_account">Ta bort konto</string>
+    <string name="content_description_add_new_content">Lägg till nytt innehåll</string>
+    <string name="content_description_add_new_content_expanded">Lägg till nytt innehåll, expanderat</string>
+    <string name="content_description_clean_account_storage">Rensa kontolagring</string>
+    <string name="content_description_logo">Logotyp</string>
+    <string name="content_description_add_share">Lägg till delning</string>
+    <string name="content_description_edit_share">Ändra delat objekt</string>
+    <string name="content_description_delete_share">Ta bort delning</string>
+    <string name="content_description_file_operations">Åtgärder för %1$s</string>
+    <string name="content_description_sort_by_name_ascending">Sortera efter %1$s i stigande ordning</string>
+    <string name="content_description_sort_by_name_descending">Sortera efter %1$s i fallande ordning</string>
+    <string name="content_description_create_new_folder">Skapa ny mapp</string>
+
+    <string name="create_shortcut_dialog_title">Skapa en genväg</string>
+    <string name="create_shortcut_dialog_url">URL</string>
+    <string name="create_shortcut_dialog_url_information">URL:en måste börja med https:// eller http:// för att kunna öppnas i webbläsaren</string>
+    <string name="create_shortcut_dialog_url_error_no_blanks">URL:en får inte innehålla blanksteg</string>
+    <string name="create_shortcut_dialog_url_extension">.url</string>
+    <string name="open_shortcut_description">Den här genvägen leder till:</string>
+    <string name="open_shortcut_title">Öppna länk</string>
+
+    <string name="feedback_dialog_get_in_contact_description"><![CDATA[ Diskutera i vårt <a href=\"%1$s\"><b>GitHub-projekt</b></a>]]></string>
+
+    <string name="link_role_accessibility">Länk</string>
+    <string name="button_role_accessibility">Knapp</string>
+
+    <string name="folder_picker_label">Mappväljare</string>
+    <string name="passcode_label">Kod</string>
+    <string name="pattern_label">Mönster</string>
+    <string name="receive_external_files_label">Ta emot externa filer</string>
+    <string name="video_preview_label">Videoförhandsvisning</string>
+    <string name="release_notes_label">Versionsinformation</string>
+    <string name="image_preview_label">Bildförhandsvisning</string>
+    <string name="login_label">Logga in</string>
+    <string name="whats_new_label">Vad är nytt</string>
+    <string name="audio_preview_label">Ljudförhandsvisning</string>
+    <string name="details_label">Detaljer</string>
+    <string name="text_preview_label">Textförhandsvisning</string>
+    <string name="release_notes_title_enhanced_bottom_nav_bar">Textetiketter har lagts till i nederkanten</string>
+    <string name="release_notes_subtitle_bottom_nav_bar">Textetiketter har lagts till och den aktiva standardindikatorn används för att visa vilket avsnitt som är valt i nederkanten</string>
+
+</resources>

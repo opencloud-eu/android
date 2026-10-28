@@ -21,6 +21,7 @@
     <string name="actionbar_sort_title">Sortieren nach</string>
     <string name="fab_new_file">Neues Dokument</string>
     <string name="fab_new_shortcut">Neue Verknüpfung</string>
+    <string name="fab_take_photo">Ein Foto aufnehmen</string>
     <string name="drawer_item_all_files">Alle Dateien</string>
     <string name="drawer_item_only_available_offline">Offline verfügbar</string>
     <string name="drawer_item_shared_by_link_files">Per Link geteilt</string>
@@ -38,6 +39,10 @@
     <string name="drawer_feedback">GitHub-Diskussionen</string>
     <string name="drawer_help">Hilfe</string>
     <string name="prefs_category_general">Allgemein</string>
+    <string name="prefs_appearance">Erscheinungsbild</string>
+    <string name="prefs_appearance_system">Systemstandard</string>
+    <string name="prefs_appearance_light">Hell</string>
+    <string name="prefs_appearance_dark">Dunkel</string>
     <string name="prefs_subsection_logging">Protokollierung</string>
     <string name="prefs_subsection_more">Mehr</string>
     <string name="prefs_subsection_security">Sicherheit</string>
@@ -59,6 +64,15 @@
     <string name="prefs_lock_access_from_document_provider_summary">Sperren Sie den Zugriff anderer Apps auf die Dateien der Konten innerhalb der App über den nativen Android-Dateimanager.</string>
     <string name="prefs_touches_with_other_visible_windows">Berührungen mit anderen sichtbaren Fenstern</string>
     <string name="prefs_touches_with_other_visible_windows_summary">Ermöglicht Berührungen, wenn die Ansicht durch ein anderes sichtbares Fenster verdeckt ist. Aktivieren Sie diese Option, um Apps zur Lichtfilterung zu nutzen.</string>
+
+    <!-- mTLS client certificate (per account) -->
+    <string name="auth_connection_button">Verbindung…</string>
+    <string name="auth_mtls_cert_selected">Zertifikat: %1$s</string>
+    <string name="account_mtls_button">Client-Zertifikat</string>
+    <string name="account_mtls_set_cert">Client-Zertifikat festlegen</string>
+    <string name="account_mtls_clear_cert">Client-Zertifikat entfernen</string>
+    <string name="account_mtls_cert_selected">Client-Zertifikat festgelegt: %1$s</string>
+    <string name="account_mtls_cert_cleared">Client-Zertifikat entfernt</string>
     <string name="confirmation_touches_with_other_windows_title">Sind Sie sicher, dass Sie diese Funktion aktivieren möchten\?</string>
     <string name="confirmation_touches_with_other_windows_message">Verwenden Sie diese Funktion auf eigenes Risiko. Eine bösartige Anwendung könnte versuchen, Sie durch die Verwendung anderer Ansichten dazu zu verleiten, unwissentlich bestimmte Aktionen auszuführen.</string>
     <string name="prefs_subsection_picture_uploads">Automatische Bild-Uploads</string>
@@ -179,7 +193,7 @@
     <string name="local_file_list_empty_just_folders">Es befinden sich keine Ordner in diesem Ordner.</string>
     <string name="local_file_list_search_with_no_matches">Keine Treffer für diese Suche</string>
     <string name="upload_list_empty">Keine Uploads verfügbar.</string>
-    <string name="upload_list_empty_subtitle">Laden Sie etwas hoch und es wird hier erscheinen.</string>
+    <string name="upload_list_empty_subtitle">Laden Sie etwas hoch und es wird hier angezeigt.</string>
     <string name="file_list_folder">Ordner</string>
     <string name="file_list_folders">Ordner</string>
     <string name="file_list_file">Datei</string>
@@ -213,6 +227,7 @@
     <string name="common_loading">Lädt…</string>
     <string name="common_unknown">unbekannt</string>
     <string name="common_error_unknown">unbekannter Fehler</string>
+    <string name="error_http_code">Der Server hat einen unerwarteten Fehler gemeldet (HTTP %1$d)</string>
     <string name="common_pending">Ausstehend</string>
     <string name="common_important">Wichtig</string>
     <string name="change_password">Passwort ändern</string>
@@ -368,7 +383,8 @@
     <string name="auth_expired_basic_auth_toast">Bitte geben Sie das aktuelle Passwort ein</string>
     <string name="auth_connecting_auth_server">Mit dem Authentifizierungsserver verbinden…</string>
     <string name="auth_unsupported_auth_method">Der Server unterstützt diese Authentifizierungsmethode nicht.</string>
-    <string name="auth_fail_get_user_name">Ihr Server gibt keine korrekte Benutzer-ID zurück. Bitte wenden Sie sich an einen Administrator.</string>
+    <string name="auth_forbidden_check_client_cert">Der Server hat die Verbindung verweigert. Falls ein Client-Zertifikat erforderlich ist, überprüfen Sie das unter »Verbindung« ausgewählte Zertifikat.</string>
+    <string name="auth_fail_get_user_name">Ihr Server gibt keine korrekte Benutzer-ID zurück. Bitte wenden Sie sich an die Administration.</string>
     <string name="auth_can_not_auth_against_server">Die Authentifizierung bei diesem Server ist nicht möglich.</string>
     <string name="auth_account_does_not_exist">Das Konto existiert auf diesem Gerät noch nicht.</string>
 
@@ -476,7 +492,7 @@
     <string name="get_shares_error">Es war nicht möglich, die Freigaben vom Server abzurufen.</string>
     <string name="get_sharees_error">Es war nicht möglich, Benutzer und Gruppen vom Server abzurufen.</string>
     <string name="get_capabilities_error">Es war nicht möglich, die Funktionen vom Server abzurufen.</string>
-    <string name="share_link_no_support_share_api">Entschuldigung, das Teilen ist auf Ihrem Server nicht aktiviert. Bitte wenden Sie sich an Ihren Administrator.</string>
+    <string name="share_link_no_support_share_api">Leider sind Freigaben auf Ihrem Server nicht aktiviert. Bitte wenden Sie sich an Ihre Administration.</string>
     <string name="share_link_file_error">Diese Datei oder dieser Ordner konnte nicht freigegeben werden.</string>
     <string name="unshare_link_file_error">Die Freigabe für diese Datei oder diesen Ordner konnte nicht aufgehoben werden.</string>
     <string name="update_link_file_error">Die Freigabe für diese Datei oder diesen Ordner konnte nicht aufgehoben werden.</string>
@@ -616,7 +632,7 @@
     <string name="share_remote_clarification">%1$s (nicht lokal)</string>
     <string name="share_known_remote_clarification">%1$s ( auf %2$s )</string>
 
-    <string name="share_sharee_unavailable">Entschuldigung, Ihre Serverversion erlaubt keine Freigaben für Benutzer innerhalb von Clients.\nBitte wenden Sie sich an Ihren Administrator.</string>
+    <string name="share_sharee_unavailable">Ihre Serverversion erlaubt leider keine Freigaben für Benutzer innerhalb von Clients.\nBitte wenden Sie sich an Ihre Administration.</string>
     <string name="share_privilege_can_share">darf freigeben</string>
     <string name="share_privilege_can_edit">darf bearbeiten</string>
     <string name="share_privilege_can_edit_create">erstellen</string>

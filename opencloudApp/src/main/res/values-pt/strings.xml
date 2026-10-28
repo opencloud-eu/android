@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- GLOBAL -->
+    <string name="global_name">Nome</string>
+    <string name="global_date">Data</string>
+    <string name="global_size">Tamanho</string>
+    <string name="actionbar_search">Selecionar esta pasta</string>
+    <string name="actionbar_search_space">Buscar espaços</string>
+    <string name="actionbar_upload">Enviar</string>
+    <string name="actionbar_upload_from_apps">Conteúdo de outros apps</string>
+    <string name="actionbar_upload_files">Ficheiros</string>
+    <string name="actionbar_open_with">Abrir com</string>
+    <string name="actionbar_open_with_read_only">Abrir com (somente leitura)</string>
+    <string name="actionbar_mkdir">Nova pasta</string>
+    <string name="actionbar_settings">Configurações</string>
+    <string name="actionbar_see_details">Detalhes</string>
+    <string name="actionbar_send_file">Enviar</string>
+    <string name="actionbar_descending">Decrescente</string>
+    <string name="actionbar_sort_title">Ordenar por</string>
+    <string name="fab_new_file">Novo documento</string>
+    <string name="fab_new_shortcut">Novo atalho</string>
+    <string name="drawer_item_all_files">Todos os ficheiros</string>
+    <string name="drawer_item_only_available_offline">Disponível offline</string>
+    <string name="drawer_item_shared_by_link_files">Shared by link</string>
+    <string name="drawer_item_settings">Configurações</string>
+    <string name="drawer_close">Fechar</string>
+    <string name="drawer_open">Abrir</string>
+    <string name="drawer_quota">%1$s de %2$s usados (%3$s %%)</string>
+    <string name="drawer_exceeded_quota">Armazenamento cheio</string>
+    <string name="drawer_nearing_quota">Armazenamento perto de encher</string>
+    <string name="drawer_critical_quota">Armazenamento muito perto de encher</string>
+    <string name="drawer_help">Ajuda</string>
+    <string name="prefs_category_general">Geral</string>
+    <string name="prefs_appearance_light">Claro</string>
+    <string name="prefs_appearance_dark">Escuro</string>
+    <string name="prefs_subsection_logging">Logging</string>
+    <string name="prefs_subsection_more">Mais</string>
+    <string name="prefs_subsection_security">Segurança</string>
+    <string name="prefs_subsection_whatsnew">O que há de novo na última versão\?</string>
+    <string name="prefs_accounts">Contas</string>
+    <string name="prefs_manage_accounts">Gerenciar contas</string>
+    <string name="prefs_lock_application">Lock application</string>
+    <string name="prefs_lock_application_entries_immediately">Imediatamente</string>
+    <string name="prefs_lock_application_entries_1minute">Após 1 minuto</string>
+    <string name="prefs_lock_application_entries_5minutes">Após 5 minutos</string>
+    <string name="prefs_lock_application_entries_30minutes">Após 30 minutos</string>
+    <!-- mTLS client certificate (per account) -->
+    <string name="auth_connection_button">Connection…</string>
+    <string name="auth_mtls_cert_selected">Certificado: %1$s</string>
+    <string name="prefs_camera_video_upload_path_title">Video upload path</string>
+    <string name="prefs_show_hidden_files">Mostrar ficheiros ocultos</string>
+    <string name="prefs_log_open_logs_list_view">Ficheiro de log</string>
+    <string name="prefs_log_title">Enable logging</string>
+    <string name="prefs_log_delete_history_button">Deletar histórico</string>
+    <string name="prefs_help">Ajuda</string>
+    <string name="prefs_recommend">Recommend to a friend</string>
+    <string name="prefs_feedback">Feedback</string>
+    <string name="prefs_imprint">Impressum</string>
+    <string name="prefs_enable_logging">Enable logging</string>
+    <string name="prefs_send_feedback">Send feedback</string>
+    <string name="prefs_app_version">Versão da aplicação</string>
+    <string name="document_provider_locked">Bloqueado</string>
+    <!-- Bottom navigation bar -->
+    <string name="bottom_nav_files">Ficheiros</string>
+    <string name="bottom_nav_personal">Pessoal</string>
+    <string name="bottom_nav_offline">Offline</string>
+    <string name="bottom_nav_links">Links</string>
+    <string name="bottom_nav_shares">Partilhas</string>
+
+    <string name="auth_failure_snackbar_action">Trocar de conta</string>
+    <string name="auth_oauth_failure_snackbar_action">Sign in</string>
+    <string name="auth_check_server">Verificar servidor</string>
+    <string name="auth_username">Nome de utilizador</string>
+    <string name="auth_password">Palavra-passe</string>
+    <string name="sync_string_files">Ficheiros</string>
+    <string name="setup_btn_login">Iniciar sessão</string>
+    <string name="uploader_btn_upload_text">Enviar</string>
+    <string name="uploader_wrn_no_account_title">Conta não encontrada</string>
+    <string name="uploader_wrn_no_account_quit_btn_text">Sair</string>
+    <string name="uploader_error_title_no_file_to_upload">Sem arquivo para enviar</string>
+    <string name="uploader_error_message_no_file_to_upload">Os dados recebidos não incluem nenhum arquivo válido.</string>
+    <string name="uploader_error_title_file_cannot_be_uploaded">Arquivo não pode ser enviado</string>
+    <string name="spaces_list_empty_title">Sem espaços</string>
+    <string name="shares_list_empty_title">Sem partilhas</string>
+    <string name="file_list_loading">Carregando...</string>
+    <string name="file_list_no_app_for_file_type">App não encontrado para este tipo de arquivo</string>
+    <string name="file_list_no_app_for_perform_action">App não encontrado para esta ação</string>
+    <string name="local_file_list_empty">Não há arquivos nesta pasta</string>
+    <string name="local_file_list_empty_just_folders">Não pastas nesta pasta</string>
+    <string name="file_list_folder">pasta</string>
+    <string name="file_list_folders">pastas</string>
+    <string name="file_list_file">ficheiro</string>
+    <string name="filedetails_select_file">Toque em um arquivo para exibir informações adicionais.</string>
+    <string name="pick_document_type">Pick a document type to create:</string>
+    <string name="filedetails_last_sync">Última Sincronização</string>
+    <string name="filedetails_download">Transferir</string>
+    <string name="filedetails_sync_file">Sincronizar</string>
+    <string name="action_share">Partilhar</string>
+    <string name="common_yes">Sim</string>
+    <string name="common_no">Não</string>
+    <string name="common_cancel_sync">Cancelar sincronização</string>
+    <string name="common_back">Voltar</string>
+    <string name="common_save_exit">Salvar e sair</string>
+    <string name="common_error">Erro</string>
+    <string name="common_loading">Carregando...</string>
+    <string name="common_unknown">Desconhecido</string>
+    <string name="common_error_unknown">Erro desconhecido</string>
+    <string name="common_pending">Pending</string>
+    <string name="change_password">Alterar palavra-passe</string>
+    <string name="delete_account">Remover conta</string>
+    <string name="create_account">Criar conta</string>
+    <string name="uploader_info_dirname">Nome da pasta</string>
+    <string name="uploader_upload_failed_ticker">Envio falhou</string>
+    <string name="uploader_upload_text_dialog_title">Insira um nome para o novo arquivo.</string>
+    <string name="uploader_upload_text_dialog_filename_error_empty">O nome do arquivo não pode ser vazio.</string>
+    <string name="uploader_upload_text_filename_hint">Nome do ficheiro</string>
+    <string name="uploads_view_upload_status_unknown_fail">Erro desconhecido</string>
+    <string name="uploader_upload_canceled_ticker">Envio cancelado</string>
+    <string name="downloader_download_failed_ticker">Falha na transferência</string>
+    <string name="common_rename">Renomear</string>
+    <string name="common_remove">Remover</string>
+    <string name="file_already_exists">O ficheiro já existe</string>
+    <string name="folder_already_exists">A pasta já existe</string>
+    <string name="ssl_validator_btn_details_see">Detalhes</string>
+    <string name="ssl_validator_btn_details_hide">Ocultar</string>
+    <string name="ssl_validator_label_validity_to">Para:</string>
+    <string name="confirmation_disable_camera_uploads_title">Confirmar</string>
+    <string name="conflict_keep_both">Manter ambos</string>
+    <string name="conflict_replace">Substituir</string>
+
+    <string name="activity_chooser_send_file_title">Enviar</string>
+
+    <string name="copy_link">Copiar ligação</string>
+    <string name="prefs_category_accounts">Contas</string>
+    <string name="prefs_add_account">Add account</string>
+    <string name="drawer_manage_accounts">Gerenciar contas</string>
+    <string name="manage_accounts_quota">%1$s of %2$s</string>
+    <string name="actionbar_select_all">Selecionar tudo</string>
+    <string name="actionbar_move">Move</string>
+    <string name="folder_picker_choose_button_text">Escolher</string>
+    <string name="folder_picker_move_here_button_text">Mover para aqui</string>
+    <string name="folder_picker_copy_here_button_text">Copiar aqui</string>
+    <string name="shared_subject_header">shared</string>
+    <string name="username">Nome de utilizador</string>
+
+    <string name="share_dialog_title">Partilhar</string>
+    <string name="share_with_user_section_title">Usuário e Grupos</string>
+    <string name="share_via_link_section_title">Ligações públicas</string>
+    <string name="share_via_link_name_label">Nome da ligação</string>
+    <string name="share_cancel_public_link_button">Cancelar</string>
+    <string name="share_confirm_public_link_button">Guardar</string>
+    <string name="share_via_link_password_label">Palavra-passe</string>
+    <string name="share_via_link_generate_password_button">Gerar</string>
+    <string name="share_via_link_copy_password_button">Copiar</string>
+    <string name="share_via_link_edit_permission_read_only_label">Download / View</string>
+    <string name="share_get_public_link_button">Obter link</string>
+    <string name="share_with_title">Compartilhar com</string>
+    <string name="share_search">Pesquisar</string>
+
+    <string name="share_privilege_can_share">pode compartilhar</string>
+    <string name="share_privilege_can_edit">pode editar</string>
+    <string name="share_privilege_can_edit_create">criar</string>
+    <string name="share_privilege_can_edit_change">alterar</string>
+    <string name="share_privilege_can_edit_delete">deletar</string>
+    <string name="edit_share_unshare">Parar de compartilhar</string>
+    <string name="action_upload_clear">Clear</string>
+
+    <string name="file_sync_notification_channel_name">Sincronização de arquivos</string>
+    <string name="file_sync_conflict_notification_channel_name">Conflitos de arquivos</string>
+    <string name="button_no_thanks_name">NÃO, OBRIGADO</string>
+    <string name="button_later_name">DEPOIS</string>
+    <string name="button_rate_now_name">AVALIAR AGORA</string>
+    <!-- Welcome to oC intro features -->
+    <string name="welcome_feature_skip_button">Ignorar</string>
+    <string name="scoped_storage_wizard_migrate_and_clean_button">Migrar agora</string>
+    <!-- Webfinger -->
+    <string name="global_proceed">Proceed</string>
+    <!-- Release Notes -->
+    <string name="release_notes_header">New in %1$s</string>
+    <string name="release_notes_footer">Obrigado por usar %1$s.\n♥️</string>
+    <string name="release_notes_proceed">Proceed</string>
+    <string name="release_notes_bugfixes_title">Pequenas correções</string>
+    <string name="server_accounts_warning_checkbox_message">Não mostrar novamente</string>
+    <string name="tab_label_ascii">Texto</string>
+
+    <string name="apply_to_all_conflicts">Aplicar a todos os %1$s conflitos</string>
+    <string name="prefs_delete_local_files_entries_never">Nunca</string>
+    <string name="insecure_http_url_continue_button">Continuar</string>
+
+    <string name="content_description_manage_accounts">Gerenciar contas</string>
+    <string name="content_description_search">Pesquisar</string>
+    <string name="content_description_get_edit_public_link">Editar ligação pública</string>
+    <string name="content_description_remove_account">Remover conta</string>
+    <string name="content_description_edit_share">Editar partilha</string>
+    <string name="create_shortcut_dialog_url">URL</string>
+    <string name="open_shortcut_title">Open link</string>
+
+    <string name="link_role_accessibility">Ligação</string>
+    <string name="pattern_label">Pattern</string>
+    <string name="login_label">Iniciar sessão</string>
+    <string name="details_label">Detalhes</string>
+    </resources>
