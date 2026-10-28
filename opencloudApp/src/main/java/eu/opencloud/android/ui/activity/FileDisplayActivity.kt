@@ -89,7 +89,6 @@ import eu.opencloud.android.extensions.SNACKBAR_DURATION_ERROR_MS
 import eu.opencloud.android.extensions.showErrorInSnackbar
 import eu.opencloud.android.extensions.showMessageInSnackbar
 import eu.opencloud.android.lib.common.accounts.AccountUtils
-import eu.opencloud.android.lib.common.authentication.OpenCloudBearerCredentials
 import eu.opencloud.android.lib.common.network.CertificateCombinedException
 import eu.opencloud.android.lib.common.operations.RemoteOperationResult
 import eu.opencloud.android.lib.common.operations.RemoteOperationResult.ResultCode
@@ -1433,16 +1432,10 @@ class FileDisplayActivity : FileActivity(),
                     }
 
                     is UnauthorizedException -> {
-                        launch(Dispatchers.IO) {
-                            val credentials = AccountUtils.getCredentialsForAccount(MainApp.appContext, account)
-
-                            launch(Dispatchers.Main) {
-                                if (credentials is OpenCloudBearerCredentials) { // OAuth
-                                    showRequestRegainAccess()
-                                } else {
-                                    showRequestAccountChangeNotice(getString(R.string.auth_failure_snackbar), false)
-                                }
-                            }
+                        if (AccountUtils.isOAuth2Account(MainApp.appContext, account)) {
+                            showRequestRegainAccess()
+                        } else {
+                            showRequestAccountChangeNotice(getString(R.string.auth_failure_snackbar), false)
                         }
                     }
 
@@ -1542,15 +1535,10 @@ class FileDisplayActivity : FileActivity(),
             is UIResult.Error -> {
                 when (uiResult.error) {
                     is UnauthorizedException -> {
-                        launch(Dispatchers.IO) {
-                            val credentials = AccountUtils.getCredentialsForAccount(MainApp.appContext, account)
-                            launch(Dispatchers.Main) {
-                                if (credentials is OpenCloudBearerCredentials) { // OAuth
-                                    showRequestRegainAccess()
-                                } else {
-                                    showRequestAccountChangeNotice(getString(R.string.auth_failure_snackbar), false)
-                                }
-                            }
+                        if (AccountUtils.isOAuth2Account(MainApp.appContext, account)) {
+                            showRequestRegainAccess()
+                        } else {
+                            showRequestAccountChangeNotice(getString(R.string.auth_failure_snackbar), false)
                         }
                     }
 
