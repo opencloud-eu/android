@@ -41,6 +41,10 @@ interface SpacesDao {
         listOfSpacesEntities: List<SpacesEntity>,
         listOfSpecialEntities: List<SpaceSpecialEntity>,
     ) {
+        if (listOfSpacesEntities.isEmpty()) {
+            return
+        }
+
         val currentAccountName = listOfSpacesEntities.first().accountName
         val currentSpaces = getAllSpacesForAccount(currentAccountName)
 
