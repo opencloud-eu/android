@@ -151,6 +151,29 @@ class PassCodeViewModelTest : ViewModelTest() {
     }
 
     @Test
+    fun `process full passcode - check - migration keeps old passcode`() {
+        launchTest(passcodeDigits = 6)
+
+        passCodeViewModel = PassCodeViewModel(preferencesProvider, contextProvider, PasscodeAction.CHECK)
+
+        passCodeViewModel.onNumberClicked(1)
+        passCodeViewModel.onNumberClicked(1)
+        passCodeViewModel.onNumberClicked(1)
+        passCodeViewModel.onNumberClicked(1)
+
+        assertEquals(Status(PasscodeAction.CHECK, PasscodeType.MIGRATION), passCodeViewModel.status.value)
+
+        verify(exactly = 1) {
+            preferencesProvider.putInt(PREFERENCE_LOCK_ATTEMPTS, 0)
+        }
+        verify(exactly = 0) {
+            preferencesProvider.removePreference(PREFERENCE_PASSCODE)
+            preferencesProvider.putBoolean(PREFERENCE_SET_PASSCODE, false)
+            preferencesProvider.putBoolean(PassCodeActivity.PREFERENCE_MIGRATION_REQUIRED, any())
+        }
+    }
+
+    @Test
     fun `process full passcode - check - passcode not valid`() {
         launchTest()
 
@@ -393,6 +416,33 @@ class PassCodeViewModelTest : ViewModelTest() {
         verify(exactly = 1) {
             contextProvider.getInt(R.integer.passcode_digits)
         }
+    }
+
+    @Test
+    fun `get number of digits to enter - check - uses length of saved passcode`() {
+        launchTest(passcodeDigits = 6)
+
+        passCodeViewModel = PassCodeViewModel(preferencesProvider, contextProvider, PasscodeAction.CHECK)
+
+        assertEquals(OC_PASSCODE_4_DIGITS.length, passCodeViewModel.getNumberOfDigitsToEnter())
+    }
+
+    @Test
+    fun `get number of digits to enter - check - no saved passcode uses configured length`() {
+        launchTest(passcodeDigits = 6, passcode = null)
+
+        passCodeViewModel = PassCodeViewModel(preferencesProvider, contextProvider, PasscodeAction.CHECK)
+
+        assertEquals(6, passCodeViewModel.getNumberOfDigitsToEnter())
+    }
+
+    @Test
+    fun `get number of digits to enter - create - uses configured length despite saved passcode`() {
+        launchTest(passcodeDigits = 6)
+
+        passCodeViewModel = PassCodeViewModel(preferencesProvider, contextProvider, PasscodeAction.CREATE)
+
+        assertEquals(6, passCodeViewModel.getNumberOfDigitsToEnter())
     }
 
     @Test
