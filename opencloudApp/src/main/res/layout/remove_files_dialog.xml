@@ -11,7 +11,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:padding="@dimen/activity_horizontal_margin"
-        app:cardBackgroundColor="@color/background_color"
+        app:cardBackgroundColor="?attr/colorSurface"
         app:cardCornerRadius="@dimen/standard_half_margin"
         app:cardElevation="0dp">
 
@@ -41,7 +41,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_gravity="center_vertical"
-                    android:textColor="@color/black"
+                    android:textColor="?attr/colorOnSurface"
                     android:textSize="@dimen/two_line_primary_text_size"
                     android:layout_marginStart="@dimen/standard_margin"
                     android:layout_marginEnd="@dimen/standard_margin"

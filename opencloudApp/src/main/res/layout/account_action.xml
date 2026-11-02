@@ -35,7 +35,7 @@
         app:layout_constraintEnd_toStartOf="@+id/name"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:tint="@color/black" />
+        app:tint="?attr/colorOnSurface" />
 
     <TextView
         android:id="@+id/name"
@@ -44,7 +44,7 @@
         android:gravity="center_vertical"
         android:paddingEnd="@dimen/standard_padding"
         android:text="@string/placeholder_filename"
-        android:textColor="@color/black"
+        android:textColor="?attr/colorOnSurface"
         android:textSize="@dimen/two_line_primary_text_size"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

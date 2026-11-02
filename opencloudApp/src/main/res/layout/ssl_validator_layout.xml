@@ -33,7 +33,7 @@
         android:text="@string/ssl_validator_header"
         android:paddingBottom="@dimen/standard_padding"
         android:textAppearance="?android:attr/textAppearanceMedium"
-        android:textColor="@color/black"
+        android:textColor="?attr/colorOnSurface"
         />
 
     <TextView
