@@ -32,18 +32,23 @@ import eu.opencloud.android.datamodel.FileDataStorageManager
 
 class RootCursor(projection: Array<String>?) : MatrixCursor(projection ?: DEFAULT_ROOT_PROJECTION) {
 
-    fun addRoot(account: Account, context: Context, spacesAllowed: Boolean) {
+    fun addRoot(account: Account, context: Context, spacesAllowed: Boolean, pretendLocal: Boolean) {
         val manager = FileDataStorageManager(account)
         val mainDirId = if (spacesAllowed) {
             // To display the list of spaces for an account, we need to do this trick.
             // If the document id is not a number, we will know that it is the time to display the list of spaces for the account
             account.name
         } else {
-            // Root directory of the personal space or "Files" (old server)
             manager.getRootPersonalFolder()?.id
         }
 
-        val flags = Root.FLAG_SUPPORTS_SEARCH or Root.FLAG_SUPPORTS_CREATE
+        // Add FLAG_SUPPORTS_IS_CHILD to enable Folder selection
+        var flags = Root.FLAG_SUPPORTS_SEARCH or Root.FLAG_SUPPORTS_CREATE or Root.FLAG_SUPPORTS_IS_CHILD
+
+        // Add FLAG_LOCAL_ONLY if the user enabled it
+        if (pretendLocal) {
+            flags = flags or Root.FLAG_LOCAL_ONLY
+        }
 
         newRow()
             .add(Root.COLUMN_ROOT_ID, account.name)
@@ -72,8 +77,7 @@ class RootCursor(projection: Array<String>?) : MatrixCursor(projection ?: DEFAUL
             Root.COLUMN_TITLE,
             Root.COLUMN_DOCUMENT_ID,
             Root.COLUMN_AVAILABLE_BYTES,
-            Root.COLUMN_SUMMARY,
-            Root.COLUMN_FLAGS
+            Root.COLUMN_SUMMARY
         )
     }
 }

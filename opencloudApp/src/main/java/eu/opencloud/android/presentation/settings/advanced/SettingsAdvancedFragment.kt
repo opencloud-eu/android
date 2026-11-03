@@ -23,11 +23,13 @@ package eu.opencloud.android.presentation.settings.advanced
 
 import android.os.Bundle
 import android.view.View
+import androidx.preference.CheckBoxPreference
 import androidx.preference.ListPreference
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.SwitchPreferenceCompat
 import eu.opencloud.android.R
+import eu.opencloud.android.presentation.documentsprovider.DocumentsProviderUtils.notifyDocumentsProviderRoots
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class SettingsAdvancedFragment : PreferenceFragmentCompat() {
@@ -37,11 +39,13 @@ class SettingsAdvancedFragment : PreferenceFragmentCompat() {
 
     private var prefShowHiddenFiles: SwitchPreferenceCompat? = null
     private var prefRemoveLocalFiles: ListPreference? = null
+    private var prefPretendLocal: CheckBoxPreference? = null
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.settings_advanced, rootKey)
 
         prefShowHiddenFiles = findPreference(PREF_SHOW_HIDDEN_FILES)
+        prefPretendLocal = findPreference(PREFERENCE_PRETEND_LOCAL_STORAGE)
         prefRemoveLocalFiles = findPreference<ListPreference>(PREFERENCE_REMOVE_LOCAL_FILES)?.apply {
             entries = listOf(
                 getString(R.string.prefs_delete_local_files_entries_never),
@@ -80,9 +84,15 @@ class SettingsAdvancedFragment : PreferenceFragmentCompat() {
             advancedViewModel.scheduleDeleteLocalFiles(newValue)
             true
         }
+
+        prefPretendLocal?.setOnPreferenceChangeListener { _: Preference?, _: Any ->
+            notifyDocumentsProviderRoots(requireContext())
+            true
+        }
     }
 
     companion object {
         const val PREF_SHOW_HIDDEN_FILES = "show_hidden_files"
+        const val PREFERENCE_PRETEND_LOCAL_STORAGE = "pretend_local_storage"
     }
 }
