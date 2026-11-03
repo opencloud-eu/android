@@ -305,6 +305,7 @@ class KeyAppViewModelsTest : ViewModelTest() {
             contextProvider = contextProvider,
             coroutinesDispatcherProvider = coroutineDispatcherProvider,
             sharedPreferencesProvider = sharedPreferencesProvider,
+            exportFilesToDeviceUseCase = mockk(relaxed = true),
             initialFolderToDisplay = OC_ROOT_FOLDER,
             fileListOptionParam = FileListOption.ALL_FILES,
         )

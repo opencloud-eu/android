@@ -64,6 +64,7 @@ import eu.opencloud.android.domain.files.usecases.GetFolderContentAsStreamUseCas
 import eu.opencloud.android.domain.files.usecases.GetFolderContentUseCase
 import eu.opencloud.android.domain.files.usecases.GetFolderImagesUseCase
 import eu.opencloud.android.domain.files.usecases.GetPersonalRootFolderForAccountUseCase
+import eu.opencloud.android.domain.files.usecases.GetRemoteFolderContentUseCase
 import eu.opencloud.android.domain.files.usecases.GetSearchFolderContentUseCase
 import eu.opencloud.android.domain.files.usecases.GetSharedByLinkForAccountAsStreamUseCase
 import eu.opencloud.android.domain.files.usecases.GetSharesRootFolderForAccount
@@ -112,6 +113,7 @@ import eu.opencloud.android.domain.user.usecases.RefreshUserQuotaFromServerAsync
 import eu.opencloud.android.domain.webfinger.usecases.GetOpenCloudInstanceFromWebFingerUseCase
 import eu.opencloud.android.domain.webfinger.usecases.GetOpenCloudInstancesFromAuthenticatedWebFingerUseCase
 import eu.opencloud.android.usecases.accounts.RemoveAccountUseCase
+import eu.opencloud.android.usecases.files.ExportFilesToDeviceUseCase
 import eu.opencloud.android.usecases.files.FilterFileMenuOptionsUseCase
 import eu.opencloud.android.usecases.files.RemoveLocalFilesForAccountUseCase
 import eu.opencloud.android.usecases.files.RemoveLocallyFilesWithLastUsageOlderThanGivenTimeUseCase
@@ -165,6 +167,7 @@ val useCaseModule = module {
     factoryOf(::CreateFolderAsyncUseCase)
     factoryOf(::DisableThumbnailsForFileUseCase)
     factoryOf(::FilterFileMenuOptionsUseCase)
+    factoryOf(::ExportFilesToDeviceUseCase)
     factoryOf(::GetFileByIdAsStreamUseCase)
     factoryOf(::GetFileByIdUseCase)
     factoryOf(::GetFileByRemotePathUseCase)
@@ -174,6 +177,7 @@ val useCaseModule = module {
     factoryOf(::GetFolderImagesUseCase)
     factoryOf(::IsAnyFileAvailableLocallyAndNotAvailableOfflineUseCase)
     factoryOf(::GetPersonalRootFolderForAccountUseCase)
+    factoryOf(::GetRemoteFolderContentUseCase)
     factoryOf(::GetSearchFolderContentUseCase)
     factoryOf(::GetSharedByLinkForAccountAsStreamUseCase)
     factoryOf(::GetSharesRootFolderForAccount)
