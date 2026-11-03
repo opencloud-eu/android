@@ -128,7 +128,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/share_via_link_generate_password_button"
                     android:backgroundTint="@color/transparent"
-                    android:textColor="@color/primary_button_background_color"
+                    android:textColor="@color/dialog_button_text"
                     style="?android:attr/borderlessButtonStyle"/>
 
                 <androidx.appcompat.widget.AppCompatButton
@@ -137,7 +137,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/share_via_link_copy_password_button"
                     android:backgroundTint="@color/transparent"
-                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:textColor="@color/dialog_button_text"
                     android:enabled="false"
                     style="?android:attr/borderlessButtonStyle" />
 
