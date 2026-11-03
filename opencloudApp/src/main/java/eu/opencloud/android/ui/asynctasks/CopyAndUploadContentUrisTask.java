@@ -32,6 +32,7 @@ import eu.opencloud.android.R;
 import eu.opencloud.android.lib.common.operations.RemoteOperationResult.ResultCode;
 import eu.opencloud.android.usecases.transfers.uploads.UploadFilesFromSystemUseCase;
 import eu.opencloud.android.utils.FileStorageUtils;
+import eu.opencloud.android.utils.MediaLocationUtils;
 import eu.opencloud.android.utils.UriUtils;
 import kotlin.Lazy;
 import org.jetbrains.annotations.NotNull;
@@ -148,7 +149,7 @@ public class CopyAndUploadContentUrisTask extends AsyncTask<Object, Void, Result
                 currentRemotePath = uploadPath + UriUtils.getDisplayNameForUri(currentUri, mAppContext);
 
                 fullTempPath = FileStorageUtils.getTemporalPath(account.name, spaceId) + currentRemotePath;
-                inputStream = leakedContentResolver.openInputStream(currentUri);
+                inputStream = MediaLocationUtils.openInputStreamPreservingLocation(mAppContext, leakedContentResolver, currentUri);
                 File cacheFile = new File(fullTempPath);
                 File tempDir = cacheFile.getParentFile();
                 if (!tempDir.exists()) {

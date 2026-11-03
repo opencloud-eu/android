@@ -22,6 +22,7 @@
 
 package eu.opencloud.android.presentation.settings.automaticuploads
 
+import android.Manifest
 import android.app.Activity
 import android.content.DialogInterface
 import android.content.Intent
@@ -55,6 +56,7 @@ import eu.opencloud.android.extensions.showMessageInSnackbar
 import eu.opencloud.android.presentation.accounts.ManageAccountsViewModel
 import eu.opencloud.android.ui.activity.FolderPickerActivity
 import eu.opencloud.android.utils.DisplayUtils
+import eu.opencloud.android.utils.MediaLocationUtils
 import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.io.File
@@ -92,6 +94,22 @@ class SettingsVideoUploadsFragment : PreferenceFragmentCompat() {
             requireContext().contentResolver.takePersistableUriPermission(contentUriForTree, takeFlags)
             videosViewModel.handleSelectVideoUploadsSourcePath(contentUriForTree)
         }
+
+    // Without ACCESS_MEDIA_LOCATION, Android strips GPS metadata from the videos we read (API >= 29).
+    // Asked only here, when video uploads are enabled, not on app start.
+    private var mediaLocationPermissionRequested = false
+    private val requestMediaLocationPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+            if (!isGranted) {
+                showMessageInSnackbar(getString(R.string.media_location_permission_denied))
+            }
+        }
+
+    private fun requestMediaLocationPermissionIfNeeded() {
+        if (mediaLocationPermissionRequested || MediaLocationUtils.isAccessMediaLocationGranted(requireContext())) return
+        mediaLocationPermissionRequested = true
+        requestMediaLocationPermissionLauncher.launch(Manifest.permission.ACCESS_MEDIA_LOCATION)
+    }
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.settings_video_uploads, rootKey)
@@ -147,6 +165,7 @@ class SettingsVideoUploadsFragment : PreferenceFragmentCompat() {
                         videosViewModel.videoUploads.collect { videoUploadsConfiguration ->
                             enableVideoUploads(videoUploadsConfiguration != null, false)
                             videoUploadsConfiguration?.let {
+                                requestMediaLocationPermissionIfNeeded()
                                 prefVideoUploadsAccount?.value = it.accountName
                                 prefVideoUploadsPath?.summary = videosViewModel.getUploadPathString()
                                 prefVideoUploadsSourcePath?.summary = DisplayUtils.getPathWithoutLastSlash(it.sourcePath.toUri().path)
@@ -169,6 +188,8 @@ class SettingsVideoUploadsFragment : PreferenceFragmentCompat() {
 
             if (value) {
                 videosViewModel.enableVideoUploads(selectedAccount)
+                mediaLocationPermissionRequested = false
+                requestMediaLocationPermissionIfNeeded()
                 showAlertDialog(
                     title = getString(R.string.common_important),
                     message = getString(R.string.proper_videos_folder_warning_camera_upload)
