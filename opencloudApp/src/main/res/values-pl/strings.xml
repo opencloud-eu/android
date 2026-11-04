@@ -857,4 +857,6 @@
     <string name="release_notes_title_enhanced_bottom_nav_bar">Nowy pasek nawigacji</string>
     <string name="release_notes_subtitle_bottom_nav_bar">Łatwiejsze poruszanie się po aplikacji</string>
 
-</resources>
+    <string name="add_to_home_screen_dialog_add_button">Dodaj</string>
+    <string name="add_to_home_screen_dialog_error_empty">Nazwa nie może być pusta</string>
+    </resources>

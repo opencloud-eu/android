@@ -30,7 +30,7 @@
     <string name="drawer_close">Lukk</string>
     <string name="drawer_open">Opne</string>
     <string name="drawer_loading_quota">Lastar kvote</string>
-    <string name="drawer_quota">%1$s av %2$s brukt (%3$s %)</string>
+    <string name="drawer_quota">%1$s av %2$s brukt (%3$s %%)</string>
     <string name="drawer_exceeded_quota">Lagringsplassen er full</string>
     <string name="drawer_nearing_quota">Lagringsplassen er nesten full</string>
     <string name="drawer_critical_quota">Lagringsplassen er svært nær full</string>
@@ -39,6 +39,8 @@
     <string name="drawer_feedback">GitHub-diskusjonar</string>
     <string name="drawer_help">Hjelp</string>
     <string name="prefs_category_general">Generelt</string>
+    <string name="prefs_appearance">Utsjånad</string>
+    <string name="prefs_appearance_system">Systemstandard</string>
     <string name="prefs_appearance_light">Lys</string>
     <string name="prefs_appearance_dark">Mørk</string>
     <string name="prefs_subsection_logging">Loggføring</string>
@@ -863,5 +865,15 @@
     <string name="text_preview_label">Førehandsvising av tekst</string>
     <string name="release_notes_title_enhanced_bottom_nav_bar">Lagt til tekstetikettar på botnlinja</string>
     <string name="release_notes_subtitle_bottom_nav_bar">Tekstetikettar er lagde til, og standardindikatoren for aktiv seksjon viser kva seksjon som er vald i botnlinja</string>
+
+    <string name="add_to_home_screen">Legg til på startskjermen</string>
+    <string name="add_to_home_screen_dialog_title">Legg til på startskjermen</string>
+    <string name="add_to_home_screen_dialog_add_button">Legg til</string>
+    <string name="add_to_home_screen_dialog_error_empty">Namnet kan ikkje vere tomt</string>
+    <string name="add_to_home_screen_shortcut_added">Snarvegen er lagd til på startskjermen</string>
+    <string name="add_to_home_screen_shortcut_not_supported">Å leggje til snarveg på startskjermen er ikkje støtta</string>
+    <string name="add_to_home_screen_shortcut_failed">Klarte ikkje leggje til snarvegen på startskjermen</string>
+    <string name="add_to_home_screen_shortcut_folder_missing">Denne mappa er ikkje tilgjengeleg lenger. Ho kan vere fjerna eller ha fått nytt namn.</string>
+    <string name="add_to_home_screen_dialog_error_length_max">Namnet på snarvegen kan ikkje vere lengre enn %d teikn.</string>
 
 </resources>

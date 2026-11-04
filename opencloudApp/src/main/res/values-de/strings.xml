@@ -866,4 +866,14 @@
     <string name="release_notes_title_enhanced_bottom_nav_bar">Textbeschriftungen in der unteren Leiste hinzugefügt</string>
     <string name="release_notes_subtitle_bottom_nav_bar">Es wurden Textbeschriftungen hinzugefügt, und der standardmäßige Aktivitätsindikator wird verwendet, um anzuzeigen, welcher Abschnitt in der unteren Leiste ausgewählt ist.</string>
 
+    <string name="add_to_home_screen">Zum Startbildschirm hinzufügen</string>
+    <string name="add_to_home_screen_dialog_title">Zum Startbildschirm hinzufügen</string>
+    <string name="add_to_home_screen_dialog_add_button">Hinzufügen</string>
+    <string name="add_to_home_screen_dialog_error_empty">Der Name darf nicht leer sein.</string>
+    <string name="add_to_home_screen_shortcut_added">Verknüpfung zum Startbildschirm hinzugefügt</string>
+    <string name="add_to_home_screen_shortcut_not_supported">Das Hinzufügen einer Verknüpfung zum Startbildschirm wird nicht unterstützt.</string>
+    <string name="add_to_home_screen_shortcut_failed">Verknüpfung konnte nicht zum Startbildschirm hinzugefügt werden</string>
+    <string name="add_to_home_screen_shortcut_folder_missing">Dieser Ordner ist nicht mehr verfügbar. Er wurde möglicherweise entfernt oder umbenannt.</string>
+    <string name="add_to_home_screen_dialog_error_length_max">Der Name der Verknüpfung darf nicht länger als %d Zeichen sein.</string>
+
 </resources>

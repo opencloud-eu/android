@@ -218,4 +218,6 @@
     <string name="pattern_label">Pattern</string>
     <string name="login_label">Login</string>
     <string name="details_label">פרטים</string>
+    <string name="add_to_home_screen_dialog_add_button">Add</string>
+    <string name="add_to_home_screen_dialog_error_empty">השם לא יכול להיות ריק</string>
     </resources>

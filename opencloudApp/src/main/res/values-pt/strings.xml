@@ -200,4 +200,6 @@
     <string name="pattern_label">Pattern</string>
     <string name="login_label">Iniciar sessão</string>
     <string name="details_label">Detalhes</string>
+    <string name="add_to_home_screen_dialog_add_button">Adicionar</string>
+    <string name="add_to_home_screen_dialog_error_empty">O nome não pode estar vazio</string>
     </resources>

@@ -850,4 +850,6 @@
     <string name="release_notes_title_enhanced_bottom_nav_bar">Aggiunte etichette di testo nella barra inferiore</string>
     <string name="release_notes_subtitle_bottom_nav_bar">Sono state aggiunte etichette di testo e viene utilizzato l\'indicatore attivo predefinito per mostrare quale sezione è selezionata nella barra inferiore</string>
 
-</resources>
+    <string name="add_to_home_screen_dialog_add_button">Aggiungi</string>
+    <string name="add_to_home_screen_dialog_error_empty">Il nome non può essere vuoto</string>
+    </resources>

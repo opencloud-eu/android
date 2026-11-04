@@ -864,4 +864,6 @@
     <string name="release_notes_title_enhanced_bottom_nav_bar">Προστέθηκαν ετικέτες κειμένου στην κάτω γραμμή</string>
     <string name="release_notes_subtitle_bottom_nav_bar">Προστέθηκαν ετικέτες κειμένου και χρησιμοποιείται ο προεπιλεγμένος ενεργός δείκτης για να φαίνεται ποια ενότητα είναι επιλεγμένη στην κάτω γραμμή</string>
 
-</resources>
+    <string name="add_to_home_screen_dialog_add_button">Προσθήκη</string>
+    <string name="add_to_home_screen_dialog_error_empty">Το όνομα δεν μπορεί να είναι κενό</string>
+    </resources>

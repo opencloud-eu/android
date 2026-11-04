@@ -36,6 +36,7 @@
     <string name="drawer_feedback">Обсуждения на GitHub</string>
     <string name="drawer_help">Помощь</string>
     <string name="prefs_category_general">Общее</string>
+    <string name="prefs_appearance">Оформление</string>
     <string name="prefs_appearance_light">Светлые</string>
     <string name="prefs_appearance_dark">Темные</string>
     <string name="prefs_subsection_logging">Логирование</string>
@@ -62,14 +63,46 @@
 
     <!-- mTLS client certificate (per account) -->
     <string name="auth_connection_button">Connection…</string>
+    <string name="auth_mtls_cert_selected">Сертификат: %1$s</string>
+    <string name="account_mtls_button">Клиентский сертификат</string>
+    <string name="account_mtls_set_cert">Установить клиентский сертификат</string>
+    <string name="account_mtls_clear_cert">Удалить клиентский сертификат</string>
+    <string name="account_mtls_cert_selected">Клиентских сертификатов установлено: %1$s</string>
+    <string name="account_mtls_cert_cleared">Клиентский сертификат удален</string>
     <string name="confirmation_touches_with_other_windows_title">Вы уверены, что хотите включить эту функцию\?</string>
     <string name="confirmation_touches_with_other_windows_message">Используйте эту функцию на свой страх и риск. Вредоносное приложение может попытаться обмануть вас, имитируя интерфейс.</string>
     <string name="prefs_subsection_picture_uploads">Автоматическая загрузка фотографий</string>
+    <string name="prefs_subsection_picture_uploads_summary">Изменить расположение и параметры загрузки автоматически загружаемых изображений</string>
     <string name="prefs_subsection_video_uploads">Автоматическая загрузка видео</string>
-    <string name="prefs_camera_video_upload_path_title">Video upload path</string>
+    <string name="prefs_subsection_video_uploads_summary">Изменить расположение и параметры загрузки, автоматически загружаемых видео</string>
+    <string name="prefs_camera_picture_upload">Загрузка изображений</string>
+    <string name="prefs_camera_picture_upload_summary">Автоматически загружать фотографии с камеры</string>
+    <string name="prefs_camera_picture_upload_path_title">Путь загрузки изображений</string>
+    <string name="prefs_camera_picture_upload_conditions_title">Условия выполнения загрузки</string>
+    <string name="prefs_camera_picture_upload_conditions_summary">Загрузка начнется когда все выбранные условия выполнены</string>
+    <string name="prefs_camera_picture_upload_on_wifi">Загружать изображения только по wifi</string>
+    <string name="prefs_camera_picture_upload_on_charging">Загружать изображения только при зарядке</string>
+    <string name="prefs_camera_upload_on_charging_summary">Включите загрузку только через wifi что бы активировать это условие</string>
+    <string name="prefs_camera_video_upload">Загрузка виео</string>
+    <string name="prefs_camera_video_upload_summary">Автоматически загружать видео с камеры</string>
+    <string name="prefs_camera_video_upload_path_title">Путь загрузки видео</string>
+    <string name="prefs_camera_video_upload_on_wifi">Загружать видео только по wifi</string>
+    <string name="prefs_camera_video_upload_on_charging">Загружать видео только при зарядке</string>
+    <string name="prefs_automatic_uploads_not_available_users_light">Автоматическая загрузка не доступна для light пользователей</string>
+    <string name="prefs_subsection_advanced">Дополнительно</string>
+    <string name="prefs_subsection_notifications">Настройки уведомлений</string>
     <string name="prefs_show_hidden_files">Показывать скрытые файлы</string>
-    <string name="prefs_log_title">Enable logging</string>
+    <string name="prefs_log_open_logs_list_view">Файлы журналов</string>
+    <string name="prefs_log_no_logs_list_view">Папка журналов пуста!</string>
+    <string name="prefs_log_empty_subtitle">Включите запись событий и журналы появятся здесь.</string>
+    <string name="prefs_log_title">Включить запись событий</string>
+    <string name="prefs_log_summary">Используй это для фиксирования проблем.</string>
+    <string name="prefs_log_title_history">История записи</string>
+    <string name="prefs_log_summary_history">Используй это что бы посмотреть записи журналов.</string>
+    <string name="prefs_log_delete_history_button">Очистить историю</string>
     <string name="prefs_help">Помощь</string>
+    <string name="prefs_sync_calendar_contacts">Синхронизируй контакты, календарь и задачи</string>
+    <string name="prefs_sync_calendar_contacts_summary">Установить DAVx⁵</string>
     <string name="prefs_recommend">Recommend to a friend</string>
     <string name="prefs_feedback">Feedback</string>
     <string name="prefs_imprint">Imprint</string>
@@ -176,4 +209,6 @@
     <string name="pattern_label">Pattern</string>
     <string name="login_label">Логин</string>
     <string name="details_label">Детали</string>
+    <string name="add_to_home_screen_dialog_add_button">Добавить</string>
+    <string name="add_to_home_screen_dialog_error_empty">Имя не может быть пустым</string>
     </resources>

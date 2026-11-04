@@ -861,4 +861,6 @@
     <string name="release_notes_title_enhanced_bottom_nav_bar">Extra tekstlabels op de onderste balk</string>
     <string name="release_notes_subtitle_bottom_nav_bar">Er zijn tekstlabels toegevoegd en de standaard actieve indicator wordt gebruikt om aan te geven welke sectie op de onderste balk is geselecteerd</string>
 
-</resources>
+    <string name="add_to_home_screen_dialog_add_button">Toevoegen</string>
+    <string name="add_to_home_screen_dialog_error_empty">De naam kan niet leeg zijn</string>
+    </resources>

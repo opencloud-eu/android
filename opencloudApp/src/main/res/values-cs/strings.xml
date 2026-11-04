@@ -59,6 +59,7 @@
     <string name="auth_mtls_cert_selected">Certifikát: %1$s</string>
     <string name="account_mtls_button">Klientský certifikát</string>
     <string name="prefs_camera_video_upload_path_title">Video upload path</string>
+    <string name="prefs_subsection_advanced">Pokročilé</string>
     <string name="prefs_log_title">Povolit logování</string>
     <string name="prefs_log_title_history">Historie logů</string>
     <string name="prefs_log_summary_history">Zobrazí zaznamenané logy.</string>
@@ -223,4 +224,5 @@
     <string name="audio_preview_label">Náhled zvuku</string>
     <string name="details_label">Podrobnosti</string>
     <string name="text_preview_label">Náhled textu</string>
+    <string name="add_to_home_screen_dialog_add_button">Přidat</string>
     </resources>
