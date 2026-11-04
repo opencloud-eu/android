@@ -39,6 +39,8 @@
     <string name="drawer_feedback">GitHub Discussions</string>
     <string name="drawer_help">Hjälp</string>
     <string name="prefs_category_general">Allmänt</string>
+    <string name="prefs_appearance">Utseende</string>
+    <string name="prefs_appearance_system">Följ systeminställningen</string>
     <string name="prefs_appearance_light">Ljus</string>
     <string name="prefs_appearance_dark">Mörkt</string>
     <string name="prefs_subsection_logging">Loggning</string>
@@ -864,4 +866,6 @@
     <string name="release_notes_title_enhanced_bottom_nav_bar">Textetiketter har lagts till i nederkanten</string>
     <string name="release_notes_subtitle_bottom_nav_bar">Textetiketter har lagts till och den aktiva standardindikatorn används för att visa vilket avsnitt som är valt i nederkanten</string>
 
-</resources>
+    <string name="add_to_home_screen_dialog_add_button">Lägg till</string>
+    <string name="add_to_home_screen_dialog_error_empty">Namnet får inte vara tomt</string>
+    </resources>

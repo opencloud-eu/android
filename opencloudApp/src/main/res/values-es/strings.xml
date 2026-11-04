@@ -866,4 +866,5 @@
     <string name="release_notes_title_enhanced_bottom_nav_bar">Etiquetas de texto añadidas en la barra inferior</string>
     <string name="release_notes_subtitle_bottom_nav_bar">Se han añadido etiquetas de texto y se utiliza el indicador activo predeterminado para mostrar qué sección está seleccionada en la barra inferior.</string>
 
-</resources>
+    <string name="add_to_home_screen_dialog_add_button">Añadir</string>
+    </resources>
