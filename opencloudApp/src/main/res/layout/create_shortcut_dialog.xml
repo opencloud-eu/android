@@ -127,7 +127,7 @@
                 <androidx.appcompat.widget.AppCompatButton
                     android:id="@+id/createButton"
                     android:enabled="false"
-                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:textColor="@color/dialog_button_text"
                     style="?android:attr/borderlessButtonStyle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
