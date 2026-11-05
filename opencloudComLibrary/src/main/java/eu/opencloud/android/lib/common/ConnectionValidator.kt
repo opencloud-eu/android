@@ -27,6 +27,8 @@ package eu.opencloud.android.lib.common
 import android.accounts.AccountManager
 import android.accounts.AccountsException
 import android.content.Context
+import eu.opencloud.android.lib.common.accounts.TokenRefreshFailedException
+import eu.opencloud.android.lib.common.authentication.OpenCloudBearerCredentials
 import eu.opencloud.android.lib.common.authentication.OpenCloudCredentials
 import eu.opencloud.android.lib.common.authentication.OpenCloudCredentialsFactory.OpenCloudAnonymousCredentials
 import eu.opencloud.android.lib.common.http.HttpConstants
@@ -59,6 +61,9 @@ class ConnectionValidator(
 
             client.account = baseClient.account
             client.credentials = baseClient.credentials
+            // The probes must present the same client certificate as the client they validate, otherwise a server
+            // requiring mTLS rejects them and the expired token is never detected nor refreshed
+            client.clientCertAlias = baseClient.clientCertAlias
             while (validationRetryCount < VALIDATION_RETRY_COUNT) {
                 Timber.d("validationRetryCount %d", validationRetryCount)
                 var successCounter = 0
@@ -83,8 +88,12 @@ class ConnectionValidator(
                         }
                     } else {
                         failCounter++
-                        if (contentReply.httpCode == HttpConstants.HTTP_UNAUTHORIZED) {
-                            checkUnauthorizedAccess(client, singleSessionManager, contentReply.httpCode)
+                        if (contentReply.httpCode == HttpConstants.HTTP_UNAUTHORIZED &&
+                            checkUnauthorizedAccess(client, singleSessionManager, contentReply.httpCode) == RefreshResult.FAILED
+                        ) {
+                            // The token was rejected and could not be renewed. Do not retry the request with stale
+                            // credentials, let the 401 surface.
+                            return false
                         }
                     }
                 }
@@ -96,6 +105,9 @@ class ConnectionValidator(
                 validationRetryCount++
             }
             Timber.d("Could not authenticate or get valid data from opencloud")
+        } catch (e: TokenRefreshFailedException) {
+            // Transient failure renewing the token: not a validation result, the caller must report a connection problem
+            throw e
         } catch (e: Exception) {
             Timber.d(ExceptionUtils.getStackTrace(e))
         }
@@ -161,7 +173,11 @@ class ConnectionValidator(
             account.savedAccount.type,
             credentials.authToken
         )
-        am.clearPassword(account.savedAccount) // being strict, only needed for Basic Auth credentials
+        if (credentials !is OpenCloudBearerCredentials) {
+            // Only needed for Basic Auth credentials. For OAuth it would also wipe the access token that a
+            // concurrent request may have just refreshed, forcing a pointless second refresh.
+            am.clearPassword(account.savedAccount)
+        }
     }
 
     /**
@@ -173,49 +189,73 @@ class ConnectionValidator(
      *
      * Refresh current credentials if possible, and marks a retry.
      *
-     * @return
+     * @return [RefreshResult.REFRESHED] if fresh credentials were set in the client,
+     * [RefreshResult.FAILED] if the token was rejected and the authenticator could not renew it (the user has to
+     * log in again), or [RefreshResult.NOT_ATTEMPTED] if there was nothing to refresh.
+     * @throws TokenRefreshFailedException if the refresh failed for a transient reason (no network, server error...)
+     * and the session is therefore not known to be expired.
      */
-    private fun checkUnauthorizedAccess(client: OpenCloudClient, singleSessionManager: SingleSessionManager, status: Int): Boolean {
-        var credentialsWereRefreshed = false
+    private fun checkUnauthorizedAccess(client: OpenCloudClient, singleSessionManager: SingleSessionManager, status: Int): RefreshResult {
         // During initial OAuth login the client has bearer credentials but no Android Account yet
         // (the Account is persisted only after this call succeeds). Skip refresh — there's nothing
         // to refresh against — otherwise we'd NPE on account.credentials / savedAccount below.
-        val account: OpenCloudAccount = client.account ?: return false
-        val credentials: OpenCloudCredentials = account.credentials ?: return false
-        if (shouldInvalidateAccountCredentials(credentials, account, status)) {
-            invalidateAccountCredentials(account, credentials)
-
-            if (credentials.authTokenCanBeRefreshed()) {
-                try {
-                    // This command does the actual refresh
-                    Timber.i("Trying to refresh auth token for account $account")
-                    account.loadCredentials(context)
-                    // if mAccount.getCredentials().length() == 0 --> refresh failed
-                    client.credentials = account.credentials
-                    credentialsWereRefreshed = true
-                } catch (e: AccountsException) {
-                    Timber.e(
-                        e, "Error while trying to refresh auth token for %s\ntrace: %s",
-                        account.savedAccount.name,
-                        ExceptionUtils.getStackTrace(e)
-                    )
-                } catch (e: IOException) {
-                    Timber.e(
-                        e, "Error while trying to refresh auth token for %s\ntrace: %s",
-                        account.savedAccount.name,
-                        ExceptionUtils.getStackTrace(e)
-                    )
-                }
-                if (!credentialsWereRefreshed) {
-                    // if credentials are not refreshed, client must be removed
-                    // from the OpenCloudClientManager to prevent it is reused once and again
-                    Timber.w("Credentials were not refreshed, client will be removed from the Session Manager to prevent using it over and over")
-                    singleSessionManager.removeClientFor(account)
-                }
-            }
-            // else: onExecute will finish with status 401
+        val account: OpenCloudAccount = client.account ?: return RefreshResult.NOT_ATTEMPTED
+        val credentials: OpenCloudCredentials = account.credentials ?: return RefreshResult.NOT_ATTEMPTED
+        if (!shouldInvalidateAccountCredentials(credentials, account, status)) {
+            return RefreshResult.NOT_ATTEMPTED
         }
-        return credentialsWereRefreshed
+        invalidateAccountCredentials(account, credentials)
+
+        if (!credentials.authTokenCanBeRefreshed()) {
+            // onExecute will finish with status 401
+            return RefreshResult.NOT_ATTEMPTED
+        }
+
+        var credentialsWereRefreshed = false
+        var transientFailure: TokenRefreshFailedException? = null
+        try {
+            // This command does the actual refresh
+            Timber.i("Trying to refresh auth token for account $account")
+            account.loadCredentials(context)
+            // An empty token means the refresh was refused: the authenticator then only offers the login screen
+            credentialsWereRefreshed = !account.credentials?.authToken.isNullOrEmpty()
+            if (credentialsWereRefreshed) {
+                client.credentials = account.credentials
+            }
+        } catch (e: TokenRefreshFailedException) {
+            Timber.w(e, "Transient error while trying to refresh auth token for %s", account.savedAccount.name)
+            transientFailure = e
+        } catch (e: AccountsException) {
+            Timber.e(
+                e, "Error while trying to refresh auth token for %s\ntrace: %s",
+                account.savedAccount.name,
+                ExceptionUtils.getStackTrace(e)
+            )
+        } catch (e: IOException) {
+            Timber.e(
+                e, "Error while trying to refresh auth token for %s\ntrace: %s",
+                account.savedAccount.name,
+                ExceptionUtils.getStackTrace(e)
+            )
+        }
+
+        if (credentialsWereRefreshed) {
+            return RefreshResult.REFRESHED
+        }
+
+        // if credentials are not refreshed, client must be removed
+        // from the OpenCloudClientManager to prevent it is reused once and again
+        Timber.w("Credentials were not refreshed, client will be removed from the Session Manager to prevent using it over and over")
+        singleSessionManager.removeClientFor(account)
+
+        transientFailure?.let { throw it }
+        return RefreshResult.FAILED
+    }
+
+    private enum class RefreshResult {
+        NOT_ATTEMPTED,
+        REFRESHED,
+        FAILED
     }
 
     companion object {

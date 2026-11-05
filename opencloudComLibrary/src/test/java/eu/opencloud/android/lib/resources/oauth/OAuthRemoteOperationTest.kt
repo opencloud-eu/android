@@ -28,6 +28,7 @@ import android.net.Uri
 import androidx.test.core.app.ApplicationProvider
 import eu.opencloud.android.lib.common.OpenCloudClient
 import eu.opencloud.android.lib.common.http.HttpConstants.AUTHORIZATION_HEADER
+import eu.opencloud.android.lib.common.operations.RemoteOperationResult
 import eu.opencloud.android.lib.resources.oauth.params.ClientRegistrationParams
 import eu.opencloud.android.lib.resources.oauth.params.TokenRequestParams
 import okhttp3.mockwebserver.MockResponse
@@ -36,6 +37,7 @@ import org.json.JSONObject
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -144,6 +146,67 @@ class OAuthRemoteOperationTest {
     }
 
     @Test
+    fun refreshTokenRequest_invalidGrant_isReportedAsOAuth2Error() {
+        server.enqueue(MockResponse().setResponseCode(400).setBody("""{"error":"invalid_grant","error_description":"Token is not active"}"""))
+
+        val result = TokenRequestRemoteOperation(refreshParams()).execute(newClient())
+
+        assertFalse(result.isSuccess)
+        assertEquals(RemoteOperationResult.ResultCode.OAUTH2_ERROR, result.code)
+    }
+
+    @Test
+    fun refreshTokenRequest_invalidClientWithUnauthorizedStatus_isReportedAsOAuth2Error() {
+        server.enqueue(MockResponse().setResponseCode(401).setBody("""{ "error" : "invalid_client" }"""))
+
+        val result = TokenRequestRemoteOperation(refreshParams()).execute(newClient())
+
+        assertEquals(RemoteOperationResult.ResultCode.OAUTH2_ERROR, result.code)
+    }
+
+    @Test
+    fun refreshTokenRequest_serverError_isNotReportedAsRejectedToken() {
+        server.enqueue(MockResponse().setResponseCode(500).setBody("""{"error":"server_error"}"""))
+
+        val result = TokenRequestRemoteOperation(refreshParams()).execute(newClient())
+
+        assertFalse(result.isSuccess)
+        assertEquals(RemoteOperationResult.ResultCode.UNHANDLED_HTTP_CODE, result.code)
+    }
+
+    @Test
+    fun refreshTokenRequest_badRequestFromProxyWithoutOAuthError_isNotReportedAsRejectedToken() {
+        server.enqueue(MockResponse().setResponseCode(400).setBody("<html>400 No required SSL certificate was sent</html>"))
+
+        val result = TokenRequestRemoteOperation(refreshParams()).execute(newClient())
+
+        assertFalse(result.isSuccess)
+        assertNotEquals(RemoteOperationResult.ResultCode.OAUTH2_ERROR, result.code)
+    }
+
+    @Test
+    fun authorizationTokenRequest_invalidGrant_keepsGenericHttpErrorMapping() {
+        server.enqueue(MockResponse().setResponseCode(400).setBody("""{"error":"invalid_grant"}"""))
+
+        val result = TokenRequestRemoteOperation(
+            TokenRequestParams.Authorization(
+                tokenEndpoint = server.url("/token").toString(),
+                clientAuth = "",
+                grantType = "authorization_code",
+                scope = "openid",
+                clientId = "public-client",
+                clientSecret = null,
+                authorizationCode = "auth-code",
+                redirectUri = "opencloud://oauth",
+                codeVerifier = "verifier"
+            )
+        ).execute(newClient())
+
+        assertFalse(result.isSuccess)
+        assertNotEquals(RemoteOperationResult.ResultCode.OAUTH2_ERROR, result.code)
+    }
+
+    @Test
     fun registerClient_sendsJsonRequestAndParsesCreatedResponse() {
         server.enqueue(MockResponse().setResponseCode(201).setBody(clientRegistrationResponseJson()))
 
@@ -189,6 +252,16 @@ class OAuthRemoteOperationTest {
         assertFalse(result.isSuccess)
         assertEquals(400, result.httpCode)
     }
+
+    private fun refreshParams() = TokenRequestParams.RefreshToken(
+        tokenEndpoint = server.url("/token").toString(),
+        clientAuth = "",
+        grantType = "refresh_token",
+        scope = "openid",
+        clientId = "public-client",
+        clientSecret = null,
+        refreshToken = "refresh-token"
+    )
 
     private fun newClient(): OpenCloudClient =
         OpenCloudClient(

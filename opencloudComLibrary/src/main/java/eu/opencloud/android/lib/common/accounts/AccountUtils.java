@@ -106,8 +106,7 @@ public class AccountUtils {
         OpenCloudCredentials credentials;
         AccountManager am = AccountManager.get(context);
 
-        String supportsOAuth2 = am.getUserData(account, AccountUtils.Constants.KEY_SUPPORTS_OAUTH2);
-        boolean isOauth2 = supportsOAuth2 != null && supportsOAuth2.equals(Constants.OAUTH_SUPPORTED_TRUE);
+        boolean isOauth2 = isOAuth2Account(context, account);
 
         String username = AccountUtils.getUsernameForAccount(account);
 
@@ -132,6 +131,19 @@ public class AccountUtils {
         }
 
         return credentials;
+    }
+
+    /**
+     * Tells whether the account authenticates with OAuth2, without touching its tokens. Unlike
+     * {@link #getCredentialsForAccount(Context, Account)} it never triggers a token refresh.
+     *
+     * @param context Valid Android {@link Context}, needed to access the {@link AccountManager}
+     * @param account A stored openCloud {@link Account}
+     * @return true if the account uses OAuth2
+     */
+    public static boolean isOAuth2Account(Context context, Account account) {
+        String supportsOAuth2 = AccountManager.get(context).getUserData(account, Constants.KEY_SUPPORTS_OAUTH2);
+        return Constants.OAUTH_SUPPORTED_TRUE.equals(supportsOAuth2);
     }
 
     /**
