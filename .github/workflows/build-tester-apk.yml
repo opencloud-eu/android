@@ -1,4 +1,4 @@
-name: Build unsigned apk
+name: Build apk
 
 on:
   workflow_dispatch:
@@ -7,15 +7,17 @@ on:
         description: "Flavor to build"
         type: choice
         required: true
-        default: "qa"
+        default: "original"
         options:
+          - original
           - qa
       build_type:
         description: "Type to build"
         type: choice
         required: true
-        default: "Debug" # uppercase for gradlew clean assembleqaDebug
+        default: "Release" # uppercase for gradlew clean assembleoriginalRelease
         options:
+          - Release
           - Debug
       version:
         description: "Version to build (commit, branch or tag)"
@@ -27,7 +29,7 @@ permissions:
 
 jobs:
   build_apk:
-    name: Build unsigned APK
+    name: Build APK
     runs-on: ubuntu-latest
     outputs:
       artifact_name: ${{ steps.set_artifact.outputs.artifact_name }}
@@ -46,7 +48,7 @@ jobs:
           echo "Commit hash: $COMMIT_HASH"
           echo "commit_hash=$COMMIT_HASH" >> $GITHUB_OUTPUT
           echo "commit_hash=$COMMIT_HASH" >> "$GITHUB_ENV"
- 
+
       - name: Setup JDK
         uses: actions/setup-java@v5
         with:
@@ -63,8 +65,24 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
+      - name: Decode keystore
+        if: inputs.build_type == 'Release'
+        env:
+          KEYSTORE_B64: ${{ secrets.KEYSTORE_B64 }}
+        run: |
+          if [ -z "$KEYSTORE_B64" ]; then
+            echo "KEYSTORE_B64 secret is missing - add it under Settings > Secrets > Actions"
+            exit 1
+          fi
+          echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/release.jks"
+
       - name: Build APK
         run: ./gradlew clean assemble${{ inputs.build_flavor }}${{ inputs.build_type }} -PversionCode=${{ github.run_number }}
+        env:
+          OC_RELEASE_KEYSTORE: ${{ inputs.build_type == 'Release' && format('{0}/release.jks', runner.temp) || '' }}
+          OC_RELEASE_KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          OC_RELEASE_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          OC_RELEASE_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
 
       - name: Set artifact name
         id: set_artifact
@@ -72,10 +90,10 @@ jobs:
           DATE=$(date +%Y%m%d_%H%M)
           COMMIT=$(git rev-parse --short HEAD)
           FLAVOR="${{ inputs.build_flavor }}"
-          BUILD_TYPE="debug"
-          NAME="OpenCloud-${{ inputs.build_flavor }}-${COMMIT}-${DATE}-${GITHUB_RUN_NUMBER}.apk"
+          BUILD_TYPE=$(echo "${{ inputs.build_type }}" | tr '[:upper:]' '[:lower:]')
+          NAME="OpenCloud-${FLAVOR}-${BUILD_TYPE}-${COMMIT}-${DATE}-${GITHUB_RUN_NUMBER}.apk"
 
-          APK_PATH=$(find ./opencloudApp/build/outputs/apk/$FLAVOR/$BUILD_TYPE/ -name "*.apk")
+          APK_PATH=$(find ./opencloudApp/build/outputs/apk/$FLAVOR/$BUILD_TYPE/ -name "*.apk" | head -1)
 
           echo "$APK_PATH"
           if [ -z "$APK_PATH" ]; then
@@ -89,6 +107,10 @@ jobs:
           # Publish as output
           echo "artifact_name=$NAME" >> $GITHUB_OUTPUT
 
+      - name: Clean up keystore
+        if: always()
+        run: rm -f "$RUNNER_TEMP/release.jks"
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
@@ -99,10 +121,10 @@ jobs:
       - name: Upload APK to release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: build-tester-apk-${{ github.run_number }}
+          tag_name: build-apk-${{ github.run_number }}
           target_commitish: ${{ env.commit_hash }}
-          name: build-tester-apk build ${{ github.run_number }}
+          name: ${{ inputs.build_flavor }} ${{ inputs.build_type }} build ${{ github.run_number }}
           files: ${{ steps.set_artifact.outputs.artifact_name }}
-          prerelease: true
+          prerelease: ${{ inputs.build_type == 'Debug' }}
           generate_release_notes: false
           body: Built from ${{ env.commit_hash }}
