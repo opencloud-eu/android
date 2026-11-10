@@ -107,6 +107,8 @@ import eu.opencloud.android.presentation.files.SortType
 import eu.opencloud.android.presentation.files.ViewType
 import eu.opencloud.android.presentation.files.createfolder.CreateFolderDialogFragment
 import eu.opencloud.android.presentation.files.createshortcut.CreateShortcutDialogFragment
+import eu.opencloud.android.presentation.files.addtohomescreen.AddToHomeScreenDialogFragment
+import eu.opencloud.android.presentation.files.addtohomescreen.FolderShortcutHelper
 import eu.opencloud.android.presentation.files.operations.FileOperation
 import eu.opencloud.android.presentation.files.operations.FileOperationsViewModel
 import eu.opencloud.android.presentation.files.removefile.RemoveFilesDialogFragment
@@ -138,7 +140,8 @@ class MainFileListFragment : Fragment(),
     SortDialogListener,
     SortOptionsView.CreateFolderListener,
     SortOptionsView.SortOptionsListener,
-    CreateShortcutDialogFragment.CreateShortcutListener {
+    CreateShortcutDialogFragment.CreateShortcutListener,
+    AddToHomeScreenDialogFragment.AddToHomeScreenListener {
 
     private val mainFileListViewModel by viewModel<MainFileListViewModel> {
         parametersOf(
@@ -429,7 +432,7 @@ class MainFileListFragment : Fragment(),
 
         showOrHideFab(requireArguments().getParcelable(ARG_FILE_LIST_OPTION)!!, requireArguments().getParcelable(ARG_INITIAL_FOLDER_TO_DISPLAY)!!)
 
-        setFabMainContentDescription()
+        setFabMainContentDescription(false)
 
         setTextHintRootToolbar()
     }
@@ -737,6 +740,13 @@ class MainFileListFragment : Fragment(),
                     FileMenuOption.UNSET_AV_OFFLINE -> {
                         fileOperationsViewModel.performOperation(FileOperation.UnsetFilesAsAvailableOffline(listOf(file)))
                     }
+
+                    FileMenuOption.ADD_TO_HOME_SCREEN -> {
+                        if (file.isFolder) {
+                            val dialog = AddToHomeScreenDialogFragment.newInstance(file)
+                            dialog.show(childFragmentManager, DIALOG_ADD_TO_HOME_SCREEN)
+                        }
+                    }
                 }
                 dialog.hide()
                 dialog.dismiss()
@@ -1008,6 +1018,7 @@ class MainFileListFragment : Fragment(),
                 (newFileListOption.isSharedByLink() && currentFolder.remotePath != ROOT_PATH)
         if (!isFabSupportedView || isPickingAFolder() ||
             (!currentFolder.hasAddFilePermission && !currentFolder.hasAddSubdirectoriesPermission)) {
+            collapseFab()
             toggleFabVisibility(false)
         } else {
             toggleFabVisibility(true)
@@ -1057,12 +1068,7 @@ class MainFileListFragment : Fragment(),
                 fabMkdir.isFocusable = isFabExpanded()
                 fabNewfile.isFocusable = isFabExpanded()
                 fabNewshortcut.isFocusable = isFabExpanded()
-                if (fabMain.isExpanded) {
-                    binding.fabMain.findViewById<AddFloatingActionButton>(com.getbase.floatingactionbutton.R.id.fab_expand_menu_button)
-                        .contentDescription = getString(R.string.content_description_add_new_content_expanded)
-                } else {
-                    setFabMainContentDescription()
-                }
+                setFabMainContentDescription(fabMain.isExpanded)
             }
         }
     }
@@ -1120,6 +1126,7 @@ class MainFileListFragment : Fragment(),
     }
 
     fun collapseFab() {
+        val binding = _binding ?: return
         binding.apply {
             fabMain.collapse()
             fabUpload.isFocusable = false
@@ -1128,14 +1135,19 @@ class MainFileListFragment : Fragment(),
             fabNewfile.isFocusable = false
             fabNewshortcut.isFocusable = false
         }
-
+        setFabMainContentDescription(false)
     }
 
-    fun isFabExpanded() = binding.fabMain.isExpanded
+    fun isFabExpanded(): Boolean {
+        val binding = _binding ?: return false
+        return binding.fabMain.isVisible && binding.fabMain.isExpanded
+    }
 
-    fun setFabMainContentDescription() {
-        binding.fabMain.findViewById<AddFloatingActionButton>(com.getbase.floatingactionbutton.R.id.fab_expand_menu_button).contentDescription =
-            getString(R.string.content_description_add_new_content)
+    fun setFabMainContentDescription(expanded: Boolean) {
+        val resId = if (expanded) { R.string.content_description_add_new_content_expanded } else { R.string.content_description_add_new_content }
+        binding.fabMain.findViewById<AddFloatingActionButton>(
+            com.getbase.floatingactionbutton.R.id.fab_expand_menu_button
+        ).contentDescription = getString(resId)
     }
 
     private fun openBottomSheetToUploadFiles() {
@@ -1274,6 +1286,10 @@ class MainFileListFragment : Fragment(),
         shortcutFile.writeText(fileContent)
         val shortcutFilePath = shortcutFile.absolutePath
         uploadActions?.uploadShortcutFileFromApp(arrayOf(shortcutFilePath))
+    }
+
+    override fun onAddToHomeScreen(shortcutName: String, folder: OCFile) {
+        FolderShortcutHelper.createPinnedShortcut(requireContext(), folder, shortcutName)
     }
 
     override fun onFolderNameSet(newFolderName: String, parentFolder: OCFile) {
@@ -1431,6 +1447,16 @@ class MainFileListFragment : Fragment(),
 
             R.id.action_unset_available_offline -> {
                 fileOperationsViewModel.performOperation(FileOperation.UnsetFilesAsAvailableOffline(listOf(singleFile)))
+                true
+            }
+
+            R.id.action_add_to_home -> {
+                if (singleFile.isFolder) {
+                    val dialog = AddToHomeScreenDialogFragment.newInstance(singleFile)
+                    dialog.show(childFragmentManager, DIALOG_ADD_TO_HOME_SCREEN)
+                }
+                fileListAdapter.clearSelection()
+                updateActionModeAfterTogglingSelected()
                 true
             }
 
@@ -1633,6 +1659,7 @@ class MainFileListFragment : Fragment(),
 
         private const val DIALOG_CREATE_FOLDER = "DIALOG_CREATE_FOLDER"
         private const val DIALOG_CREATE_SHORTCUT = "DIALOG_CREATE_SHORTCUT"
+        private const val DIALOG_ADD_TO_HOME_SCREEN = "DIALOG_ADD_TO_HOME_SCREEN"
 
         private const val FILE_DOCXF_EXTENSION = "docxf"
 

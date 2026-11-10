@@ -37,7 +37,7 @@
             android:layout_gravity="center_vertical|center_horizontal"
             android:layout_weight="1"
             android:text="@string/welcome_feature_skip_button"
-            android:textColor="@color/white" />
+            android:textColor="?attr/colorOnPrimary" />
 
         <eu.opencloud.android.wizard.ProgressIndicator
             android:id="@+id/progressIndicator"

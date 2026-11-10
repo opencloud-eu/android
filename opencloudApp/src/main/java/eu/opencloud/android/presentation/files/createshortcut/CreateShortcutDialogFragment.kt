@@ -116,10 +116,8 @@ class CreateShortcutDialogFragment : DialogFragment() {
                     )
                     dialog?.dismiss()
                 }
-                setTextColor(resources.getColor(R.color.primary_button_background_color, null))
             } else {
                 setOnClickListener(null)
-                setTextColor(resources.getColor(R.color.grey, null))
             }
         }
     }

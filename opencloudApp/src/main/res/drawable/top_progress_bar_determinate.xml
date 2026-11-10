@@ -4,7 +4,7 @@
 
     <item
         android:id="@android:id/background"
-        android:drawable="@color/background_color" />
+        android:drawable="?attr/colorSurface" />
     <item android:id="@android:id/secondaryProgress">
         <scale
             android:drawable="@color/actionbar_start_color"

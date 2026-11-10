@@ -885,7 +885,7 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
             clientId = clientId,
             responseType = ResponseType.CODE.string,
             scope = scope,
-            prompt = if (!oidcSupported) "" else if (loginAction == ACTION_CREATE) "login"
+            prompt = if (!oidcSupported) "" else if (loginAction == ACTION_CREATE) OAuthUtils.getCreateAccountPrompt(scope)
             else mdmProvider.getBrandingString(CONFIGURATION_OAUTH2_OPEN_ID_PROMPT, R.string.oauth2_openid_prompt),
             codeChallenge = authenticationViewModel.codeChallenge,
             state = authenticationViewModel.oidcState,

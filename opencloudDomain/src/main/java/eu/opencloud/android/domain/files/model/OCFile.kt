@@ -59,6 +59,7 @@ data class OCFile(
     var sharedWithSharee: Boolean? = false,
     var sharedByLink: Boolean = false,
     val spaceId: String? = null,
+    val hasPreview: Boolean = false,
 ) : Parcelable {
 
     val fileName: String

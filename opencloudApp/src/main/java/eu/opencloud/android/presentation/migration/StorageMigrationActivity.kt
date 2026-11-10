@@ -23,6 +23,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
@@ -45,8 +46,16 @@ class StorageMigrationActivity : AppCompatActivity() {
     private val fragmentMigrationProgress = MigrationProgressFragment()
     private val fragmentMigrationCompleted = MigrationCompletedFragment()
 
+    private val onBackPressedCallback = object : OnBackPressedCallback(true) {
+        override fun handleOnBackPressed() {
+            // Do nothing: the migration wizard must not be left with back
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        onBackPressedDispatcher.addCallback(this, onBackPressedCallback)
 
         // edge-to-edge
         enableEdgeToEdgePreSetContentView(true)
@@ -66,8 +75,6 @@ class StorageMigrationActivity : AppCompatActivity() {
             navigateToNextMigrationScreen(it.peekContent())
         }
     }
-
-    override fun onBackPressed() {}
 
     private fun navigateToNextMigrationScreen(migrationState: MigrationState) {
 

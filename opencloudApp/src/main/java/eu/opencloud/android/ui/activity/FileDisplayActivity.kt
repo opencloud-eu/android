@@ -50,6 +50,7 @@ import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
@@ -201,6 +202,13 @@ class FileDisplayActivity : FileActivity(),
 
     private var isLightUser = false
     private var isMultiPersonal = false
+    private var shortcutFolderToNavigate: OCFile? = null
+
+    private val onBackPressedCallback = object : OnBackPressedCallback(true) {
+        override fun handleOnBackPressed() {
+            handleOnBackPressedInternal()
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         Timber.v("onCreate() start")
@@ -244,6 +252,8 @@ class FileDisplayActivity : FileActivity(),
             )
         }
 
+        onBackPressedDispatcher.addCallback(this, onBackPressedCallback)
+
         /// USER INTERFACE
 
         // edge-to-edge
@@ -253,6 +263,8 @@ class FileDisplayActivity : FileActivity(),
         binding = ActivityMainBinding.inflate(layoutInflater)
         val view = binding.root
         setContentView(view)
+
+        handleShortcutIntent()
 
         // setup toolbar
         setupRootToolbar(
@@ -310,6 +322,18 @@ class FileDisplayActivity : FileActivity(),
         Timber.v("onCreate() end")
     }
 
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleShortcutIntent()
+    }
+
+    override fun onResumeFragments() {
+        super.onResumeFragments()
+        // New intents can arrive while fragment state is saved. Navigate after it is safe to commit.
+        navigateToShortcutFolder()
+    }
+
     private fun checkNotificationPermission() {
         // Ask for permission only in case it's api >= 33 and notifications are not granted.
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
@@ -348,7 +372,12 @@ class FileDisplayActivity : FileActivity(),
             })
             isLightUser = manageAccountsViewModel.checkUserLight(account.name)
             isMultiPersonal = capabilitiesViewModel.checkMultiPersonal()
-            navigateTo(fileListOption, initialState = true)
+
+            if (shortcutFolderToNavigate != null) {
+                navigateToShortcutFolder()
+            } else {
+                navigateTo(fileListOption, initialState = true)
+            }
 
         }
 
@@ -536,6 +565,7 @@ class FileDisplayActivity : FileActivity(),
         transaction.replace(R.id.right_fragment_container, fragment, TAG_SECOND_FRAGMENT)
         transaction.commitNow()
         updateFragmentsVisibility(true)
+        mainFileListFragment?.collapseFab()
     }
 
     private fun showBottomNavBar(show: Boolean) {
@@ -610,7 +640,7 @@ class FileDisplayActivity : FileActivity(),
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             android.R.id.home -> {
-                onBackPressed()
+                onBackPressedDispatcher.onBackPressed()
             }
         }
 
@@ -747,7 +777,7 @@ class FileDisplayActivity : FileActivity(),
         fileOperationsViewModel.performOperation(copyOperation)
     }
 
-    override fun onBackPressed() {
+    private fun handleOnBackPressedInternal() {
         val isFabOpen = mainFileListFragment?.isFabExpanded() ?: false
 
         /*
@@ -756,16 +786,10 @@ class FileDisplayActivity : FileActivity(),
          *    2. close FAB if open (only if drawer isn't open)
          *    3. navigate up (only if drawer and FAB aren't open)
          */
-        if (isDrawerOpen() && isFabOpen) {
-            // close drawer first
-            super.onBackPressed()
-        } else if (isDrawerOpen() && !isFabOpen) {
-            // close drawer
-            super.onBackPressed()
-        } else if (!isDrawerOpen() && isFabOpen) {
-            // close fab
+        if (isDrawerOpen()) {
+            closeDrawer()
+        } else if (isFabOpen) {
             mainFileListFragment?.collapseFab()
-            mainFileListFragment?.setFabMainContentDescription()
         } else {
             // Every single menu is collapsed. We can navigate up.
             if (secondFragment != null) {
@@ -781,7 +805,7 @@ class FileDisplayActivity : FileActivity(),
                 val currentDirDisplayed = mainFileListFragment?.getCurrentFile()
                 // If current file is null (we are in the spaces list, for example), close the app
                 if (currentDirDisplayed == null) {
-                    finish()
+                    moveTaskToBack(true)
                     return
                 }
                 // If current file is root folder
@@ -793,7 +817,7 @@ class FileDisplayActivity : FileActivity(),
                     }
                     // If current space is not a project space (personal or shares) or it is null ("Files" in oC10), close the app
                     else {
-                        finish()
+                        moveTaskToBack(true)
                         return
                     }
                 } else {
@@ -1449,13 +1473,13 @@ class FileDisplayActivity : FileActivity(),
         val messageTextView = TextView(this).apply {
             text = message
             setPadding(0, 70, 0, 30)
-            setTextColor(ContextCompat.getColor(this@FileDisplayActivity, android.R.color.black))
+            setTextColor(ContextCompat.getColor(this@FileDisplayActivity, R.color.theme_color_on_surface))
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f)
         }
 
         val urlTextView = TextView(this).apply {
             text = urlFormat
-            setTextColor(ContextCompat.getColor(this@FileDisplayActivity, android.R.color.black))
+            setTextColor(ContextCompat.getColor(this@FileDisplayActivity, R.color.theme_color_on_surface))
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f)
         }
         val scrollView = ScrollView(this).apply {
@@ -1964,6 +1988,72 @@ class FileDisplayActivity : FileActivity(),
         intent.data?.let { uri ->
             fileOperationsViewModel.handleDeepLink(uri, getCurrentOpenCloudAccount(baseContext).name)
         }
+    }
+
+    private fun handleShortcutIntent() {
+        val sc = eu.opencloud.android.presentation.files.addtohomescreen.FolderShortcutHelper
+        if (intent?.action != sc.ACTION_OPEN_SHORTCUT) return
+
+        val shortcutRemotePath = intent?.getStringExtra(sc.EXTRA_SHORTCUT_FOLDER_REMOTE_PATH)
+        val shortcutSpaceId = intent?.getStringExtra(sc.EXTRA_SHORTCUT_FOLDER_SPACE_ID)
+        val shortcutAccountName = intent?.getStringExtra(sc.EXTRA_SHORTCUT_FOLDER_ACCOUNT)
+
+        shortcutFolderToNavigate = null
+        intent?.removeExtra(sc.EXTRA_SHORTCUT_FOLDER_REMOTE_ID)
+        intent?.removeExtra(sc.EXTRA_SHORTCUT_FOLDER_REMOTE_PATH)
+        intent?.removeExtra(sc.EXTRA_SHORTCUT_FOLDER_SPACE_ID)
+        intent?.removeExtra(sc.EXTRA_SHORTCUT_FOLDER_ACCOUNT)
+
+        if (shortcutRemotePath != null &&
+            !shortcutAccountName.isNullOrBlank() &&
+            shortcutAccountName != account?.name
+        ) {
+            val targetAccount = eu.opencloud.android.presentation.authentication.AccountUtils
+                .getOpenCloudAccountByName(this, shortcutAccountName)
+            if (targetAccount != null) {
+                MainApp.initDependencyInjection()
+                // Recreate account-scoped state instead of delivering another intent to this instance.
+                finish()
+                startActivity(Intent(this, FileDisplayActivity::class.java).apply {
+                    action = sc.ACTION_OPEN_SHORTCUT
+                    putExtra(EXTRA_ACCOUNT, targetAccount)
+                    putExtra(sc.EXTRA_SHORTCUT_FOLDER_REMOTE_PATH, shortcutRemotePath)
+                    putExtra(sc.EXTRA_SHORTCUT_FOLDER_SPACE_ID, shortcutSpaceId)
+                    putExtra(sc.EXTRA_SHORTCUT_FOLDER_ACCOUNT, shortcutAccountName)
+                    flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+                })
+            } else {
+                showMessageInSnackbar(
+                    R.id.list_layout,
+                    getString(R.string.add_to_home_screen_shortcut_folder_missing)
+                )
+            }
+            return
+        }
+
+        if (shortcutRemotePath != null && account != null) {
+            val file = storageManager.getFileByPath(shortcutRemotePath, shortcutSpaceId)
+            if (file != null) {
+                shortcutFolderToNavigate = file
+            } else {
+                showMessageInSnackbar(
+                    R.id.list_layout,
+                    getString(R.string.add_to_home_screen_shortcut_folder_missing)
+                )
+            }
+        }
+    }
+
+    private fun navigateToShortcutFolder() {
+        val folder = shortcutFolderToNavigate ?: return
+        shortcutFolderToNavigate = null
+        fileListOption = FileListOption.ALL_FILES
+        setFile(folder)
+        cleanSecondFragment()
+        initAndShowListOfFiles(fileListOption)
+        refreshListOfFilesFragment()
+        updateToolbar(folder)
+        setCheckedItemAtBottomBar(getMenuItemForFileListOption(fileListOption))
     }
 
     private fun onDeepLinkManaged() {

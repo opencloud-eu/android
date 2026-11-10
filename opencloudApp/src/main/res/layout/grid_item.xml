@@ -55,7 +55,8 @@
                 android:layout_width="15dp"
                 android:layout_height="15dp"
                 android:layout_marginEnd="2dp"
-                android:src="@drawable/ic_share_generic_black"
+                android:src="@drawable/ic_share_generic"
+                android:tint="?attr/colorOnSurfaceVariant"
                 android:visibility="gone"
                 tools:visibility="visible" />
 
@@ -64,6 +65,7 @@
                 android:layout_width="15dp"
                 android:layout_height="15dp"
                 android:src="@drawable/ic_shared_by_link"
+                android:tint="?attr/colorOnSurfaceVariant"
                 android:visibility="gone"
                 tools:visibility="visible" />
 
@@ -99,7 +101,7 @@
         android:ellipsize="middle"
         android:gravity="center_horizontal"
         android:singleLine="true"
-        android:textColor="@color/textColor"
+        android:textColor="?attr/colorOnSurface"
         android:textSize="16dip"
         tools:text="TextView" />
 

@@ -36,9 +36,9 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.ViewKt;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.viewpager.widget.ViewPager;
@@ -56,7 +56,7 @@ import kotlin.Unit;
 /**
  * @author Bartosz Przybylski
  */
-public class WhatsNewActivity extends FragmentActivity implements ViewPager.OnPageChangeListener {
+public class WhatsNewActivity extends AppCompatActivity implements ViewPager.OnPageChangeListener {
 
     private ImageButton mForwardFinishButton;
     private ProgressIndicator mProgress;
@@ -137,11 +137,6 @@ public class WhatsNewActivity extends FragmentActivity implements ViewPager.OnPa
         SharedPreferences.Editor editor = pref.edit();
         editor.putInt(MainApp.PREFERENCE_KEY_LAST_SEEN_VERSION_CODE, MainApp.Companion.getVersionCode());
         editor.apply();
-    }
-
-    @Override
-    public void onBackPressed() {
-        super.onBackPressed();
     }
 
     private void updateNextButtonIfNeeded() {

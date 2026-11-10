@@ -130,7 +130,7 @@ class FileDetailsFragment : FileFragment() {
                 file = ocFileWithSyncInfo.file
                 updateDetails(ocFileWithSyncInfo)
             } else {
-                requireActivity().onBackPressed()
+                requireActivity().onBackPressedDispatcher.onBackPressed()
             }
         }
 

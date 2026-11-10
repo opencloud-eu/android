@@ -19,12 +19,13 @@
 
 package eu.opencloud.android.ui.activity;
 
-import android.app.Activity;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 import eu.opencloud.android.R;
 import timber.log.Timber;
@@ -33,7 +34,7 @@ import timber.log.Timber;
  * Activity copying the text of the received Intent into the system clipboard.
  */
 @SuppressWarnings("deprecation")
-public class CopyToClipboardActivity extends Activity {
+public class CopyToClipboardActivity extends AppCompatActivity {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {

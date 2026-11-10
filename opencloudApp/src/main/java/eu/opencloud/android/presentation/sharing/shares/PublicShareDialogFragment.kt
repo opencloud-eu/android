@@ -494,10 +494,6 @@ class PublicShareDialogFragment : DialogFragment() {
     private fun enableCopyPasswordButton(enable: Boolean) {
         binding.copyPasswordButton.apply {
             isEnabled = enable
-            setTextColor(
-                if (enable) resources.getColor(R.color.primary_button_background_color, null)
-                else resources.getColor(R.color.grey, null)
-            )
         }
     }
 

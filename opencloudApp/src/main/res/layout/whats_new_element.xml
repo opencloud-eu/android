@@ -19,7 +19,7 @@
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:textStyle="bold"
-        android:textColor="@color/white"
+        android:textColor="?attr/colorOnPrimary"
         android:id="@+id/whatsNewTitle"
         android:layout_gravity="center_horizontal"
         android:gravity="center_horizontal" />
@@ -32,5 +32,5 @@
         android:layout_margin="@dimen/standard_margin"
         android:layout_gravity="center_horizontal"
         android:gravity="center_horizontal"
-        android:textColor="@color/white" />
+        android:textColor="?attr/colorOnPrimary" />
 </LinearLayout>

@@ -39,6 +39,10 @@
     <string name="drawer_feedback">GitHub Discussions</string>
     <string name="drawer_help">Help</string>
     <string name="prefs_category_general">General</string>
+    <string name="prefs_appearance">Appearance</string>
+    <string name="prefs_appearance_system">System default</string>
+    <string name="prefs_appearance_light">Light</string>
+    <string name="prefs_appearance_dark">Dark</string>
     <string name="prefs_subsection_logging">Logging</string>
     <string name="prefs_subsection_more">More</string>
     <string name="prefs_subsection_security">Security</string>
@@ -862,5 +866,15 @@
     <string name="text_preview_label">Text preview</string>
     <string name="release_notes_title_enhanced_bottom_nav_bar">Added text labels on bottom bar</string>
     <string name="release_notes_subtitle_bottom_nav_bar">Text labels were added and default active indicator is used to show which section is selected on the bottom bar</string>
+
+    <string name="add_to_home_screen">Add to Home screen</string>
+    <string name="add_to_home_screen_dialog_title">Add to Home screen</string>
+    <string name="add_to_home_screen_dialog_add_button">Add</string>
+    <string name="add_to_home_screen_dialog_error_empty">The name cannot be empty</string>
+    <string name="add_to_home_screen_shortcut_added">Shortcut added to Home screen</string>
+    <string name="add_to_home_screen_shortcut_not_supported">Add Shortcut to Home screen is not supported</string>
+    <string name="add_to_home_screen_shortcut_failed">Could not add shortcut to Home screen</string>
+    <string name="add_to_home_screen_shortcut_folder_missing">This folder is no longer available. It may have been removed or renamed.</string>
+    <string name="add_to_home_screen_dialog_error_length_max">Shortcut name must not be longer than %d characters.</string>
 
 </resources>

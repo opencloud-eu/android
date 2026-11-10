@@ -153,7 +153,7 @@ class PreviewImageFragment : FileFragment() {
                 file = currentFile
                 requireActivity().invalidateOptionsMenu()
             } else {
-                requireActivity().onBackPressed()
+                requireActivity().onBackPressedDispatcher.onBackPressed()
             }
         }
 

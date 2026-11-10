@@ -37,6 +37,7 @@ import android.os.Bundle
 import android.view.WindowManager
 import android.widget.CheckBox
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.pm.PackageInfoCompat
 import eu.opencloud.android.data.providers.implementation.OCSharedPreferencesProvider
 
@@ -64,6 +65,7 @@ import eu.opencloud.android.presentation.security.passcode.PassCodeManager
 import eu.opencloud.android.presentation.security.pattern.PatternActivity
 import eu.opencloud.android.presentation.security.pattern.PatternManager
 import eu.opencloud.android.presentation.settings.logging.SettingsLogsFragment.Companion.PREFERENCE_ENABLE_LOGGING
+import eu.opencloud.android.presentation.settings.AppearanceMode
 import eu.opencloud.android.providers.CoroutinesDispatcherProvider
 import eu.opencloud.android.providers.LogsProvider
 import eu.opencloud.android.providers.MdmProvider
@@ -102,6 +104,14 @@ class MainApp : Application() {
         super.onCreate()
 
         appContext = applicationContext
+
+        val appearancePreferences = androidx.preference.PreferenceManager.getDefaultSharedPreferences(appContext)
+        val storedAppearanceMode = appearancePreferences.getString(AppearanceMode.PREFERENCE_KEY, null)
+        val appearanceMode = AppearanceMode.fromPreferenceValue(storedAppearanceMode)
+        if (storedAppearanceMode != appearanceMode.name) {
+            appearancePreferences.edit().putString(AppearanceMode.PREFERENCE_KEY, appearanceMode.name).apply()
+        }
+        AppCompatDelegate.setDefaultNightMode(appearanceMode.nightMode)
 
         // Ensure Logcat shows Timber logs in debug builds
         if (BuildConfig.DEBUG) {

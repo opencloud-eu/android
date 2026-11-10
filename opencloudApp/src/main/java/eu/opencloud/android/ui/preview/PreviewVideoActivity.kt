@@ -145,7 +145,7 @@ class PreviewVideoActivity : FileActivity(), Player.Listener, OnPrepareVideoPlay
                 file = currentFile
                 this.invalidateOptionsMenu()
             } else {
-                this.onBackPressed()
+                onBackPressedDispatcher.onBackPressed()
             }
 
         }
