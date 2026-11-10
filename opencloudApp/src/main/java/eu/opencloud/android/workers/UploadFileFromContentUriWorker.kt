@@ -396,7 +396,8 @@ class UploadFileFromContentUriWorker(
         }
         // Always have the whole-file checksum: TUS sends it in Upload-Metadata, plain PUTs
         // in the OC-Checksum header. Usually already persisted by copyFileToLocalStorage;
-        // this only reads the source again for cache-reuse runs of pre-checksum DB rows.
+        // this only hashes the cached copy again when it is reused without a stored checksum
+        // (pre-checksum DB rows, or TUS state cleared after a failed attempt).
         ensureOriginalTusChecksum()
 
         if (shouldTryTus) {
@@ -516,13 +517,16 @@ class UploadFileFromContentUriWorker(
     private fun ensureOriginalTusChecksum() {
         if (hasStoredSha1Checksum()) return
 
-        val inputStream = appContext.contentResolver.openInputStream(contentUri)
-        if (inputStream == null) {
-            Timber.e("Failed to open input stream for checksum source %s", contentUri)
+        // Hash the cached copy, not the content URI: the cache holds the bytes that are actually
+        // uploaded, and a second read of the source is not guaranteed to match them (the system
+        // redacts location metadata unless the unredacted original is requested and readable).
+        val cacheFile = File(cachePath)
+        if (!cacheFile.exists()) {
+            Timber.e("Cached upload file %s is missing, cannot compute its checksum", cachePath)
             throw LocalFileNotFoundException()
         }
 
-        val sha1Hex = inputStream.use { input ->
+        val sha1Hex = cacheFile.inputStream().use { input ->
             TusChecksumHelper.sha1Hex(input)
         }
         persistTusChecksum(sha1Hex)

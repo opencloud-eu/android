@@ -26,6 +26,7 @@ import android.net.Uri
 import android.os.Build
 import android.provider.DocumentsContract
 import android.provider.MediaStore
+import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import timber.log.Timber
 import java.io.InputStream
@@ -40,9 +41,7 @@ object MediaLocationUtils {
 
     @JvmStatic
     fun isAccessMediaLocationGranted(context: Context): Boolean =
-        Build.VERSION.SDK_INT < Build.VERSION_CODES.Q ||
-                ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_MEDIA_LOCATION) ==
-                PackageManager.PERMISSION_GRANTED
+        Build.VERSION.SDK_INT < Build.VERSION_CODES.Q || hasMediaLocationPermission(context)
 
     /**
      * Returns a URI that yields the unredacted original of [uri] (location metadata intact),
@@ -53,10 +52,17 @@ object MediaLocationUtils {
      * with [MediaStore.getMediaUri]; access is granted through the same document grant.
      */
     @JvmStatic
-    fun getOriginalMediaUri(context: Context, uri: Uri): Uri {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q || !isAccessMediaLocationGranted(context)) {
-            return uri
-        }
+    fun getOriginalMediaUri(context: Context, uri: Uri): Uri =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) getOriginalMediaUriApi29(context, uri) else uri
+
+    @RequiresApi(Build.VERSION_CODES.Q)
+    private fun hasMediaLocationPermission(context: Context): Boolean =
+        ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_MEDIA_LOCATION) == PackageManager.PERMISSION_GRANTED
+
+    @RequiresApi(Build.VERSION_CODES.Q)
+    private fun getOriginalMediaUriApi29(context: Context, uri: Uri): Uri {
+        if (!hasMediaLocationPermission(context)) return uri
+
         val mediaUri: Uri = when {
             uri.authority == MediaStore.AUTHORITY -> uri
             DocumentsContract.isDocumentUri(context, uri) -> try {

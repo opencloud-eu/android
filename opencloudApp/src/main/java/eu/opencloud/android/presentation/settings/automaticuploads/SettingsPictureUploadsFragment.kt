@@ -22,7 +22,6 @@
 
 package eu.opencloud.android.presentation.settings.automaticuploads
 
-import android.Manifest
 import android.app.Activity
 import android.content.DialogInterface
 import android.content.Intent
@@ -56,7 +55,6 @@ import eu.opencloud.android.extensions.showMessageInSnackbar
 import eu.opencloud.android.presentation.accounts.ManageAccountsViewModel
 import eu.opencloud.android.ui.activity.FolderPickerActivity
 import eu.opencloud.android.utils.DisplayUtils
-import eu.opencloud.android.utils.MediaLocationUtils
 import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.io.File
@@ -95,21 +93,7 @@ class SettingsPictureUploadsFragment : PreferenceFragmentCompat() {
             picturesViewModel.handleSelectPictureUploadsSourcePath(contentUriForTree)
         }
 
-    // Without ACCESS_MEDIA_LOCATION, Android strips GPS EXIF from the pictures we read (API >= 29).
-    // Asked only here, when picture uploads are enabled, not on app start.
-    private var mediaLocationPermissionRequested = false
-    private val requestMediaLocationPermissionLauncher =
-        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
-            if (!isGranted) {
-                showMessageInSnackbar(getString(R.string.media_location_permission_denied))
-            }
-        }
-
-    private fun requestMediaLocationPermissionIfNeeded() {
-        if (mediaLocationPermissionRequested || MediaLocationUtils.isAccessMediaLocationGranted(requireContext())) return
-        mediaLocationPermissionRequested = true
-        requestMediaLocationPermissionLauncher.launch(Manifest.permission.ACCESS_MEDIA_LOCATION)
-    }
+    private val mediaLocationPermissionRequester = MediaLocationPermissionRequester(this)
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.settings_picture_uploads, rootKey)
@@ -167,7 +151,7 @@ class SettingsPictureUploadsFragment : PreferenceFragmentCompat() {
                         picturesViewModel.pictureUploads.collect { pictureUploadsConfiguration ->
                             enablePictureUploads(pictureUploadsConfiguration != null, false)
                             pictureUploadsConfiguration?.let {
-                                requestMediaLocationPermissionIfNeeded()
+                                mediaLocationPermissionRequester.requestIfNeverAsked()
                                 prefPictureUploadsAccount?.value = it.accountName
                                 prefPictureUploadsPath?.summary = picturesViewModel.getUploadPathString()
                                 prefPictureUploadsSourcePath?.summary = DisplayUtils.getPathWithoutLastSlash(it.sourcePath.toUri().path)
@@ -189,12 +173,13 @@ class SettingsPictureUploadsFragment : PreferenceFragmentCompat() {
             val value = newValue as Boolean
 
             if (value) {
+                // Ask for the media location permission once this dialog is gone, not on top of it.
+                mediaLocationPermissionRequester.postpone()
                 picturesViewModel.enablePictureUploads(selectedAccount)
-                mediaLocationPermissionRequested = false
-                requestMediaLocationPermissionIfNeeded()
                 showAlertDialog(
                     title = getString(R.string.common_important),
-                    message = getString(R.string.proper_pics_folder_warning_camera_upload)
+                    message = getString(R.string.proper_pics_folder_warning_camera_upload),
+                    onDismissListener = { mediaLocationPermissionRequester.requestAfterEnabling() }
                 )
                 true
             } else {
