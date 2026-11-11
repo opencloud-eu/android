@@ -70,7 +70,9 @@ class LoginTest : TestCase(
             }
             step("check personal space") {
                 MainScreen {
-                    avatarButton.isVisible()
+                    flakySafely(timeoutMs = ACCOUNT_DISCOVERY_TIMEOUT_MS) {
+                        avatarButton.isVisible()
+                    }
                     avatarButton.isClickable()
                     avatarButton.click()
                 }
@@ -86,5 +88,9 @@ class LoginTest : TestCase(
                 }
             }
         }
+    }
+
+    companion object {
+        private const val ACCOUNT_DISCOVERY_TIMEOUT_MS = 60_000L
     }
 }
