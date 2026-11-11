@@ -31,11 +31,9 @@ import eu.opencloud.android.lib.common.network.WebdavUtils
 import eu.opencloud.android.lib.common.operations.RemoteOperation
 import eu.opencloud.android.lib.common.operations.RemoteOperationResult
 import eu.opencloud.android.lib.common.operations.RemoteOperationResult.ResultCode
-import com.squareup.moshi.JsonAdapter
-import com.squareup.moshi.JsonClass
-import com.squareup.moshi.Moshi
 import okhttp3.FormBody
 import okhttp3.RequestBody
+import org.json.JSONObject
 import timber.log.Timber
 import java.net.URL
 import java.util.concurrent.TimeUnit
@@ -63,10 +61,14 @@ class GetUrlToOpenInWebRemoteOperation(
             Timber.d("Open in web for file: $fileId - $status${if (!isSuccess(status)) "(FAIL)" else ""}")
 
             if (isSuccess(status)) RemoteOperationResult<String>(ResultCode.OK).apply {
-                val moshi = Moshi.Builder().build()
-                val adapter: JsonAdapter<OpenInWebResponse> = moshi.adapter(OpenInWebResponse::class.java)
-
-                data = postMethod.getResponseBodyAsString()?.let { adapter.fromJson(it)!!.uri }
+                // Two possible endpoints:
+                //  - open_web_url ("/app/open-with-web") answers {"uri": "..."} -> a browser URL
+                //  - open_url ("/app/open") answers {"app_url": ..., "method": ..., "form_parameters": {...}}
+                //    -> we hand the raw JSON to the in-app editor, which loads the editor directly.
+                data = postMethod.getResponseBodyAsString()?.let { body ->
+                    val json = JSONObject(body)
+                    if (json.has("app_url")) body else json.getString("uri")
+                }
             }
             else RemoteOperationResult<String>(postMethod).apply { data = "" }
 
@@ -86,16 +88,16 @@ class GetUrlToOpenInWebRemoteOperation(
             FormBody.Builder()
                 .add(PARAM_FILE_ID, fileId)
                 .add(PARAM_APP_NAME, appName)
+                // ask the office app for its touch-optimized editor (honored when the server enables it)
+                .add(PARAM_MOBILE, "1")
                 .build()
 
         companion object {
             const val PARAM_FILE_ID = "file_id"
             const val PARAM_APP_NAME = "app_name"
+            const val PARAM_MOBILE = "mobile"
         }
     }
-
-    @JsonClass(generateAdapter = true)
-    data class OpenInWebResponse(val uri: String)
 
     companion object {
         /**

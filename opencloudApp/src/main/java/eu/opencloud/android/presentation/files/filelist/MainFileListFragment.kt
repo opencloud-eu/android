@@ -30,7 +30,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.res.ColorStateList
 import android.graphics.drawable.Drawable
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -47,7 +46,6 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.ActionMode
 import androidx.appcompat.widget.SearchView
-import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.isVisible
@@ -81,6 +79,7 @@ import eu.opencloud.android.domain.transfers.model.OCTransfer
 import eu.opencloud.android.domain.transfers.model.TransferStatus
 import eu.opencloud.android.domain.utils.Event
 import eu.opencloud.android.extensions.addOpenInWebMenuOptions
+import eu.opencloud.android.presentation.weboffice.WebOfficeActivity
 import eu.opencloud.android.extensions.collectLatestLifecycleFlow
 import eu.opencloud.android.extensions.filterMenuOptions
 import eu.opencloud.android.extensions.parseError
@@ -546,12 +545,8 @@ class MainFileListFragment : Fragment(),
             if (it != null) {
                 val uiResult = it.peekContent()
                 if (uiResult is UIResult.Success) {
-                    browserOpened = true
-                    val builder = CustomTabsIntent.Builder().build()
-                    builder.launchUrl(
-                        requireActivity(),
-                        Uri.parse(uiResult.data)
-                    )
+                    browserOpened = !WebOfficeActivity.isEditorPayload(uiResult.data)
+                    uiResult.data?.let { WebOfficeActivity.open(requireActivity(), it) }
                 } else if (uiResult is UIResult.Error) {
                     // Mimetypes not supported via open in web, send 500
                     if (uiResult.error is InstanceNotConfiguredException) {

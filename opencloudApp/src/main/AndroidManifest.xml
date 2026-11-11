@@ -94,6 +94,11 @@
             android:name=".presentation.settings.privacypolicy.PrivacyPolicyActivity"
             android:label="@string/actionbar_privacy_policy" />
         <activity android:name=".presentation.settings.SettingsActivity" />
+        <activity
+            android:name=".presentation.weboffice.WebOfficeActivity"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|smallestScreenSize"
+            android:theme="@style/Theme.openCloud"
+            android:windowSoftInputMode="adjustResize" />
         <activity android:name=".presentation.migration.StorageMigrationActivity"
             android:theme="@style/Theme.openCloud.Toolbar.Fill" />
         <activity

@@ -25,7 +25,6 @@ package eu.opencloud.android.presentation.files.details
 import android.accounts.Account
 import android.content.Intent
 
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -34,7 +33,7 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
-import androidx.browser.customtabs.CustomTabsIntent
+import eu.opencloud.android.presentation.weboffice.WebOfficeActivity
 import androidx.core.view.isVisible
 import androidx.work.WorkInfo
 import com.google.android.material.snackbar.Snackbar
@@ -143,11 +142,7 @@ class FileDetailsFragment : FileFragment() {
 
         fileDetailsViewModel.openInWebUriLiveData.observe(viewLifecycleOwner, Event.EventObserver { uiResult: UIResult<String?> ->
             if (uiResult is UIResult.Success) {
-                val builder = CustomTabsIntent.Builder().build()
-                builder.launchUrl(
-                    requireActivity(),
-                    Uri.parse(uiResult.data)
-                )
+                uiResult.data?.let { WebOfficeActivity.open(requireActivity(), it) }
             } else if (uiResult is UIResult.Error) {
                 // Mimetypes not supported via open in web, send 500
                 if (uiResult.error is InstanceNotConfiguredException) {

@@ -29,7 +29,10 @@ class GetUrlToOpenInWebUseCase(
 
     override fun run(params: Params): String {
         val capabilities = capabilitiesRepository.getStoredCapabilities(params.accountName)
-        val openInWebUrl = capabilities?.filesAppProviders?.openWebUrl
+        // Prefer the direct open endpoint so the editor can be shown inside the app;
+        // fall back to the web UI URL (opened in a browser tab) if the server doesn't offer it.
+        val openInWebUrl = capabilities?.filesAppProviders?.openUrl?.takeIf { it.isNotBlank() }
+            ?: capabilities?.filesAppProviders?.openWebUrl
 
         requireNotNull(openInWebUrl)
 
