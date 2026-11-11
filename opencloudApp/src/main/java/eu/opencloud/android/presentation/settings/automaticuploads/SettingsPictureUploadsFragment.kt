@@ -93,6 +93,8 @@ class SettingsPictureUploadsFragment : PreferenceFragmentCompat() {
             picturesViewModel.handleSelectPictureUploadsSourcePath(contentUriForTree)
         }
 
+    private val mediaLocationPermissionRequester = MediaLocationPermissionRequester(this)
+
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.settings_picture_uploads, rootKey)
 
@@ -149,6 +151,7 @@ class SettingsPictureUploadsFragment : PreferenceFragmentCompat() {
                         picturesViewModel.pictureUploads.collect { pictureUploadsConfiguration ->
                             enablePictureUploads(pictureUploadsConfiguration != null, false)
                             pictureUploadsConfiguration?.let {
+                                mediaLocationPermissionRequester.requestIfNeverAsked()
                                 prefPictureUploadsAccount?.value = it.accountName
                                 prefPictureUploadsPath?.summary = picturesViewModel.getUploadPathString()
                                 prefPictureUploadsSourcePath?.summary = DisplayUtils.getPathWithoutLastSlash(it.sourcePath.toUri().path)
@@ -170,10 +173,13 @@ class SettingsPictureUploadsFragment : PreferenceFragmentCompat() {
             val value = newValue as Boolean
 
             if (value) {
+                // Ask for the media location permission once this dialog is gone, not on top of it.
+                mediaLocationPermissionRequester.postpone()
                 picturesViewModel.enablePictureUploads(selectedAccount)
                 showAlertDialog(
                     title = getString(R.string.common_important),
-                    message = getString(R.string.proper_pics_folder_warning_camera_upload)
+                    message = getString(R.string.proper_pics_folder_warning_camera_upload),
+                    onDismissListener = { mediaLocationPermissionRequester.requestAfterEnabling() }
                 )
                 true
             } else {

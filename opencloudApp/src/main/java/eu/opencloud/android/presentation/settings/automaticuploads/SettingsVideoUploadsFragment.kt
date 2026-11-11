@@ -93,6 +93,8 @@ class SettingsVideoUploadsFragment : PreferenceFragmentCompat() {
             videosViewModel.handleSelectVideoUploadsSourcePath(contentUriForTree)
         }
 
+    private val mediaLocationPermissionRequester = MediaLocationPermissionRequester(this)
+
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.settings_video_uploads, rootKey)
 
@@ -147,6 +149,7 @@ class SettingsVideoUploadsFragment : PreferenceFragmentCompat() {
                         videosViewModel.videoUploads.collect { videoUploadsConfiguration ->
                             enableVideoUploads(videoUploadsConfiguration != null, false)
                             videoUploadsConfiguration?.let {
+                                mediaLocationPermissionRequester.requestIfNeverAsked()
                                 prefVideoUploadsAccount?.value = it.accountName
                                 prefVideoUploadsPath?.summary = videosViewModel.getUploadPathString()
                                 prefVideoUploadsSourcePath?.summary = DisplayUtils.getPathWithoutLastSlash(it.sourcePath.toUri().path)
@@ -168,10 +171,13 @@ class SettingsVideoUploadsFragment : PreferenceFragmentCompat() {
             val value = newValue as Boolean
 
             if (value) {
+                // Ask for the media location permission once this dialog is gone, not on top of it.
+                mediaLocationPermissionRequester.postpone()
                 videosViewModel.enableVideoUploads(selectedAccount)
                 showAlertDialog(
                     title = getString(R.string.common_important),
-                    message = getString(R.string.proper_videos_folder_warning_camera_upload)
+                    message = getString(R.string.proper_videos_folder_warning_camera_upload),
+                    onDismissListener = { mediaLocationPermissionRequester.requestAfterEnabling() }
                 )
                 true
             } else {

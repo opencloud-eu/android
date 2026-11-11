@@ -57,7 +57,8 @@ fun Fragment.showAlertDialog(
     positiveButtonText: String = getString(android.R.string.ok),
     positiveButtonListener: ((DialogInterface, Int) -> Unit)? = null,
     negativeButtonText: String = "",
-    negativeButtonListener: ((DialogInterface, Int) -> Unit)? = null
+    negativeButtonListener: ((DialogInterface, Int) -> Unit)? = null,
+    onDismissListener: DialogInterface.OnDismissListener? = null
 ) {
     val requiredActivity = activity ?: return
     AlertDialog.Builder(requiredActivity)
@@ -65,6 +66,7 @@ fun Fragment.showAlertDialog(
         .setMessage(message)
         .setPositiveButton(positiveButtonText, positiveButtonListener)
         .setNegativeButton(negativeButtonText, negativeButtonListener)
+        .setOnDismissListener(onDismissListener)
         .show()
         .avoidScreenshotsIfNeeded()
 }
