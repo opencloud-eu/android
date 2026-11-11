@@ -123,6 +123,10 @@ class FilterFileMenuOptionsUseCase(
         if (params.displaySelectInverse) {
             optionsToShow.add(FileMenuOption.SELECT_INVERSE)
         }
+        if (files.any { it.isVault }) {
+            // Vault folders are encrypted by the web vault app, so no action can be performed on them
+            return optionsToShow
+        }
         if (!params.onlyAvailableOfflineFiles && shareViaLinkOrWithUsersAllowed &&
             state.resharingAllowed && state.isPersonalSpace &&
             state.hasResharePermission

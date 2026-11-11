@@ -2068,4 +2068,53 @@ class OCFileRepositoryTest {
             localFileDataSource.cleanWorkersUuid(OC_FILE_WITH_SPACE_ID.id!!)
         }
     }
+
+    @Suppress("MaxLineLength")
+    @Test
+    fun `refreshFolder updates a child folder that became a vault even if its etag did not change and removes its cached content`() {
+        val ocParentFolderWithoutSpaceId = OC_PARENT_FOLDER_WITH_SPACE_ID.copy(spaceId = null)
+        val remoteVaultFolder = OC_FOLDER_WITH_SPACE_ID.copy(spaceId = null, isVault = true)
+        val expectedVaultFolder = OC_FOLDER_WITH_SPACE_ID.copy(isVault = true)
+        val cachedFileInsideVault = OC_FILE_WITH_SPACE_ID.copy(parentId = OC_FOLDER_WITH_SPACE_ID.id)
+        every {
+            remoteFileDataSource.refreshFolder(
+                remotePath = OC_PARENT_FOLDER_WITH_SPACE_ID.remotePath,
+                accountName = OC_PARENT_FOLDER_WITH_SPACE_ID.owner,
+                spaceWebDavUrl = OC_SPACE_PERSONAL.root.webDavUrl
+            )
+        } returns listOf(ocParentFolderWithoutSpaceId, remoteVaultFolder)
+        every {
+            localFileDataSource.getFileByRemotePath(
+                remotePath = OC_PARENT_FOLDER_WITH_SPACE_ID.remotePath,
+                owner = OC_PARENT_FOLDER_WITH_SPACE_ID.owner,
+                spaceId = OC_PARENT_FOLDER_WITH_SPACE_ID.spaceId
+            )
+        } returns OC_PARENT_FOLDER_WITH_SPACE_ID
+        every { localFileDataSource.getFolderContent(folderId = OC_PARENT_FOLDER_WITH_SPACE_ID.id!!) } returns listOf(OC_FOLDER_WITH_SPACE_ID)
+        every { localFileDataSource.getFolderContent(folderId = OC_FOLDER_WITH_SPACE_ID.id!!) } returns listOf(cachedFileInsideVault)
+        every { localStorageProvider.deleteLocalFile(cachedFileInsideVault) } returns true
+        every {
+            localFileDataSource.saveFilesInFolderAndReturnTheFilesThatChanged(
+                listOfFiles = listOf(expectedVaultFolder),
+                folder = OC_PARENT_FOLDER_WITH_SPACE_ID,
+            )
+        } returns listOf(expectedVaultFolder)
+
+        val listOfFiles = ocFileRepository.refreshFolder(
+            OC_PARENT_FOLDER_WITH_SPACE_ID.remotePath,
+            OC_PARENT_FOLDER_WITH_SPACE_ID.owner,
+            OC_PARENT_FOLDER_WITH_SPACE_ID.spaceId,
+            false
+        )
+        assertEquals(listOf(expectedVaultFolder), listOfFiles)
+
+        verify(exactly = 1) {
+            localStorageProvider.deleteLocalFile(cachedFileInsideVault)
+            localFileDataSource.deleteFile(cachedFileInsideVault.id!!)
+            localFileDataSource.saveFilesInFolderAndReturnTheFilesThatChanged(
+                listOfFiles = listOf(expectedVaultFolder),
+                folder = OC_PARENT_FOLDER_WITH_SPACE_ID,
+            )
+        }
+    }
 }

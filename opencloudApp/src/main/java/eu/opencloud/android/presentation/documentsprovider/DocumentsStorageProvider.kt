@@ -55,6 +55,7 @@ import eu.opencloud.android.domain.files.usecases.MoveFileUseCase
 import eu.opencloud.android.domain.files.usecases.RemoveFileUseCase
 import eu.opencloud.android.domain.files.usecases.RenameFileUseCase
 import eu.opencloud.android.domain.spaces.usecases.GetPersonalAndProjectSpacesForAccountUseCase
+import eu.opencloud.android.domain.spaces.usecases.GetSpaceByIdForAccountUseCase
 import eu.opencloud.android.domain.spaces.usecases.RefreshSpacesFromServerAsyncUseCase
 import eu.opencloud.android.presentation.authentication.AccountUtils
 import eu.opencloud.android.presentation.documentsprovider.cursors.FileCursor
@@ -288,6 +289,12 @@ class DocumentsStorageProvider : DocumentsProvider() {
             // Folder id is not null, so this is a regular folder
             resultCursor = FileCursor(projection)
 
+            if (isVault(getFileByIdOrException(folderId.toInt()))) {
+                // Vault contents are encrypted by the web vault app, so they are neither listed nor synced
+                resultCursor.setNotificationUri(context?.contentResolver, toNotifyUri(toUri(parentDocumentId)))
+                return resultCursor
+            }
+
             // Create result cursor before syncing folder again, in order to enable faster loading
             getFolderContent(folderId.toInt()).forEach { file -> resultCursor.addFile(file) }
 
@@ -406,6 +413,7 @@ class DocumentsStorageProvider : DocumentsProvider() {
     ): String {
         Timber.d("Create Document ParentID $parentDocumentId Type $mimeType DisplayName $displayName")
         val parentDocument = getFileByIdOrException(parentDocumentId.toInt())
+        checkIsNotVault(parentDocument)
 
         return if (mimeType == DocumentsContract.Document.MIME_TYPE_DIR) {
             createFolder(parentDocument, displayName)
@@ -446,6 +454,8 @@ class DocumentsStorageProvider : DocumentsProvider() {
 
         val sourceFile = getFileByIdOrException(sourceDocumentId.toInt())
         val targetParentFile = getFileByIdOrException(targetParentDocumentId.toInt())
+        checkIsNotVault(sourceFile)
+        checkIsNotVault(targetParentFile)
 
         val copyFileUseCase: CopyFileUseCase by inject()
 
@@ -476,6 +486,8 @@ class DocumentsStorageProvider : DocumentsProvider() {
 
         val sourceFile = getFileByIdOrException(sourceDocumentId.toInt())
         val targetParentFile = getFileByIdOrException(targetParentDocumentId.toInt())
+        checkIsNotVault(sourceFile)
+        checkIsNotVault(targetParentFile)
 
         val moveFileUseCase: MoveFileUseCase by inject()
 
@@ -770,7 +782,7 @@ class DocumentsStorageProvider : DocumentsProvider() {
         folderContent.forEach {
             if (it.fileName.contains(query)) {
                 result.add(it)
-                if (it.isFolder) result.addAll(findFiles(it, query))
+                if (it.isFolder && !it.isVault) result.addAll(findFiles(it, query))
             }
         }
         return result
@@ -785,6 +797,24 @@ class DocumentsStorageProvider : DocumentsProvider() {
     )
 
     private fun toUri(documentId: String): Uri = Uri.parse(documentId)
+
+    /**
+     * Vaults are encrypted by the OpenCloud Web vault app: folders carrying the vault marker,
+     * and the root folders of vault spaces. Their contents can't be used by this client.
+     */
+    private fun isVault(file: OCFile): Boolean {
+        if (file.isVault) return true
+        if (file.remotePath != ROOT_PATH || file.spaceId == null) return false
+
+        val getSpaceByIdForAccountUseCase: GetSpaceByIdForAccountUseCase by inject()
+        return getSpaceByIdForAccountUseCase(
+            GetSpaceByIdForAccountUseCase.Params(accountName = file.owner, spaceId = file.spaceId)
+        )?.isVault == true
+    }
+
+    private fun checkIsNotVault(file: OCFile) {
+        if (isVault(file)) throw UnsupportedOperationException("${file.remotePath} is an encrypted vault")
+    }
 
     private fun getFileByIdOrException(id: Int): OCFile {
         val getFileByIdUseCase: GetFileByIdUseCase by inject()

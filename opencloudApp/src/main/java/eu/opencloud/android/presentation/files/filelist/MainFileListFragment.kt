@@ -85,6 +85,7 @@ import eu.opencloud.android.extensions.collectLatestLifecycleFlow
 import eu.opencloud.android.extensions.filterMenuOptions
 import eu.opencloud.android.extensions.parseError
 import eu.opencloud.android.extensions.sendDownloadedFilesByShareSheet
+import eu.opencloud.android.extensions.openVaultInBrowser
 import eu.opencloud.android.extensions.SNACKBAR_DURATION_ERROR_MS
 import eu.opencloud.android.extensions.showErrorInSnackbar
 import eu.opencloud.android.extensions.showMessageInSnackbar
@@ -1570,7 +1571,10 @@ class MainFileListFragment : Fragment(),
 
         val ocFile = ocFileWithSyncInfo.file
 
-        if (ocFile.isFolder) {
+        if (ocFile.isVault) {
+            // Vault folders are encrypted by the web vault app, so they are opened in the browser instead of being listed
+            requireActivity().openVaultInBrowser(ocFile.privateLink)
+        } else if (ocFile.isFolder) {
             mainFileListViewModel.updateFolderToDisplay(ocFile)
         } else { // Click on a file
             fileActions?.onFileClicked(ocFile)
@@ -1578,7 +1582,7 @@ class MainFileListFragment : Fragment(),
     }
 
     override fun onLongItemClick(position: Int): Boolean {
-        if (isPickingAFolder()) return false
+        if (isPickingAFolder() || !fileListAdapter.isSelectable(position)) return false
 
         if (actionMode == null) {
             actionMode = (requireActivity() as AppCompatActivity).startSupportActionMode(actionModeCallback)

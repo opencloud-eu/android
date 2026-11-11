@@ -33,6 +33,7 @@ import eu.opencloud.android.lib.common.http.methods.webdav.DavUtils
 import eu.opencloud.android.lib.common.http.methods.webdav.PropfindMethod
 import eu.opencloud.android.lib.common.http.methods.webdav.properties.OCChecksums
 import eu.opencloud.android.lib.common.http.methods.webdav.properties.OCHasPreview
+import eu.opencloud.android.lib.common.http.methods.webdav.properties.OCIntegrityId
 import eu.opencloud.android.lib.common.http.methods.webdav.properties.OCShareTypes
 import eu.opencloud.android.lib.common.network.WebdavUtils
 import eu.opencloud.android.lib.common.operations.RemoteOperation
@@ -69,6 +70,7 @@ class ReadRemoteFileOperation(
             PropertyRegistry.register(OCShareTypes.Factory())
             PropertyRegistry.register(OCChecksums.Factory())
             PropertyRegistry.register(OCHasPreview.Factory())
+            PropertyRegistry.register(OCIntegrityId.Factory())
 
             val propFind = PropfindMethod(
                 url = getFinalWebDavUrl(),

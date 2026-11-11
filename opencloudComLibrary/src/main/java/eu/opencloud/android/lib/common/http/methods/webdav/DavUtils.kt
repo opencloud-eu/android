@@ -38,6 +38,7 @@ import at.bitfire.dav4jvm.property.OCSize
 import at.bitfire.dav4jvm.property.ResourceType
 import eu.opencloud.android.lib.common.http.methods.webdav.properties.OCChecksums
 import eu.opencloud.android.lib.common.http.methods.webdav.properties.OCHasPreview
+import eu.opencloud.android.lib.common.http.methods.webdav.properties.OCIntegrityId
 import eu.opencloud.android.lib.common.http.methods.webdav.properties.OCShareTypes
 
 object DavUtils {
@@ -57,6 +58,7 @@ object DavUtils {
             OCShareTypes.NAME,
             OCChecksums.NAME,
             OCHasPreview.NAME,
+            OCIntegrityId.NAME,
         )
 
     val quotaPropSet: Array<Property.Name>

@@ -89,7 +89,8 @@ class OCRemoteSpacesDataSource(
                         specialFolder = SpaceSpecialFolder(name = specialResponse.specialFolder.name),
                         webDavUrl = specialResponse.webDavUrl
                     )
-                }
+                },
+                contentType = libreGraphContentType,
             )
     }
 }

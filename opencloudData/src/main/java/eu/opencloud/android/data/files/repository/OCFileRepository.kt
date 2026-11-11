@@ -387,8 +387,14 @@ class OCFileRepository(
                         })
                 } else if (localChildToSync.etag != remoteChild.etag ||
                     localChildToSync.localModificationTimestamp > remoteChild.lastSyncDateForData!! ||
+                    localChildToSync.isVault != remoteChild.isVault ||
                     isActionSetFolderAvailableOfflineOrSynchronize
                 ) {
+                    if (remoteChild.isVault) {
+                        // Vault contents are encrypted. Remove anything cached before the folder became a vault
+                        // (or before vaults were detected), so that it is no longer shown or synced.
+                        deleteLocalFolderContentRecursively(localChildToSync)
+                    }
                     // File exists in the database, we need to check several stuff.
                     folderContentUpdated.add(
                         remoteChild.apply {
@@ -597,6 +603,16 @@ class OCFileRepository(
 
         // 2. Remove the folder itself if it has no files
         deleteLocalFolderIfItHasNoFilesInside(ocFolder = ocFile, onlyFromLocalStorage = onlyFromLocalStorage)
+    }
+
+    private fun deleteLocalFolderContentRecursively(ocFolder: OCFile) {
+        localFileDataSource.getFolderContent(ocFolder.id!!).forEach { file ->
+            if (file.isFolder) {
+                deleteLocalFolderRecursively(ocFile = file, onlyFromLocalStorage = false)
+            } else {
+                deleteLocalFile(ocFile = file, onlyFromLocalStorage = false)
+            }
+        }
     }
 
     private fun deleteLocalFolderIfItHasNoFilesInside(ocFolder: OCFile, onlyFromLocalStorage: Boolean) {
