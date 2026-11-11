@@ -92,7 +92,7 @@
     <string name="prefs_camera_video_upload_path_title">Opplastingssti for video</string>
     <string name="prefs_camera_video_upload_on_wifi">Last opp videoer bare via wifi</string>
     <string name="prefs_camera_video_upload_on_charging">Last opp videoer bare under lading</string>
-    <string name="prefs_automatic_uploads_not_available_users_light">Automatisk opplasting er ikke tilgjengelig for lettbrukere</string>
+    <string name="prefs_automatic_uploads_not_available_users_light">Automatisk opplasting er ikke tilgjengelig for brukerrollen «User Light»</string>
     <string name="prefs_subsection_advanced">Avansert</string>
     <string name="prefs_subsection_notifications">Administrer varsler</string>
     <string name="prefs_show_hidden_files">Vis skjulte filer</string>
@@ -595,6 +595,7 @@
     <string name="prefs_camera_upload_behaviour_title">Den opprinnelige filen blir</string>
     <string name="prefs_camera_upload_last_sync_title">Siste synkronisering</string>
     <string name="notifications_permission_denied">Du kan oppdatere innstillingene dine i Innstillinger</string>
+    <string name="media_location_permission_denied">Uten tilgang til posisjon vil opplastede bilder og videoer miste GPS-posisjonen. Du kan gi tilgang i Innstillinger.</string>
     <string name="upload_copy_files">Kopier fil</string>
     <string name="upload_move_files">Flytt fil</string>
 
@@ -754,8 +755,8 @@
     <string name="release_notes_4_5_0_subtitle_feedback_in_previews">Lagt til tilbakemelding når tilgjengelig frakoblet slås på eller av i alle forhåndsvisninger, og menyen oppdateres etter filstatusen</string>
     <string name="release_notes_4_5_0_title_quota_improvements">Bedre visning av lagringsbruk</string>
     <string name="release_notes_4_5_0_subtitle_quota_improvements">Lagringsbruken oppdateres oftere ved filoperasjoner og oppdatering, og er nå tilgjengelig i kontoadministrasjonen i tillegg til i sidemenyen</string>
-    <string name="release_notes_4_5_0_title_light_users">Lettbrukere</string>
-    <string name="release_notes_4_5_0_subtitle_light_users">Lettbrukere (brukere uten personlig rom) støttes nå i appen</string>
+    <string name="release_notes_4_5_0_title_light_users">Brukerrollen «User Light»</string>
+    <string name="release_notes_4_5_0_subtitle_light_users">Brukerrollen «User Light» (brukere uten personlig rom) støttes nå i appen</string>
     <string name="release_notes_4_5_1_title_strange_behaviour_apps_provider">Retting for oppretting av filer via appleverandører</string>
     <string name="release_notes_4_5_1_subtitle_strange_behaviour_apps_provider">Filer åpnes nå riktig når de opprettes med appleverandører</string>
     <string name="release_notes_title">OpenCloud-klient</string>
