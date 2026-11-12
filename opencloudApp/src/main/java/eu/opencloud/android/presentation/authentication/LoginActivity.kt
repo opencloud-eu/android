@@ -894,6 +894,13 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
         Timber.d("A browser should be opened now to authenticate this user.")
 
         val customTabsBuilder: CustomTabsIntent.Builder = CustomTabsIntent.Builder()
+        // The first account keeps the shared browser session, so an existing IDP session can be reused.
+        // Once accounts exist on the device, a shared session could silently hand back an account that is
+        // already signed in - when adding another account, or when re-logging in as a different user.
+        // Browsers without ephemeral support (e.g. Chrome < 136, Firefox) ignore this and open a normal tab.
+        val ephemeral = getAccounts(this).isNotEmpty()
+        Timber.d("Custom Tab: requesting ephemeral browsing=$ephemeral")
+        customTabsBuilder.setEphemeralBrowsingEnabled(ephemeral)
         val customTabsIntent: CustomTabsIntent = customTabsBuilder.build()
 
         // Add flags to improve compatibility with Firefox and other browsers
@@ -939,17 +946,15 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
         }
     }
 
-    override fun onNewIntent(intent: Intent?) {
+    override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        intent?.let {
-            Timber.d("onNewIntent received with data: ${it.data}")
-            if (!::binding.isInitialized) {
-                Timber.w("onNewIntent received before binding initialized, ignoring OAuth response")
-                return
-            }
-            setIntent(it)
-            handleGetAuthorizationCodeResponse(it)
+        Timber.d("onNewIntent received with data: ${intent.data}")
+        if (!::binding.isInitialized) {
+            Timber.w("onNewIntent received before binding initialized, ignoring OAuth response")
+            return
         }
+        setIntent(intent)
+        handleGetAuthorizationCodeResponse(intent)
     }
 
     private fun handleGetAuthorizationCodeResponse(intent: Intent) {
