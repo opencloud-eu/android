@@ -135,6 +135,17 @@ fun Activity.goToUrl(
     }
 }
 
+/**
+ * Vaults (folders and spaces) are encrypted by the OpenCloud Web vault app, so they can only be opened in the browser.
+ */
+fun Activity.openVaultInBrowser(url: String?) {
+    if (url.isNullOrBlank()) {
+        showMessageInSnackbar(message = getString(R.string.vault_link_unavailable))
+    } else {
+        goToUrl(url)
+    }
+}
+
 fun Activity.openPrivacyPolicy() {
     val urlPrivacyPolicy = getString(R.string.url_privacy_policy)
 

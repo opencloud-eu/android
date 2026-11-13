@@ -39,6 +39,7 @@ import eu.opencloud.android.databinding.SpacesListFragmentBinding
 import eu.opencloud.android.domain.files.model.FileListOption
 import eu.opencloud.android.domain.spaces.model.OCSpace
 import eu.opencloud.android.extensions.collectLatestLifecycleFlow
+import eu.opencloud.android.extensions.openVaultInBrowser
 import eu.opencloud.android.extensions.showErrorInSnackbar
 import eu.opencloud.android.extensions.toDrawableRes
 import eu.opencloud.android.extensions.toSubtitleStringRes
@@ -134,6 +135,11 @@ class SpacesListFragment : SpacesListAdapter.SpacesListAdapterListener, Fragment
     }
 
     override fun onItemClick(ocSpace: OCSpace) {
+        if (ocSpace.isVault) {
+            // Vault spaces are encrypted by the web vault app, so they are opened in the browser instead of being listed
+            requireActivity().openVaultInBrowser(ocSpace.webUrl)
+            return
+        }
         spacesListViewModel.getRootFileForSpace(ocSpace)
     }
 

@@ -85,6 +85,7 @@ import eu.opencloud.android.data.user.db.UserQuotaEntity
         AutoMigration(from = 45, to = 46),
         AutoMigration(from = 46, to = 47),
         AutoMigration(from = 49, to = 50),
+        AutoMigration(from = 50, to = 51),
     ],
     version = ProviderMeta.DB_VERSION,
     exportSchema = true

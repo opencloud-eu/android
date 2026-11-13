@@ -84,6 +84,7 @@ import eu.opencloud.android.extensions.isDownloadPending
 import eu.opencloud.android.extensions.manageOptionLockSelected
 import eu.opencloud.android.extensions.observeWorkerTillItFinishes
 import eu.opencloud.android.extensions.openOCFile
+import eu.opencloud.android.extensions.openVaultInBrowser
 import eu.opencloud.android.extensions.parseError
 import eu.opencloud.android.extensions.sendDownloadedFilesByShareSheet
 import eu.opencloud.android.extensions.SNACKBAR_DURATION_ERROR_MS
@@ -2119,6 +2120,11 @@ class FileDisplayActivity : FileActivity(),
     }
 
     private fun manageItem(file: OCFile) {
+        if (file.isVault) {
+            // Vault folders are encrypted by the web vault app, so they are opened in the browser instead of being listed
+            openVaultInBrowser(file.privateLink)
+            return
+        }
         setFile(file)
         account = eu.opencloud.android.presentation.authentication.AccountUtils.getOpenCloudAccountByName(this, file.owner)
 

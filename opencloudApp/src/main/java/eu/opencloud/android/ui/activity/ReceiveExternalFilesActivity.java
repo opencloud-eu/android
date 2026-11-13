@@ -501,7 +501,10 @@ public class ReceiveExternalFilesActivity extends FileActivity
         if (files.size() < position) {
             throw new IndexOutOfBoundsException("Incorrect item selected");
         }
-        if (files.get(position).isFolder()) {
+        if (files.get(position).isVault()) {
+            // Vault folders are encrypted by the web vault app, so they are opened in the browser instead of being listed
+            ActivityExtKt.openVaultInBrowser(this, files.get(position).getPrivateLink());
+        } else if (files.get(position).isFolder()) {
             OCFile folderToEnter = files.get(position);
             startSyncFolderOperation(folderToEnter);
             mParents.push(folderToEnter.getFileName());
