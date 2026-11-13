@@ -866,6 +866,14 @@
     <string name="release_notes_title_enhanced_bottom_nav_bar">Textetiketter har lagts till i nederkanten</string>
     <string name="release_notes_subtitle_bottom_nav_bar">Textetiketter har lagts till och den aktiva standardindikatorn används för att visa vilket avsnitt som är valt i nederkanten</string>
 
+    <string name="add_to_home_screen">Lägg till på startskärmen</string>
+    <string name="add_to_home_screen_dialog_title">Lägg till på startskärmen</string>
     <string name="add_to_home_screen_dialog_add_button">Lägg till</string>
     <string name="add_to_home_screen_dialog_error_empty">Namnet får inte vara tomt</string>
-    </resources>
+    <string name="add_to_home_screen_shortcut_added">Genväg har lagts till på startskärmen</string>
+    <string name="add_to_home_screen_shortcut_not_supported">Det går inte att lägga till en genväg på startskärmen</string>
+    <string name="add_to_home_screen_shortcut_failed">Det gick inte att lägga till genvägen på startskärmen</string>
+    <string name="add_to_home_screen_shortcut_folder_missing">Den här mappen är inte längre tillgänglig. Den kan ha tagits bort eller bytt namn.</string>
+    <string name="add_to_home_screen_dialog_error_length_max">Genvägens namn får inte vara längre än %d tecken.</string>
+
+</resources>
