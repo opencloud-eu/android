@@ -877,4 +877,40 @@
     <string name="add_to_home_screen_shortcut_folder_missing">This folder is no longer available. It may have been removed or renamed.</string>
     <string name="add_to_home_screen_dialog_error_length_max">Shortcut name must not be longer than %d characters.</string>
 
+
+    <!-- Additional (custom) folder uploads -->
+    <string name="prefs_subsection_custom_uploads">Additional upload folders</string>
+    <string name="prefs_subsection_custom_uploads_summary">Automatically upload files from more folders on this device</string>
+    <string name="prefs_custom_uploads_add">Add folder</string>
+    <string name="prefs_custom_uploads_add_summary">Pick another folder on this device to upload automatically</string>
+    <string name="prefs_custom_uploads_empty">No additional folders yet. Pictures from other apps (messengers, editors, screenshots…) can be uploaded by adding their folders here.</string>
+    <string name="prefs_custom_uploads_list_title">Folders</string>
+    <string name="prefs_custom_uploads_entry_summary">%1$s → %2$s</string>
+    <string name="prefs_custom_upload_title">Folder upload</string>
+    <string name="prefs_custom_upload_account">Account to upload to</string>
+    <string name="prefs_custom_upload_path_title">Upload path</string>
+    <string name="prefs_custom_upload_source_path_title">Folder on this device</string>
+    <string name="prefs_custom_upload_media_type">Files to upload</string>
+    <string name="prefs_custom_upload_media_type_images">Pictures only</string>
+    <string name="prefs_custom_upload_media_type_videos">Videos only</string>
+    <string name="prefs_custom_upload_media_type_images_and_videos">Pictures and videos</string>
+    <string name="prefs_custom_upload_media_type_all">All files</string>
+    <string name="prefs_custom_upload_on_wifi">Upload via wifi only</string>
+    <string name="prefs_custom_upload_on_charging">Upload only when charging</string>
+    <string name="prefs_custom_upload_remove">Remove this folder</string>
+    <string name="prefs_custom_upload_remove_summary">Stop uploading files from this folder automatically</string>
+    <string name="confirmation_remove_custom_upload_message">Stop automatically uploading this folder? Pending files from it will not be uploaded. Files already uploaded are not affected.</string>
+    <string name="custom_upload_existing_files_title">Upload files already in this folder?</string>
+    <string name="custom_upload_existing_files_message">You can upload everything that is already in this folder, or only files added from now on. Files that were already uploaded by this app are skipped.</string>
+    <string name="custom_upload_existing_files_all">Upload all</string>
+    <string name="custom_upload_existing_files_only_new">Only new files</string>
+    <string name="prefs_custom_upload_existing">Upload existing files</string>
+    <string name="prefs_custom_upload_existing_summary">Upload everything that is currently in this folder once</string>
+    <string name="confirmation_custom_upload_existing_message">All files currently in this folder that match \"Files to upload\" will be queued for upload. Files already uploaded by this app are skipped. Depending on the folder size this can take a while and use a lot of data.</string>
+    <string name="prefs_custom_uploads_sync_now">Upload now</string>
+    <string name="prefs_custom_uploads_sync_now_summary">Check all automatic upload folders for new files right away</string>
+    <string name="prefs_custom_uploads_sync_now_started">Checking folders for new files…</string>
+    <string name="prefs_custom_upload_account_only_one">%1$s (only account on this device)</string>
+    <string name="uploader_upload_custom_upload_files">%d new files from your additional upload folders will be uploaded.</string>
+    <string name="uploader_upload_custom_upload_error">The source path of an additional upload folder is not valid anymore.</string>
 </resources>

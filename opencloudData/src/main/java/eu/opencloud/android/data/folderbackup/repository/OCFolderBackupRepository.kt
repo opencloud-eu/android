@@ -41,4 +41,7 @@ class OCFolderBackupRepository(
     override fun resetFolderBackupConfigurationByName(name: String) =
         localFolderBackupDataSource.resetFolderBackupConfigurationByName(name)
 
+    override fun getCustomUploadsConfigurationsAsFlow(): Flow<List<FolderBackUpConfiguration>> =
+        localFolderBackupDataSource.getCustomUploadsConfigurationsAsFlow()
+
 }

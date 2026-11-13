@@ -18,6 +18,7 @@
  */
 package eu.opencloud.android.data.folderbackup.db
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import eu.opencloud.android.data.ProviderMeta
@@ -33,6 +34,8 @@ data class FolderBackUpEntity(
     val name: String,
     val lastSyncTimestamp: Long,
     val spaceId: String?,
+    @ColumnInfo(defaultValue = "IMAGES_AND_VIDEOS")
+    val mediaType: String = "IMAGES_AND_VIDEOS",
 ) {
     @PrimaryKey(autoGenerate = true) var id: Int = 0
 }

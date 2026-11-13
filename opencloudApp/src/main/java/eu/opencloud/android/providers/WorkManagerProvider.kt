@@ -87,6 +87,22 @@ class WorkManagerProvider(
         )
     }
 
+    /**
+     * Scan every automatic upload folder right now ("Upload now" in settings). Unlike the foreground trigger this is
+     * not skipped when another scan is running: the worker serialises scans, so this one simply runs afterwards.
+     */
+    fun enqueueSyncNowAutomaticUploadsWorker() {
+        val syncNowWorker = OneTimeWorkRequestBuilder<AutomaticUploadsWorker>()
+            .addTag(AutomaticUploadsWorker.SYNC_NOW_UPLOADS_WORKER)
+            .build()
+
+        WorkManager.getInstance(context).enqueueUniqueWork(
+            AutomaticUploadsWorker.SYNC_NOW_UPLOADS_WORKER,
+            ExistingWorkPolicy.REPLACE,
+            syncNowWorker
+        )
+    }
+
     fun enqueueOldLogsCollectorWorker() {
         val constraintsRequired = Constraints.Builder().setRequiredNetworkType(NetworkType.NOT_REQUIRED).build()
 

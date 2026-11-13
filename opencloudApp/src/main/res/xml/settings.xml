@@ -63,6 +63,13 @@
         app:title="@string/prefs_subsection_video_uploads" />
 
     <Preference
+        app:fragment="eu.opencloud.android.presentation.settings.automaticuploads.SettingsCustomUploadsFragment"
+        app:icon="@drawable/ic_folder"
+        app:key="custom_uploads_subsection"
+        app:summary="@string/prefs_subsection_custom_uploads_summary"
+        app:title="@string/prefs_subsection_custom_uploads" />
+
+    <Preference
         app:allowDividerAbove="true"
         app:fragment="eu.opencloud.android.presentation.settings.advanced.SettingsAdvancedFragment"
         app:icon="@drawable/ic_settings"

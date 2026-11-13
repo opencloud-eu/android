@@ -28,6 +28,7 @@ import eu.opencloud.android.data.spaces.datasources.LocalSpacesDataSource
 import eu.opencloud.android.data.user.datasources.LocalUserDataSource
 import eu.opencloud.android.domain.BaseUseCase
 import eu.opencloud.android.domain.automaticuploads.usecases.GetAutomaticUploadsConfigurationUseCase
+import eu.opencloud.android.domain.automaticuploads.usecases.ResetFolderBackupConfigurationUseCase
 import eu.opencloud.android.domain.automaticuploads.usecases.ResetPictureUploadsUseCase
 import eu.opencloud.android.domain.automaticuploads.usecases.ResetVideoUploadsUseCase
 import eu.opencloud.android.usecases.transfers.uploads.CancelTransfersFromAccountUseCase
@@ -41,6 +42,7 @@ class RemoveAccountUseCase(
     private val getAutomaticUploadsConfigurationUseCase: GetAutomaticUploadsConfigurationUseCase,
     private val resetPictureUploadsUseCase: ResetPictureUploadsUseCase,
     private val resetVideoUploadsUseCase: ResetVideoUploadsUseCase,
+    private val resetFolderBackupConfigurationUseCase: ResetFolderBackupConfigurationUseCase,
     private val cancelTransfersFromAccountUseCase: CancelTransfersFromAccountUseCase,
     private val localFileDataSource: LocalFileDataSource,
     private val localCapabilitiesDataSource: LocalCapabilitiesDataSource,
@@ -59,6 +61,9 @@ class RemoveAccountUseCase(
         if (params.accountName == cameraUploadsConfiguration.getDataOrNull()?.videoUploadsConfiguration?.accountName) {
             resetVideoUploadsUseCase(Unit)
         }
+        cameraUploadsConfiguration.getDataOrNull()?.customUploadsConfigurations
+            ?.filter { it.accountName == params.accountName }
+            ?.forEach { resetFolderBackupConfigurationUseCase(ResetFolderBackupConfigurationUseCase.Params(it.name)) }
 
         // Cancel transfers of the removed account
         cancelTransfersFromAccountUseCase(

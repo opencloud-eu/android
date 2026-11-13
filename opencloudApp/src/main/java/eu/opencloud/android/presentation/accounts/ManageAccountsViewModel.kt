@@ -83,8 +83,7 @@ class ManageAccountsViewModel(
     }
 
     fun hasAutomaticUploadsAttached(accountName: String): Boolean =
-        accountName == automaticUploadsConfiguration?.pictureUploadsConfiguration?.accountName ||
-                accountName == automaticUploadsConfiguration?.videoUploadsConfiguration?.accountName
+        automaticUploadsConfiguration?.isAccountAttached(accountName) == true
 
     fun checkUserLight(accountName: String): Boolean = runBlocking(CoroutinesDispatcherProvider().io) {
         val quota = withContext(CoroutinesDispatcherProvider().io) {

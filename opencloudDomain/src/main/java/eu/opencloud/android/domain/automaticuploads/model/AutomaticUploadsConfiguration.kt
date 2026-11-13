@@ -20,7 +20,14 @@ package eu.opencloud.android.domain.automaticuploads.model
 
 data class AutomaticUploadsConfiguration(
     val pictureUploadsConfiguration: FolderBackUpConfiguration?,
-    val videoUploadsConfiguration: FolderBackUpConfiguration?
+    val videoUploadsConfiguration: FolderBackUpConfiguration?,
+    val customUploadsConfigurations: List<FolderBackUpConfiguration> = emptyList(),
 ) {
-    fun areAutomaticUploadsDisabled() = pictureUploadsConfiguration == null && videoUploadsConfiguration == null
+    fun areAutomaticUploadsDisabled() =
+        pictureUploadsConfiguration == null && videoUploadsConfiguration == null && customUploadsConfigurations.isEmpty()
+
+    fun isAccountAttached(accountName: String): Boolean =
+        pictureUploadsConfiguration?.accountName == accountName ||
+                videoUploadsConfiguration?.accountName == accountName ||
+                customUploadsConfigurations.any { it.accountName == accountName }
 }
