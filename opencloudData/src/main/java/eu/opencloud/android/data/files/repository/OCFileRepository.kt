@@ -334,6 +334,17 @@ class OCFileRepository(
         return remoteFileDataSource.readFile(remotePath, accountName, spaceWebDavUrl).copy(spaceId = spaceId)
     }
 
+    override fun getRemoteFolderContent(remotePath: String, accountName: String, spaceId: String?): List<OCFile> {
+        val spaceWebDavUrl = localSpacesDataSource.getWebDavUrlForSpace(spaceId, accountName)
+
+        // The first PROPFIND result is the folder itself. Returning only its children keeps this
+        // operation read-only: unlike refreshFolder(), it never reconciles Room or local storage.
+        return remoteFileDataSource.refreshFolder(remotePath, accountName, spaceWebDavUrl)
+            .drop(1)
+            .distinctBy { it.remotePath }
+            .map { it.copy(spaceId = spaceId) }
+    }
+
     override fun refreshFolder(
         remotePath: String,
         accountName: String,

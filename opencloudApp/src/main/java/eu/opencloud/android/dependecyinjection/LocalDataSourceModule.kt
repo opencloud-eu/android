@@ -32,6 +32,8 @@ import eu.opencloud.android.data.authentication.datasources.LocalAuthenticationD
 import eu.opencloud.android.data.authentication.datasources.implementation.OCLocalAuthenticationDataSource
 import eu.opencloud.android.data.capabilities.datasources.LocalCapabilitiesDataSource
 import eu.opencloud.android.data.capabilities.datasources.implementation.OCLocalCapabilitiesDataSource
+import eu.opencloud.android.data.exportjobs.datasources.LocalExportJobDataSource
+import eu.opencloud.android.data.exportjobs.datasources.implementation.OCLocalExportJobDataSource
 import eu.opencloud.android.data.files.datasources.LocalFileDataSource
 import eu.opencloud.android.data.files.datasources.implementation.OCLocalFileDataSource
 import eu.opencloud.android.data.folderbackup.datasources.LocalFolderBackupDataSource
@@ -59,6 +61,7 @@ val localDataSourceModule = module {
 
     single { OpencloudDatabase.getDatabase(androidContext()).appRegistryDao() }
     single { OpencloudDatabase.getDatabase(androidContext()).capabilityDao() }
+    single { OpencloudDatabase.getDatabase(androidContext()).exportJobDao() }
     single { OpencloudDatabase.getDatabase(androidContext()).fileDao() }
     single { OpencloudDatabase.getDatabase(androidContext()).folderBackUpDao() }
     single { OpencloudDatabase.getDatabase(androidContext()).shareDao() }
@@ -73,6 +76,7 @@ val localDataSourceModule = module {
     factoryOf(::OCLocalFolderBackupDataSource) bind LocalFolderBackupDataSource::class
     factoryOf(::OCLocalAppRegistryDataSource) bind LocalAppRegistryDataSource::class
     factoryOf(::OCLocalCapabilitiesDataSource) bind LocalCapabilitiesDataSource::class
+    factoryOf(::OCLocalExportJobDataSource) bind LocalExportJobDataSource::class
     factoryOf(::OCLocalFileDataSource) bind LocalFileDataSource::class
     factoryOf(::OCLocalShareDataSource) bind LocalShareDataSource::class
     factoryOf(::OCLocalSpacesDataSource) bind LocalSpacesDataSource::class
