@@ -21,13 +21,13 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <Preference
-        app:icon="@drawable/ic_folder"
+        app:iconSpaceReserved="false"
         app:key="custom_uploads_add"
         app:summary="@string/prefs_custom_uploads_add_summary"
         app:title="@string/prefs_custom_uploads_add" />
 
     <Preference
-        app:icon="@drawable/ic_uploads"
+        app:iconSpaceReserved="false"
         app:key="custom_uploads_sync_now"
         app:summary="@string/prefs_custom_uploads_sync_now_summary"
         app:title="@string/prefs_custom_uploads_sync_now" />

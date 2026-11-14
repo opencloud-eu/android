@@ -64,7 +64,7 @@
 
     <Preference
         app:fragment="eu.opencloud.android.presentation.settings.automaticuploads.SettingsCustomUploadsFragment"
-        app:icon="@drawable/ic_folder"
+        app:icon="@drawable/ic_folder_uploads"
         app:key="custom_uploads_subsection"
         app:summary="@string/prefs_subsection_custom_uploads_summary"
         app:title="@string/prefs_subsection_custom_uploads" />
