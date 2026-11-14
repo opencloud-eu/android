@@ -29,14 +29,45 @@ data class FolderBackUpConfiguration(
     val lastSyncTimestamp: Long,
     val name: String,
     val spaceId: String?,
+    val mediaType: AutomaticUploadsMediaType = AutomaticUploadsMediaType.IMAGES_AND_VIDEOS,
 ) {
 
     val isPictureUploads get() = name == pictureUploadsName
     val isVideoUploads get() = name == videoUploadsName
+    val isCustomUploads get() = name.startsWith(customUploadsNamePrefix)
 
     companion object {
         const val pictureUploadsName = "Picture uploads"
         const val videoUploadsName = "Video uploads"
+
+        /**
+         * Additional, user-defined folder uploads are stored in the same table as picture and video uploads.
+         * Each one gets a unique name built with this prefix plus a random UUID.
+         */
+        const val customUploadsNamePrefix = "Folder uploads:"
+
+        fun newCustomUploadsName(): String = customUploadsNamePrefix + java.util.UUID.randomUUID().toString()
+    }
+}
+
+/**
+ * Kind of files that an automatic upload configuration picks up from its source folder.
+ * Only used by custom folder uploads; picture and video uploads keep their fixed behaviour.
+ */
+enum class AutomaticUploadsMediaType {
+    IMAGES, VIDEOS, IMAGES_AND_VIDEOS, ALL_FILES;
+
+    fun matches(mimeType: String): Boolean =
+        when (this) {
+            IMAGES -> mimeType.startsWith("image/")
+            VIDEOS -> mimeType.startsWith("video/")
+            IMAGES_AND_VIDEOS -> mimeType.startsWith("image/") || mimeType.startsWith("video/")
+            ALL_FILES -> true
+        }
+
+    companion object {
+        fun fromString(string: String?): AutomaticUploadsMediaType =
+            values().firstOrNull { it.name.equals(string, ignoreCase = true) } ?: IMAGES_AND_VIDEOS
     }
 }
 

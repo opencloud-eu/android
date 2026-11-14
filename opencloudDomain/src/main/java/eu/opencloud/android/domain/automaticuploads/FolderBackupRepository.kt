@@ -30,4 +30,6 @@ interface FolderBackupRepository {
     fun saveFolderBackupConfiguration(folderBackUpConfiguration: FolderBackUpConfiguration)
 
     fun resetFolderBackupConfigurationByName(name: String)
+
+    fun getCustomUploadsConfigurationsAsFlow(): Flow<List<FolderBackUpConfiguration>>
 }

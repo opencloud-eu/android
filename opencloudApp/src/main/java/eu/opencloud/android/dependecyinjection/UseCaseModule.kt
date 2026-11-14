@@ -41,10 +41,14 @@ import eu.opencloud.android.domain.availableoffline.usecases.GetFilesAvailableOf
 import eu.opencloud.android.domain.availableoffline.usecases.SetFilesAsAvailableOfflineUseCase
 import eu.opencloud.android.domain.availableoffline.usecases.UnsetFilesAsAvailableOfflineUseCase
 import eu.opencloud.android.domain.automaticuploads.usecases.GetAutomaticUploadsConfigurationUseCase
+import eu.opencloud.android.domain.automaticuploads.usecases.GetCustomUploadsConfigurationsStreamUseCase
+import eu.opencloud.android.domain.automaticuploads.usecases.GetFolderBackupConfigurationStreamUseCase
 import eu.opencloud.android.domain.automaticuploads.usecases.GetPictureUploadsConfigurationStreamUseCase
 import eu.opencloud.android.domain.automaticuploads.usecases.GetVideoUploadsConfigurationStreamUseCase
+import eu.opencloud.android.domain.automaticuploads.usecases.ResetFolderBackupConfigurationUseCase
 import eu.opencloud.android.domain.automaticuploads.usecases.ResetPictureUploadsUseCase
 import eu.opencloud.android.domain.automaticuploads.usecases.ResetVideoUploadsUseCase
+import eu.opencloud.android.domain.automaticuploads.usecases.SaveFolderBackupConfigurationUseCase
 import eu.opencloud.android.domain.automaticuploads.usecases.SavePictureUploadsConfigurationUseCase
 import eu.opencloud.android.domain.automaticuploads.usecases.SaveVideoUploadsConfigurationUseCase
 import eu.opencloud.android.domain.capabilities.usecases.GetCapabilitiesAsLiveDataUseCase
@@ -273,6 +277,10 @@ val useCaseModule = module {
     factoryOf(::GetVideoUploadsConfigurationStreamUseCase)
     factoryOf(::ResetPictureUploadsUseCase)
     factoryOf(::ResetVideoUploadsUseCase)
+    factoryOf(::GetCustomUploadsConfigurationsStreamUseCase)
+    factoryOf(::GetFolderBackupConfigurationStreamUseCase)
+    factoryOf(::SaveFolderBackupConfigurationUseCase)
+    factoryOf(::ResetFolderBackupConfigurationUseCase)
     factoryOf(::SavePictureUploadsConfigurationUseCase)
     factoryOf(::SaveVideoUploadsConfigurationUseCase)
 

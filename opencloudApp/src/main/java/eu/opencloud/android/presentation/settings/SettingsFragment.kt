@@ -52,6 +52,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
     private var prefAppearance: ListPreference? = null
     private var subsectionPictureUploads: Preference? = null
     private var subsectionVideoUploads: Preference? = null
+    private var subsectionCustomUploads: Preference? = null
     private var subsectionMore: Preference? = null
     private var prefPrivacyPolicy: Preference? = null
     private var subsectionWhatsNew: Preference? = null
@@ -80,6 +81,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
         }
         subsectionPictureUploads = findPreference(SUBSECTION_PICTURE_UPLOADS)
         subsectionVideoUploads = findPreference(SUBSECTION_VIDEO_UPLOADS)
+        subsectionCustomUploads = findPreference(SUBSECTION_CUSTOM_UPLOADS)
         subsectionMore = findPreference(SUBSECTION_MORE)
         prefPrivacyPolicy = findPreference(PREFERENCE_PRIVACY_POLICY)
         subsectionWhatsNew = findPreference(SUBSECTION_WHATSNEW)
@@ -88,6 +90,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
 
         subsectionPictureUploads?.isVisible = settingsViewModel.isThereAttachedAccount()
         subsectionVideoUploads?.isVisible = settingsViewModel.isThereAttachedAccount()
+        subsectionCustomUploads?.isVisible = settingsViewModel.isThereAttachedAccount()
         subsectionMore?.isVisible = moreViewModel.shouldMoreSectionBeVisible()
         subsectionWhatsNew?.isVisible = releaseNotesViewModel.shouldWhatsNewSectionBeVisible()
 
@@ -148,6 +151,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
         private const val PREFERENCE_ABOUT_APP = "about_app"
         private const val SUBSECTION_PICTURE_UPLOADS = "picture_uploads_subsection"
         private const val SUBSECTION_VIDEO_UPLOADS = "video_uploads_subsection"
+        private const val SUBSECTION_CUSTOM_UPLOADS = "custom_uploads_subsection"
         private const val SUBSECTION_MORE = "more_subsection"
         private const val SUBSECTION_NOTIFICATIONS = "notifications_subsection"
         private const val SUBSECTION_WHATSNEW = "whatsNew"

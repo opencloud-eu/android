@@ -23,6 +23,7 @@ package eu.opencloud.android.workers
 
 import android.content.Context
 import android.net.Uri
+import android.provider.DocumentsContract
 import androidx.core.net.toUri
 import androidx.documentfile.provider.DocumentFile
 import androidx.work.CoroutineWorker
@@ -33,6 +34,7 @@ import eu.opencloud.android.domain.UseCaseResult
 import eu.opencloud.android.domain.automaticuploads.model.FolderBackUpConfiguration
 import eu.opencloud.android.domain.automaticuploads.model.UploadBehavior
 import eu.opencloud.android.domain.automaticuploads.usecases.GetAutomaticUploadsConfigurationUseCase
+import eu.opencloud.android.domain.automaticuploads.usecases.SaveFolderBackupConfigurationUseCase
 import eu.opencloud.android.domain.automaticuploads.usecases.SavePictureUploadsConfigurationUseCase
 import eu.opencloud.android.domain.automaticuploads.usecases.SaveVideoUploadsConfigurationUseCase
 import eu.opencloud.android.domain.transfers.TransferRepository
@@ -44,6 +46,8 @@ import eu.opencloud.android.usecases.transfers.uploads.UploadFileFromContentUriU
 import eu.opencloud.android.utils.MimetypeIconUtil
 import eu.opencloud.android.utils.NotificationUtils
 import eu.opencloud.android.utils.UPLOAD_NOTIFICATION_CHANNEL_ID
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
@@ -61,12 +65,13 @@ class AutomaticUploadsWorker(
 ), KoinComponent {
 
     enum class SyncType(val prefixForType: String) {
-        PICTURE_UPLOADS("image/"), VIDEO_UPLOADS("video/");
+        PICTURE_UPLOADS("image/"), VIDEO_UPLOADS("video/"), CUSTOM_UPLOADS("");
 
         fun getNotificationId(): Int =
             when (this) {
                 PICTURE_UPLOADS -> pictureUploadsNotificationId
                 VIDEO_UPLOADS -> videoUploadsNotificationId
+                CUSTOM_UPLOADS -> customUploadsNotificationId
             }
     }
 
@@ -74,7 +79,12 @@ class AutomaticUploadsWorker(
 
     private val transferRepository: TransferRepository by inject()
 
-    override suspend fun doWork(): Result {
+    // Only one scan at a time per process. WorkManager can restart this worker while a previous run is still
+    // blocked in I/O, and the periodic, foreground and "upload now" triggers can overlap. Parallel scans waste
+    // time and race on lastSyncTimestamp.
+    override suspend fun doWork(): Result = scanMutex.withLock { doScan() }
+
+    private fun doScan(): Result {
         Timber.i("Starting AutomaticUploadsWorker with UUID ${this.id}")
         when (val useCaseResult = getAutomaticUploadsConfigurationUseCase(Unit)) {
             is UseCaseResult.Success -> {
@@ -90,6 +100,11 @@ class AutomaticUploadsWorker(
                     } catch (illegalArgumentException: IllegalArgumentException) {
                         Timber.e(illegalArgumentException, "Source path for picture uploads is not valid")
                         showNotificationToUpdateUri(SyncType.PICTURE_UPLOADS)
+                    } catch (securityException: SecurityException) {
+                        Timber.e(securityException, "Lost access to source folder for picture uploads")
+                        showNotificationToUpdateUri(SyncType.PICTURE_UPLOADS)
+                    } catch (exception: Exception) {
+                        Timber.e(exception, "Could not scan source folder for picture uploads, will retry next run")
                     }
                 }
                 cameraUploadsConfiguration.videoUploadsConfiguration?.let { videoUploadsConfiguration ->
@@ -99,6 +114,25 @@ class AutomaticUploadsWorker(
                     } catch (illegalArgumentException: IllegalArgumentException) {
                         Timber.e(illegalArgumentException, "Source path for video uploads is not valid")
                         showNotificationToUpdateUri(SyncType.VIDEO_UPLOADS)
+                    } catch (securityException: SecurityException) {
+                        Timber.e(securityException, "Lost access to source folder for video uploads")
+                        showNotificationToUpdateUri(SyncType.VIDEO_UPLOADS)
+                    } catch (exception: Exception) {
+                        Timber.e(exception, "Could not scan source folder for video uploads, will retry next run")
+                    }
+                }
+                cameraUploadsConfiguration.customUploadsConfigurations.forEach { customUploadsConfiguration ->
+                    try {
+                        checkSourcePathIsAValidUriOrThrowException(customUploadsConfiguration.sourcePath)
+                        syncFolder(customUploadsConfiguration)
+                    } catch (illegalArgumentException: IllegalArgumentException) {
+                        Timber.e(illegalArgumentException, "Source path for folder uploads is not valid")
+                        showNotificationToUpdateUri(SyncType.CUSTOM_UPLOADS)
+                    } catch (securityException: SecurityException) {
+                        Timber.e(securityException, "Lost access to source folder for folder uploads")
+                        showNotificationToUpdateUri(SyncType.CUSTOM_UPLOADS)
+                    } catch (exception: Exception) {
+                        Timber.e(exception, "Could not scan source folder for folder uploads, will retry next run")
                     }
                 }
             }
@@ -122,18 +156,30 @@ class AutomaticUploadsWorker(
 
     private fun syncFolder(folderBackUpConfiguration: FolderBackUpConfiguration?) {
         if (folderBackUpConfiguration == null) return
+        if (folderBackUpConfiguration.sourcePath.isBlank()) {
+            Timber.w("No source folder set for ${folderBackUpConfiguration.name}, skipping")
+            return
+        }
 
         val syncType = when {
             folderBackUpConfiguration.isPictureUploads -> SyncType.PICTURE_UPLOADS
             folderBackUpConfiguration.isVideoUploads -> SyncType.VIDEO_UPLOADS
+            folderBackUpConfiguration.isCustomUploads -> SyncType.CUSTOM_UPLOADS
             // Else should not happen for the moment. Maybe in upcoming features..
             else -> SyncType.PICTURE_UPLOADS
         }
 
+        val mimeTypeFilter: (String) -> Boolean = if (syncType == SyncType.CUSTOM_UPLOADS) {
+            { mimeType -> folderBackUpConfiguration.mediaType.matches(mimeType) }
+        } else {
+            { mimeType -> mimeType.startsWith(syncType.prefixForType) }
+        }
+
         val currentTimestamp = System.currentTimeMillis()
 
-        val localPicturesDocumentFiles: List<DocumentFile> = getFilesReadyToUpload(
+        val localPicturesDocumentFiles: List<LocalFile> = getFilesReadyToUpload(
             syncType = syncType,
+            mimeTypeFilter = mimeTypeFilter,
             sourcePath = folderBackUpConfiguration.sourcePath,
             lastSyncTimestamp = folderBackUpConfiguration.lastSyncTimestamp,
             currentTimestamp = currentTimestamp,
@@ -148,6 +194,7 @@ class AutomaticUploadsWorker(
             // enqueued with a new upload ID — leading to duplicate uploads or 0-byte files
             // when two workers race on the same cache path.
             val contentUri = documentFile.uri.toString()
+            Timber.i("Enqueueing %s (%s) -> %s", documentFile.name, documentFile.mimeType, folderBackUpConfiguration.uploadPath)
             if (transferRepository.existsNonFailedTransferForUri(contentUri)) {
                 Timber.d("Skipping already-tracked file: %s", documentFile.name)
                 continue
@@ -158,7 +205,7 @@ class AutomaticUploadsWorker(
                 accountName = folderBackUpConfiguration.accountName,
                 behavior = folderBackUpConfiguration.behavior,
                 createdByWorker = when (syncType) {
-                    SyncType.PICTURE_UPLOADS -> UploadEnqueuedBy.ENQUEUED_AS_AUTOMATIC_UPLOAD_PICTURE
+                    SyncType.PICTURE_UPLOADS, SyncType.CUSTOM_UPLOADS -> UploadEnqueuedBy.ENQUEUED_AS_AUTOMATIC_UPLOAD_PICTURE
                     SyncType.VIDEO_UPLOADS -> UploadEnqueuedBy.ENQUEUED_AS_AUTOMATIC_UPLOAD_VIDEO
                 },
                 spaceId = folderBackUpConfiguration.spaceId
@@ -166,7 +213,7 @@ class AutomaticUploadsWorker(
             enqueueSingleUpload(
                 contentUri = documentFile.uri,
                 uploadPath = folderBackUpConfiguration.uploadPath.plus(File.separator).plus(documentFile.name),
-                lastModified = documentFile.lastModified(),
+                lastModified = documentFile.lastModified,
                 behavior = folderBackUpConfiguration.behavior.toString(),
                 accountName = folderBackUpConfiguration.accountName,
                 uploadId = uploadId,
@@ -189,6 +236,7 @@ class AutomaticUploadsWorker(
         val contentText = when (syncType) {
             SyncType.PICTURE_UPLOADS -> R.string.uploader_upload_picture_upload_files
             SyncType.VIDEO_UPLOADS -> R.string.uploader_upload_video_upload_files
+            SyncType.CUSTOM_UPLOADS -> R.string.uploader_upload_custom_upload_files
         }
 
         NotificationUtils.createBasicNotification(
@@ -209,10 +257,12 @@ class AutomaticUploadsWorker(
         val contentText: Int = when (syncType) {
             SyncType.PICTURE_UPLOADS -> R.string.uploader_upload_picture_upload_error
             SyncType.VIDEO_UPLOADS -> R.string.uploader_upload_video_upload_error
+            SyncType.CUSTOM_UPLOADS -> R.string.uploader_upload_custom_upload_error
         }
         val notificationKey: String = when (syncType) {
             SyncType.PICTURE_UPLOADS -> SettingsActivity.NOTIFICATION_INTENT_PICTURES
             SyncType.VIDEO_UPLOADS -> SettingsActivity.NOTIFICATION_INTENT_VIDEOS
+            SyncType.CUSTOM_UPLOADS -> SettingsActivity.NOTIFICATION_INTENT_CUSTOM_FOLDERS
         }
         NotificationUtils.createBasicNotification(
             context = appContext,
@@ -245,37 +295,100 @@ class AutomaticUploadsWorker(
                     SaveVideoUploadsConfigurationUseCase.Params(folderBackUpConfiguration.copy(lastSyncTimestamp = currentTimestamp))
                 )
             }
+            SyncType.CUSTOM_UPLOADS -> {
+                val saveFolderBackupConfigurationUseCase: SaveFolderBackupConfigurationUseCase by inject()
+                saveFolderBackupConfigurationUseCase(
+                    SaveFolderBackupConfigurationUseCase.Params(folderBackUpConfiguration.copy(lastSyncTimestamp = currentTimestamp))
+                )
+            }
         }
     }
 
+    /**
+     * Lists the files directly inside [sourcePath] (a SAF tree URI) with a single ContentResolver query.
+     *
+     * Unlike DocumentFile.listFiles(), which needs one IPC round trip per file for name, type and date (minutes for
+     * a camera folder with thousands of files), this reads everything in one go. It also throws on errors instead of
+     * silently returning an empty list, so the caller does not advance lastSyncTimestamp past files it never saw.
+     */
+    @Throws(Exception::class)
     private fun getFilesReadyToUpload(
         syncType: SyncType,
+        mimeTypeFilter: (String) -> Boolean,
         sourcePath: String,
         lastSyncTimestamp: Long,
         currentTimestamp: Long,
-    ): List<DocumentFile> {
-        val sourceUri: Uri = sourcePath.toUri()
-        val documentTree = DocumentFile.fromTreeUri(applicationContext, sourceUri)
-        val arrayOfLocalFiles = documentTree?.listFiles() ?: arrayOf()
+    ): List<LocalFile> {
+        val treeUri: Uri = sourcePath.toUri()
+        val localFiles = listChildDocuments(treeUri)
 
         // Exclude files modified within the last few seconds. Camera apps may still be
         // writing the file (not all apps use atomic rename), so picking it up too early
         // can result in uploading a truncated or 0-byte JPEG.
         val safeTimestamp = currentTimestamp - WRITE_SAFETY_BUFFER_MS
 
-        val filteredList: List<DocumentFile> = arrayOfLocalFiles
-            .sortedBy { it.lastModified() }
-            .filter { it.lastModified() >= lastSyncTimestamp }
-            .filter { it.lastModified() < safeTimestamp }
-            .filter { MimetypeIconUtil.getBestMimeTypeByFilename(it.name).startsWith(syncType.prefixForType) }
+        val files = localFiles.filterNot { it.isDirectory }
+        val filteredList: List<LocalFile> = files
+            .filter { it.lastModified >= lastSyncTimestamp }
+            .filter { it.lastModified < safeTimestamp }
+            .filter { mimeTypeFilter(it.mimeType) }
+            .sortedBy { it.lastModified }
 
         Timber.i("Last sync ${syncType.name}: ${Date(lastSyncTimestamp)}")
         Timber.i("CurrentTimestamp ${Date(currentTimestamp)}")
-        Timber.i("${arrayOfLocalFiles.size} files found in folder: ${sourceUri.path}")
+        Timber.i("${files.size} files found in folder: ${treeUri.path}")
         Timber.i("${filteredList.size} files are ${syncType.name} and were taken after last sync")
 
         return filteredList
     }
+
+    private fun listChildDocuments(treeUri: Uri): List<LocalFile> {
+        val contentResolver = appContext.contentResolver
+        val hasPersistedPermission = contentResolver.persistedUriPermissions.any { it.uri == treeUri && it.isReadPermission }
+        if (!hasPersistedPermission) {
+            Timber.w("No persisted read permission for $treeUri. Persisted: ${contentResolver.persistedUriPermissions.map { it.uri }}")
+        }
+        val childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(treeUri, DocumentsContract.getTreeDocumentId(treeUri))
+        val projection = arrayOf(
+            DocumentsContract.Document.COLUMN_DOCUMENT_ID,
+            DocumentsContract.Document.COLUMN_DISPLAY_NAME,
+            DocumentsContract.Document.COLUMN_MIME_TYPE,
+            DocumentsContract.Document.COLUMN_LAST_MODIFIED,
+            DocumentsContract.Document.COLUMN_SIZE,
+        )
+        val result = mutableListOf<LocalFile>()
+        val cursor = contentResolver.query(childrenUri, projection, null, null, null)
+            ?: throw IllegalStateException("Query returned no cursor for $childrenUri")
+        cursor.use {
+            while (it.moveToNext()) {
+                val documentId = it.getString(0) ?: continue
+                val name = it.getString(1) ?: continue
+                val providerMimeType: String? = it.getString(2)
+                val isDirectory = providerMimeType == DocumentsContract.Document.MIME_TYPE_DIR
+                val mimeType = if (isDirectory) DocumentsContract.Document.MIME_TYPE_DIR else MimetypeIconUtil.getBestMimeTypeByFilename(name)
+                result.add(
+                    LocalFile(
+                        uri = DocumentsContract.buildDocumentUriUsingTree(treeUri, documentId),
+                        name = name,
+                        mimeType = mimeType ?: "",
+                        lastModified = if (it.isNull(3)) 0L else it.getLong(3),
+                        length = if (it.isNull(4)) 0L else it.getLong(4),
+                        isDirectory = isDirectory,
+                    )
+                )
+            }
+        }
+        return result
+    }
+
+    private data class LocalFile(
+        val uri: Uri,
+        val name: String,
+        val mimeType: String,
+        val lastModified: Long,
+        val length: Long,
+        val isDirectory: Boolean,
+    )
 
     private fun enqueueSingleUpload(
         contentUri: Uri,
@@ -304,7 +417,7 @@ class AutomaticUploadsWorker(
     }
 
     private fun storeInUploadsDatabase(
-        documentFile: DocumentFile,
+        documentFile: LocalFile,
         uploadPath: String,
         accountName: String,
         behavior: UploadBehavior,
@@ -315,7 +428,7 @@ class AutomaticUploadsWorker(
             localPath = documentFile.uri.toString(),
             remotePath = uploadPath,
             accountName = accountName,
-            fileSize = documentFile.length(),
+            fileSize = documentFile.length,
             status = TransferStatus.TRANSFER_QUEUED,
             localBehaviour = behavior,
             forceOverwrite = false,
@@ -330,10 +443,13 @@ class AutomaticUploadsWorker(
     companion object {
         const val AUTOMATIC_UPLOADS_WORKER = "AUTOMATIC_UPLOADS_WORKER"
         const val IMMEDIATE_UPLOADS_WORKER = "IMMEDIATE_AUTOMATIC_UPLOADS_WORKER"
+        const val SYNC_NOW_UPLOADS_WORKER = "SYNC_NOW_AUTOMATIC_UPLOADS_WORKER"
+        private val scanMutex = Mutex()
         const val repeatInterval: Long = 15L
         val repeatIntervalTimeUnit: TimeUnit = TimeUnit.MINUTES
         private const val pictureUploadsNotificationId = 101
         private const val videoUploadsNotificationId = 102
+        private const val customUploadsNotificationId = 103
         const val WRITE_SAFETY_BUFFER_MS = 10_000L
     }
 }

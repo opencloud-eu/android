@@ -23,7 +23,9 @@ import eu.opencloud.android.data.folderbackup.datasources.LocalFolderBackupDataS
 import eu.opencloud.android.data.folderbackup.db.FolderBackUpEntity
 import eu.opencloud.android.data.folderbackup.db.FolderBackupDao
 import eu.opencloud.android.domain.automaticuploads.model.AutomaticUploadsConfiguration
+import eu.opencloud.android.domain.automaticuploads.model.AutomaticUploadsMediaType
 import eu.opencloud.android.domain.automaticuploads.model.FolderBackUpConfiguration
+import eu.opencloud.android.domain.automaticuploads.model.FolderBackUpConfiguration.Companion.customUploadsNamePrefix
 import eu.opencloud.android.domain.automaticuploads.model.FolderBackUpConfiguration.Companion.pictureUploadsName
 import eu.opencloud.android.domain.automaticuploads.model.FolderBackUpConfiguration.Companion.videoUploadsName
 import eu.opencloud.android.domain.automaticuploads.model.UploadBehavior
@@ -38,11 +40,14 @@ class OCLocalFolderBackupDataSource(
         val pictureUploadsConfiguration = folderBackupDao.getFolderBackUpConfigurationByName(pictureUploadsName)
         val videoUploadsConfiguration = folderBackupDao.getFolderBackUpConfigurationByName(videoUploadsName)
 
-        if (pictureUploadsConfiguration == null && videoUploadsConfiguration == null) return null
+        val customUploadsConfigurations = folderBackupDao.getFolderBackUpConfigurationsByNamePrefix(customUploadsNamePrefix)
+
+        if (pictureUploadsConfiguration == null && videoUploadsConfiguration == null && customUploadsConfigurations.isEmpty()) return null
 
         return AutomaticUploadsConfiguration(
             pictureUploadsConfiguration = pictureUploadsConfiguration?.toModel(),
             videoUploadsConfiguration = videoUploadsConfiguration?.toModel(),
+            customUploadsConfigurations = customUploadsConfigurations.map { it.toModel() },
         )
     }
 
@@ -56,6 +61,9 @@ class OCLocalFolderBackupDataSource(
     override fun resetFolderBackupConfigurationByName(name: String) {
         folderBackupDao.delete(name)
     }
+
+    override fun getCustomUploadsConfigurationsAsFlow(): Flow<List<FolderBackUpConfiguration>> =
+        folderBackupDao.getFolderBackUpConfigurationsByNamePrefixAsFlow(customUploadsNamePrefix).map { list -> list.map { it.toModel() } }
 
     /**************************************************************************************************************
      ************************************************* Mappers ****************************************************
@@ -72,6 +80,7 @@ class OCLocalFolderBackupDataSource(
             name = name,
             lastSyncTimestamp = lastSyncTimestamp,
             spaceId = spaceId,
+            mediaType = mediaType.name,
         )
 
     companion object {
@@ -87,6 +96,7 @@ class OCLocalFolderBackupDataSource(
                 lastSyncTimestamp = lastSyncTimestamp,
                 name = name,
                 spaceId = spaceId,
+                mediaType = AutomaticUploadsMediaType.fromString(mediaType),
             )
     }
 }

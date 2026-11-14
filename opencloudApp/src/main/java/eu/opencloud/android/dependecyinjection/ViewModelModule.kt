@@ -47,6 +47,8 @@ import eu.opencloud.android.presentation.security.passcode.PasscodeAction
 import eu.opencloud.android.presentation.security.pattern.PatternViewModel
 import eu.opencloud.android.presentation.settings.SettingsViewModel
 import eu.opencloud.android.presentation.settings.advanced.SettingsAdvancedViewModel
+import eu.opencloud.android.presentation.settings.automaticuploads.SettingsCustomUploadViewModel
+import eu.opencloud.android.presentation.settings.automaticuploads.SettingsCustomUploadsViewModel
 import eu.opencloud.android.presentation.settings.automaticuploads.SettingsPictureUploadsViewModel
 import eu.opencloud.android.presentation.settings.automaticuploads.SettingsVideoUploadsViewModel
 import eu.opencloud.android.presentation.settings.logging.SettingsLogsViewModel
@@ -80,11 +82,15 @@ val viewModelModule = module {
     viewModelOf(::SettingsLogsViewModel)
     viewModelOf(::SettingsMoreViewModel)
     viewModelOf(::SettingsPictureUploadsViewModel)
+    viewModelOf(::SettingsCustomUploadsViewModel)
     viewModelOf(::SettingsSecurityViewModel)
     viewModelOf(::SettingsVideoUploadsViewModel)
     viewModelOf(::SettingsViewModel)
     viewModelOf(::FileOperationsViewModel)
 
+    viewModel { (configurationName: String) ->
+        SettingsCustomUploadViewModel(configurationName, get(), get(), get(), get(), get(), get(), get(), get())
+    }
     viewModel { (accountName: String) -> CapabilityViewModel(accountName, get(), get(), get(), get()) }
     viewModel { (action: PasscodeAction) -> PassCodeViewModel(get(), get(), action) }
     viewModel { (filePath: String, accountName: String) ->

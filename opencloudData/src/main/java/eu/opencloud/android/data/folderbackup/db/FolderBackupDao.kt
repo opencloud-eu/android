@@ -39,6 +39,16 @@ interface FolderBackupDao {
         name: String
     ): Flow<FolderBackUpEntity?>
 
+    @Query(SELECT_BY_NAME_PREFIX)
+    fun getFolderBackUpConfigurationsByNamePrefix(
+        prefix: String
+    ): List<FolderBackUpEntity>
+
+    @Query(SELECT_BY_NAME_PREFIX)
+    fun getFolderBackUpConfigurationsByNamePrefixAsFlow(
+        prefix: String
+    ): Flow<List<FolderBackUpEntity>>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertOrReplace(folderBackUpEntity: FolderBackUpEntity): Long
 
@@ -56,6 +66,13 @@ interface FolderBackupDao {
             SELECT *
             FROM ${ProviderMeta.ProviderTableMeta.FOLDER_BACKUP_TABLE_NAME}
             WHERE name = :name
+        """
+
+        private const val SELECT_BY_NAME_PREFIX = """
+            SELECT *
+            FROM ${ProviderMeta.ProviderTableMeta.FOLDER_BACKUP_TABLE_NAME}
+            WHERE substr(name, 1, length(:prefix)) = :prefix
+            ORDER BY id
         """
 
         private const val DELETE = """

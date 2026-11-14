@@ -33,6 +33,8 @@ import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
 import eu.opencloud.android.R
 import eu.opencloud.android.presentation.settings.advanced.SettingsAdvancedFragment
+import eu.opencloud.android.presentation.settings.automaticuploads.SettingsCustomUploadFragment
+import eu.opencloud.android.presentation.settings.automaticuploads.SettingsCustomUploadsFragment
 import eu.opencloud.android.presentation.settings.automaticuploads.SettingsPictureUploadsFragment
 import eu.opencloud.android.presentation.settings.automaticuploads.SettingsVideoUploadsFragment
 import eu.opencloud.android.presentation.settings.logging.SettingsLogsFragment
@@ -81,6 +83,8 @@ class SettingsActivity : AppCompatActivity() {
             is SettingsLogsFragment -> R.string.prefs_subsection_logging
             is SettingsPictureUploadsFragment -> R.string.prefs_subsection_picture_uploads
             is SettingsVideoUploadsFragment -> R.string.prefs_subsection_video_uploads
+            is SettingsCustomUploadsFragment -> R.string.prefs_subsection_custom_uploads
+            is SettingsCustomUploadFragment -> R.string.prefs_custom_upload_title
             is SettingsAdvancedFragment -> R.string.prefs_subsection_advanced
             is SettingsMoreFragment -> R.string.prefs_subsection_more
             else -> R.string.actionbar_settings
@@ -109,6 +113,7 @@ class SettingsActivity : AppCompatActivity() {
         val fragment = when (intent?.getStringExtra(KEY_NOTIFICATION_INTENT)) {
             NOTIFICATION_INTENT_PICTURES -> SettingsPictureUploadsFragment()
             NOTIFICATION_INTENT_VIDEOS -> SettingsVideoUploadsFragment()
+            NOTIFICATION_INTENT_CUSTOM_FOLDERS -> SettingsCustomUploadsFragment()
             else -> SettingsFragment()
         }
 
@@ -122,5 +127,6 @@ class SettingsActivity : AppCompatActivity() {
         const val KEY_NOTIFICATION_INTENT = "key_notification_intent"
         const val NOTIFICATION_INTENT_PICTURES = "picture_uploads"
         const val NOTIFICATION_INTENT_VIDEOS = "video_uploads"
+        const val NOTIFICATION_INTENT_CUSTOM_FOLDERS = "custom_folder_uploads"
     }
 }
