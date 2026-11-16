@@ -37,6 +37,8 @@ import eu.opencloud.android.data.authentication.QUERY_PARAMETER_SCOPE
 import eu.opencloud.android.data.authentication.QUERY_PARAMETER_STATE
 import eu.opencloud.android.data.authentication.QUERY_PARAMETER_USER
 import eu.opencloud.android.domain.authentication.oauth.model.ClientRegistrationRequest
+import eu.opencloud.android.providers.MdmProvider
+import eu.opencloud.android.utils.CONFIGURATION_OAUTH2_OPEN_ID_PROMPT
 import java.net.URLEncoder
 import java.security.MessageDigest
 import java.security.SecureRandom
@@ -96,9 +98,11 @@ class OAuthUtils {
             return "Basic " + Base64.encodeToString(credentials.toByteArray(), Base64.NO_WRAP)
         }
 
-        fun getCreateAccountPrompt(scope: String): String =
-            // Request offline consent without forcing fresh authentication.
-            if ("offline_access" in scope.split(' ')) "consent" else "login"
+        // loginAction (ACTION_CREATE, ACTION_UPDATE_TOKEN, ...) is not used yet, but lets the prompt differ per action later.
+        // Keep the prompt a single value, some IDPs reject multiple values like "login consent".
+        @Suppress("UnusedParameter")
+        fun getPrompt(loginAction: Byte, mdmProvider: MdmProvider): String =
+            mdmProvider.getBrandingString(CONFIGURATION_OAUTH2_OPEN_ID_PROMPT, R.string.oauth2_openid_prompt)
 
         fun buildAuthorizationRequest(
             authorizationEndpoint: Uri,

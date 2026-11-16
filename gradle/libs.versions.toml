@@ -1,11 +1,11 @@
 [versions]
 androidGradlePlugin = "8.13.2"
-androidxActivity = "1.8.0"
+androidxActivity = "1.9.0"
 androidxAnnotation = "1.6.0"
 androidxAppCompat = "1.6.1"
 androidxArch = "2.2.0"
 androidxBiometric = "1.1.0"
-androidxBrowser = "1.5.0"
+androidxBrowser = "1.9.0"
 androidxContraintLayout = "2.1.4"
 androidxCore = "1.10.1"
 androidxEnterpriseFeedback = "1.1.0"
