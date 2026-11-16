@@ -200,6 +200,10 @@ class FileListAdapter(
         return checkedItems
     }
 
+    // Vault folders are encrypted by the web vault app, so no action can be performed on them
+    override fun isSelectable(position: Int): Boolean =
+        (files.getOrNull(position) as? OCFileWithSyncInfo)?.file?.isVault == false
+
     fun selectAll() {
         // Last item on list is the footer, so that element must be excluded from selection
         selectAll(totalItems = selectableItemCount())
@@ -273,7 +277,7 @@ class FileListAdapter(
                 )
             }
             val checkBoxV = holder.itemView.findViewById<ImageView>(R.id.custom_checkbox).apply {
-                isVisible = hasActiveSelection
+                isVisible = hasActiveSelection && !file.isVault
             }
 
             if (isSelected(position)) {
@@ -341,7 +345,7 @@ class FileListAdapter(
                     it.Filename.text = file.fileName
                     it.fileListSize.text = DisplayUtils.bytesToHumanReadable(file.length, context, true)
                     it.fileListLastMod.text = DisplayUtils.getRelativeTimestamp(context, file.modificationTimestamp)
-                    it.threeDotMenu.isVisible = !hasActiveSelection
+                    it.threeDotMenu.isVisible = !hasActiveSelection && !file.isVault // Vaults only open in the browser
                     it.threeDotMenu.contentDescription = context.getString(R.string.content_description_file_operations, file.fileName)
                     if (fileListOption.isAvailableOffline() || (fileListOption.isSharedByLink() && fileWithSyncInfo.space == null)) {
                         it.spacePathLine.path.apply {

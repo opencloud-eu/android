@@ -41,6 +41,7 @@ import at.bitfire.dav4jvm.property.OCSize
 import eu.opencloud.android.lib.common.http.HttpConstants
 import eu.opencloud.android.lib.common.http.methods.webdav.properties.OCChecksums
 import eu.opencloud.android.lib.common.http.methods.webdav.properties.OCHasPreview
+import eu.opencloud.android.lib.common.http.methods.webdav.properties.OCIntegrityId
 import eu.opencloud.android.lib.common.http.methods.webdav.properties.OCShareTypes
 import eu.opencloud.android.lib.common.utils.isOneOf
 import eu.opencloud.android.lib.resources.shares.ShareType
@@ -79,6 +80,8 @@ data class RemoteFile(
     var checksums: List<String> = emptyList(),
     /** Whether the server can render a thumbnail for this file (from `<oc:has-preview>`). */
     var hasPreview: Boolean = false,
+    /** Whether this folder is an encrypted vault created by the web vault app (from `<integrity-id xmlns="ocrclone">`). */
+    var isVault: Boolean = false,
 ) : Parcelable {
 
     // To do: Quotas not used. Use or remove them.
@@ -145,6 +148,9 @@ data class RemoteFile(
                     }
                     is OCHasPreview -> {
                         remoteFile.hasPreview = property.hasPreview
+                    }
+                    is OCIntegrityId -> {
+                        remoteFile.isVault = property.isVault
                     }
                     is OCShareTypes -> {
                         val list = property.shareTypes

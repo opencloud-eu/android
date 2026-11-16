@@ -30,8 +30,8 @@ class SetFilesAsAvailableOfflineUseCase(
     override fun run(params: Params) {
         params.filesToSetAsAvailableOffline.forEach { fileToSetAsAvailableOffline ->
             // Its possible to multiselect several files including already available offline files.
-            // If it is already available offline, we will ignore it.
-            if (!fileToSetAsAvailableOffline.isAvailableOffline) {
+            // If it is already available offline, we will ignore it. Vaults are encrypted, so they can't be available offline.
+            if (!fileToSetAsAvailableOffline.isAvailableOffline && !fileToSetAsAvailableOffline.isVault) {
                 fileRepository.updateFileWithNewAvailableOfflineStatus(
                     ocFile = fileToSetAsAvailableOffline,
                     newAvailableOfflineStatus = AvailableOfflineStatus.AVAILABLE_OFFLINE,

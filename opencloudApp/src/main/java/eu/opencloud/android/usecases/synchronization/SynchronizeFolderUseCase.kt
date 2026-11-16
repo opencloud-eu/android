@@ -37,6 +37,9 @@ class SynchronizeFolderUseCase(
         val remotePath = params.remotePath
         val accountName = params.accountName
 
+        // Vault folders are encrypted by the web vault app, so their contents are never listed or synced
+        if (fileRepository.getFileByRemotePath(remotePath, accountName, params.spaceId)?.isVault == true) return
+
         val folderContent = fileRepository.refreshFolder(
             remotePath = remotePath,
             accountName = accountName,
@@ -68,7 +71,8 @@ class SynchronizeFolderUseCase(
     }
 
     private fun shouldSyncFolder(syncMode: SyncFolderMode, ocFolder: OCFile) =
-        syncMode.isOneOf(REFRESH_FOLDER_RECURSIVELY, SYNC_FOLDER_RECURSIVELY) || syncMode == SYNC_CONTENTS && ocFolder.isAvailableOffline
+        !ocFolder.isVault &&
+            (syncMode.isOneOf(REFRESH_FOLDER_RECURSIVELY, SYNC_FOLDER_RECURSIVELY) || syncMode == SYNC_CONTENTS && ocFolder.isAvailableOffline)
 
     private fun shouldSyncFile(syncMode: SyncFolderMode, ocFile: OCFile) =
         syncMode == SYNC_FOLDER_RECURSIVELY || (syncMode == SYNC_CONTENTS && (ocFile.isAvailableLocally || ocFile.isAvailableOffline))

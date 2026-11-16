@@ -676,6 +676,7 @@
     <string name="share_via_link_empty_password">The password is empty.</string>
     <string name="private_link_info">Private link: Only people who have access to the file/folder can use it. Use it as a permanent link for yourself or to point others to files within shares.</string>
     <string name="file_private_link_error">Private link is not available for this file.</string>
+    <string name="vault_link_unavailable">This encrypted vault can only be opened in the browser, but no link is available for it.</string>
     <string name="download_notification_channel_name">Downloads</string>
     <string name="download_notification_channel_description">See the download file name and progress.</string>
     <string name="upload_notification_channel_name">Uploads</string>

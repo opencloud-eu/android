@@ -260,6 +260,7 @@ class OCLocalFileDataSource(
                 treeEtag = treeEtag,
                 spaceId = spaceId,
                 hasPreview = hasPreview,
+                isVault = isVault,
             )
 
         @VisibleForTesting
@@ -291,6 +292,7 @@ class OCLocalFileDataSource(
                 name = fileName,
                 spaceId = spaceId,
                 hasPreview = hasPreview,
+                isVault = isVault,
             ).apply { this@toEntity.id?.let { modelId -> this.id = modelId } }
     }
 }

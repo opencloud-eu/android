@@ -43,10 +43,16 @@ abstract class SelectableAdapter<VH : RecyclerView.ViewHolder?> :
         getSelectedItems().contains(position)
 
     /**
+     * Indicates if the item at position position can be selected at all
+     */
+    open fun isSelectable(position: Int): Boolean = true
+
+    /**
      * Toggle the selection status of the item at a given position
      * @param position Position of the item to toggle the selection status for
      */
     fun toggleSelection(position: Int) {
+        if (!isSelectable(position)) return
         if (selectedItems[position, false]) {
             selectedItems.delete(position)
         } else {
@@ -81,6 +87,7 @@ abstract class SelectableAdapter<VH : RecyclerView.ViewHolder?> :
      */
     fun toggleSelectionInBulk(totalItems: Int) {
         for (i in 0 until totalItems) {
+            if (!isSelectable(i)) continue
             if (selectedItems[i, false]) {
                 selectedItems.delete(i)
             } else {
@@ -92,6 +99,7 @@ abstract class SelectableAdapter<VH : RecyclerView.ViewHolder?> :
 
     fun selectAll(totalItems: Int) {
         for (i in 0 until totalItems) {
+            if (!isSelectable(i)) continue
             selectedItems.put(i, true)
         }
         notifyDataSetChanged()

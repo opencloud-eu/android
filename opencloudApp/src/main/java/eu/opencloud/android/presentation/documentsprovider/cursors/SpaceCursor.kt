@@ -40,7 +40,8 @@ class SpaceCursor(projection: Array<String>?) : MatrixCursor(projection ?: DEFAU
     }
 
     fun addSpace(space: OCSpace, rootFolder: OCFile, context: Context?) {
-        val flags = if (rootFolder.hasAddFilePermission && rootFolder.hasAddSubdirectoriesPermission) {
+        // Vault spaces are encrypted by the web vault app, so nothing can be created in them
+        val flags = if (!space.isVault && rootFolder.hasAddFilePermission && rootFolder.hasAddSubdirectoriesPermission) {
             Document.FLAG_DIR_SUPPORTS_CREATE
         } else {
             0

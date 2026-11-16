@@ -45,15 +45,17 @@ class FileCursor(projection: Array<String>?) : MatrixCursor(projection ?: DEFAUL
         val imagePath = if (file.isImage && file.isAvailableLocally) file.storagePath else null
         var flags = if (imagePath != null) Document.FLAG_SUPPORTS_THUMBNAIL else 0
 
-        flags = flags or Document.FLAG_SUPPORTS_DELETE
-        flags = flags or Document.FLAG_SUPPORTS_RENAME
-        flags = flags or Document.FLAG_SUPPORTS_COPY
-        flags = flags or Document.FLAG_SUPPORTS_MOVE
+        if (!file.isVault) { // Vault folders are encrypted by the web vault app, so no action can be performed on them
+            flags = flags or Document.FLAG_SUPPORTS_DELETE
+            flags = flags or Document.FLAG_SUPPORTS_RENAME
+            flags = flags or Document.FLAG_SUPPORTS_COPY
+            flags = flags or Document.FLAG_SUPPORTS_MOVE
 
-        if (mimeType != Document.MIME_TYPE_DIR) { // If it is a file
-            flags = flags or Document.FLAG_SUPPORTS_WRITE
-        } else if (file.hasAddFilePermission && file.hasAddSubdirectoriesPermission) { // If it is a folder with writing permissions
-            flags = flags or Document.FLAG_DIR_SUPPORTS_CREATE
+            if (mimeType != Document.MIME_TYPE_DIR) { // If it is a file
+                flags = flags or Document.FLAG_SUPPORTS_WRITE
+            } else if (file.hasAddFilePermission && file.hasAddSubdirectoriesPermission) { // If it is a folder with writing permissions
+                flags = flags or Document.FLAG_DIR_SUPPORTS_CREATE
+            }
         }
 
         newRow()

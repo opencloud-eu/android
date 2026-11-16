@@ -60,6 +60,8 @@ data class OCFile(
     var sharedByLink: Boolean = false,
     val spaceId: String? = null,
     val hasPreview: Boolean = false,
+    /** Encrypted folder created by the OpenCloud Web vault app. Its contents can't be used by this client. */
+    val isVault: Boolean = false,
 ) : Parcelable {
 
     val fileName: String

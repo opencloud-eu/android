@@ -167,6 +167,7 @@ class OCLocalSpacesDataSource(
                 webUrl = webUrl,
                 description = description,
                 special = specials?.map { it.toModel() },
+                contentType = contentType,
             )
 
         @VisibleForTesting
@@ -187,6 +188,7 @@ class OCLocalSpacesDataSource(
                 },
                 webUrl = webUrl,
                 description = description,
+                contentType = contentType,
             )
 
         @VisibleForTesting

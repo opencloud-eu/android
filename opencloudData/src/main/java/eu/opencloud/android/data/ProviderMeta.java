@@ -31,7 +31,7 @@ public class ProviderMeta {
 
     public static final String DB_NAME = "filelist";
     public static final String NEW_DB_NAME = "opencloud_database";
-        public static final int DB_VERSION = 50;
+        public static final int DB_VERSION = 51;
 
     private ProviderMeta() {
     }
@@ -130,6 +130,7 @@ public class ProviderMeta {
         public static final String FILE_TREE_ETAG = "tree_etag";
         public static final String FILE_UPDATE_THUMBNAIL = "update_thumbnail";
         public static final String FILE_HAS_PREVIEW = "has_preview";
+        public static final String FILE_IS_VAULT = "is_vault";
 
         // Columns of list_of_uploads table
         public static final String UPLOAD_ACCOUNT_NAME = "account_name";

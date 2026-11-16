@@ -30,9 +30,11 @@ import org.junit.Rule
 open class MigrationTest {
     @Rule
     @JvmField
+    // Passing the database class (instead of its name) makes the helper also run the generated AutoMigrations
     val helper = MigrationTestHelper(
         InstrumentationRegistry.getInstrumentation(),
-        OpencloudDatabase::class.java.canonicalName,
+        OpencloudDatabase::class.java,
+        emptyList(),
         FrameworkSQLiteOpenHelperFactory()
     )
 

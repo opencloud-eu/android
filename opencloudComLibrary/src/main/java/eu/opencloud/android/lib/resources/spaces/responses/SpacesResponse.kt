@@ -23,6 +23,7 @@
 
 package eu.opencloud.android.lib.resources.spaces.responses
 
+import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
@@ -43,6 +44,8 @@ data class SpaceResponse(
     val root: RootResponse,
     val special: List<SpecialResponse>?,
     val webUrl: String?,
+    @Json(name = "@libre.graph.contentType")
+    val libreGraphContentType: String? = null,
 )
 
 @JsonClass(generateAdapter = true)

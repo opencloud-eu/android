@@ -34,11 +34,16 @@ data class OCSpace(
     val webUrl: String?,
     val description: String?,
     val special: List<SpaceSpecial>?,
+    /** Value of `@libre.graph.contentType`, e.g. [CONTENT_TYPE_VAULT] for encrypted vault spaces. */
+    val contentType: String? = null,
 ) {
     val isPersonal get() = driveType == DRIVE_TYPE_PERSONAL
     val isProject get() = driveType == DRIVE_TYPE_PROJECT
 
     val isDisabled get() = root.deleted?.state == DRIVE_DISABLED
+
+    /** Encrypted space created by the OpenCloud Web vault app. Its contents can't be used by this client. */
+    val isVault get() = contentType == CONTENT_TYPE_VAULT
 
     fun getSpaceSpecialImage(): SpaceSpecial? {
         val imageSpecial = special?.filter {
@@ -51,6 +56,7 @@ data class OCSpace(
         const val DRIVE_TYPE_PERSONAL = "personal"
         const val DRIVE_TYPE_PROJECT = "project"
         private const val DRIVE_DISABLED = "trashed"
+        const val CONTENT_TYPE_VAULT = "application/vnd.opencloud.vault"
 
         // https://github.com/opencloud/web/blob/2ab7e6da432cb344cd86f3451eea1678461c5c90/packages/web-client/src/helpers/space/types.ts#L11
         const val SPACE_ID_SHARES = "a0ca6a90-a365-4782-871e-d44447bbc668\$a0ca6a90-a365-4782-871e-d44447bbc668"

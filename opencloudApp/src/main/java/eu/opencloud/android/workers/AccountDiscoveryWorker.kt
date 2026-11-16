@@ -87,7 +87,8 @@ class AccountDiscoveryWorker(
             }
 
             // Then we discover the root of the rest of spaces
-            val spacesWithoutPersonal = spaces.filterNot { it.isPersonal }
+            // Vault spaces are encrypted by the web vault app, so their contents are not discovered
+            val spacesWithoutPersonal = spaces.filterNot { it.isPersonal || it.isVault }
             spacesWithoutPersonal.forEach { space ->
                 // Create the root file for each space
                 val rootFolderForSpace =

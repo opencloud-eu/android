@@ -62,6 +62,8 @@ data class SpacesEntity(
     @ColumnInfo(name = SPACES_WEB_URL)
     val webUrl: String?,
     val description: String?,
+    @ColumnInfo(name = SPACES_CONTENT_TYPE)
+    val contentType: String? = null,
 ) {
 
     companion object {
@@ -71,6 +73,7 @@ data class SpacesEntity(
         const val SPACES_DRIVE_TYPE = "drive_type"
         const val SPACES_LAST_MODIFIED_DATE_TIME = "last_modified_date_time"
         const val SPACES_WEB_URL = "web_url"
+        const val SPACES_CONTENT_TYPE = "content_type"
         const val SPACES_OWNER_ID = "owner_id"
         const val SPACES_QUOTA_REMAINING = "quota_remaining"
         const val SPACES_QUOTA_STATE = "quota_state"
