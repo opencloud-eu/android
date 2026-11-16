@@ -70,7 +70,7 @@ data class SpaceOwner(
 data class SpaceQuota(
     val remaining: Long?,
     val state: String?,
-    val total: Long,
+    val total: Long?,
     val used: Long?,
 )
 
