@@ -20,7 +20,7 @@ steps:
       - java -jar adbserver-desktop.jar &
       - sleep 3
       - adb logcat -c
-      - trap 'adb logcat -d -s RetryRule:W | tee retries.log' EXIT; ./gradlew :opencloudApp:connectedOriginalDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.annotation=eu.opencloud.android.IntegrationTest -Pandroid.testInstrumentationRunnerArguments.retries=1 --console=plain
+      - trap 'rc=$$?; adb logcat -d -s RetryRule:W | tee retries.log; if [ $$rc -ne 0 ]; then echo "--- full logcat ---"; adb logcat -d -v threadtime; fi' EXIT; ./gradlew :opencloudApp:connectedOriginalDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.annotation=eu.opencloud.android.IntegrationTest -Pandroid.testInstrumentationRunnerArguments.retries=1 --console=plain
 
   - name: instrumented data tests
     image: *android_image
