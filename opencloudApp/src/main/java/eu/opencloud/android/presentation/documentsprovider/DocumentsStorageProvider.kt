@@ -73,7 +73,7 @@ import androidx.work.WorkManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import org.koin.android.ext.android.inject
+import org.koin.core.context.GlobalContext
 import timber.log.Timber
 import java.io.File
 import java.io.FileNotFoundException
@@ -814,6 +814,12 @@ class DocumentsStorageProvider : DocumentsProvider() {
 
     private fun checkIsNotVault(file: OCFile) {
         if (isVault(file)) throw UnsupportedOperationException("${file.remotePath} is an encrypted vault")
+    }
+
+    // Android may start the process for this provider and deliver binder calls before MainApp has started Koin
+    private inline fun <reified T : Any> inject(): Lazy<T> = lazy {
+        MainApp.awaitDependencyInjection()
+        GlobalContext.get().get<T>()
     }
 
     private fun getFileByIdOrException(id: Int): OCFile {
