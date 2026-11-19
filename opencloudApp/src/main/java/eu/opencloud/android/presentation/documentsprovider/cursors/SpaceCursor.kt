@@ -59,6 +59,16 @@ class SpaceCursor(projection: Array<String>?) : MatrixCursor(projection ?: DEFAU
             .add(Document.COLUMN_MIME_TYPE, Document.MIME_TYPE_DIR)
     }
 
+    fun addSharesRoot(sharesRootFolder: OCFile, context: Context?) {
+        newRow()
+            .add(Document.COLUMN_DOCUMENT_ID, sharesRootFolder.id)
+            .add(Document.COLUMN_DISPLAY_NAME, context?.getString(R.string.bottom_nav_shares))
+            .add(Document.COLUMN_LAST_MODIFIED, sharesRootFolder.modificationTimestamp)
+            .add(Document.COLUMN_FLAGS, 0)
+            .add(Document.COLUMN_ICON, R.drawable.ic_shared_via_users)
+            .add(Document.COLUMN_MIME_TYPE, Document.MIME_TYPE_DIR)
+    }
+
     /**
      * Add root for spaces. Main difference is that we add the account name as the document id,
      * so we need to take it into account in order to display the list of spaces or

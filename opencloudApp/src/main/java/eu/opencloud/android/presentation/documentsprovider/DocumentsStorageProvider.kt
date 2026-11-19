@@ -50,6 +50,7 @@ import eu.opencloud.android.domain.files.usecases.CopyFileUseCase
 import eu.opencloud.android.domain.files.usecases.CreateFolderAsyncUseCase
 import eu.opencloud.android.domain.files.usecases.GetFileByIdUseCase
 import eu.opencloud.android.domain.files.usecases.GetFileByRemotePathUseCase
+import eu.opencloud.android.domain.files.usecases.GetSharesRootFolderForAccount
 import eu.opencloud.android.domain.files.usecases.GetFolderContentUseCase
 import eu.opencloud.android.domain.files.usecases.MoveFileUseCase
 import eu.opencloud.android.domain.files.usecases.RemoveFileUseCase
@@ -273,6 +274,11 @@ class DocumentsStorageProvider : DocumentsProvider() {
                         resultCursor.addSpace(space, rootFolder, context)
                     }
                 }
+            }
+
+            val getSharesRootFolderForAccount: GetSharesRootFolderForAccount by inject()
+            getSharesRootFolderForAccount(GetSharesRootFolderForAccount.Params(owner = parentDocumentId))?.let { sharesRootFolder ->
+                resultCursor.addSharesRoot(sharesRootFolder, context)
             }
 
             /**
