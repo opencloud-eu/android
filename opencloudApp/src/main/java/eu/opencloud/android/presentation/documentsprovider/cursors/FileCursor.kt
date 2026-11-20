@@ -46,13 +46,21 @@ class FileCursor(projection: Array<String>?) : MatrixCursor(projection ?: DEFAUL
         var flags = if (imagePath != null) Document.FLAG_SUPPORTS_THUMBNAIL else 0
 
         if (!file.isVault) { // Vault folders are encrypted by the web vault app, so no action can be performed on them
-            flags = flags or Document.FLAG_SUPPORTS_DELETE
-            flags = flags or Document.FLAG_SUPPORTS_RENAME
             flags = flags or Document.FLAG_SUPPORTS_COPY
-            flags = flags or Document.FLAG_SUPPORTS_MOVE
+            if (file.hasDeletePermission) {
+                flags = flags or Document.FLAG_SUPPORTS_DELETE
+            }
+            if (file.hasRenamePermission) {
+                flags = flags or Document.FLAG_SUPPORTS_RENAME
+            }
+            if (file.hasMovePermission) {
+                flags = flags or Document.FLAG_SUPPORTS_MOVE
+            }
 
             if (mimeType != Document.MIME_TYPE_DIR) { // If it is a file
-                flags = flags or Document.FLAG_SUPPORTS_WRITE
+                if (file.hasWritePermission) {
+                    flags = flags or Document.FLAG_SUPPORTS_WRITE
+                }
             } else if (file.hasAddFilePermission && file.hasAddSubdirectoriesPermission) { // If it is a folder with writing permissions
                 flags = flags or Document.FLAG_DIR_SUPPORTS_CREATE
             }
