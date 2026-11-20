@@ -43,6 +43,7 @@ import eu.opencloud.android.domain.authentication.oauth.model.OIDCServerConfigur
 import eu.opencloud.android.domain.authentication.oauth.model.TokenRequest;
 import eu.opencloud.android.domain.authentication.oauth.model.TokenResponse;
 import eu.opencloud.android.lib.common.accounts.AccountTypeUtils;
+import eu.opencloud.android.data.ClientManager;
 import eu.opencloud.android.lib.common.accounts.AccountUtils;
 import kotlin.Lazy;
 import org.jetbrains.annotations.NotNull;
@@ -339,6 +340,11 @@ public class AccountAuthenticator extends AbstractAccountAuthenticator {
         String oidcIssuer = accountManager.getUserData(account, KEY_OIDC_ISSUER);
         String discoveryUrl = (oidcIssuer != null) ? oidcIssuer : baseUrl;
 
+        // Discovery and token requests use the anonymous client, which only carries the login certificate
+        @NotNull Lazy<ClientManager> clientManager = inject(ClientManager.class);
+        String loginClientCertAlias = clientManager.getValue().getLoginClientCertAlias();
+        clientManager.getValue().setLoginClientCertAlias(AccountUtils.getClientCertAliasForAccount(mContext, account));
+
         @NotNull Lazy<OIDCDiscoveryUseCase> oidcDiscoveryUseCase = inject(OIDCDiscoveryUseCase.class);
         OIDCDiscoveryUseCase.Params oidcDiscoveryUseCaseParams = new OIDCDiscoveryUseCase.Params(discoveryUrl);
         UseCaseResult<OIDCServerConfiguration> oidcServerConfigurationUseCaseResult =
@@ -411,6 +417,7 @@ public class AccountAuthenticator extends AbstractAccountAuthenticator {
         @NotNull Lazy<RequestTokenUseCase> requestTokenUseCase = inject(RequestTokenUseCase.class);
         RequestTokenUseCase.Params requestTokenParams = new RequestTokenUseCase.Params(oauthTokenRequest);
         UseCaseResult<TokenResponse> tokenResponseResult = requestTokenUseCase.getValue().invoke(requestTokenParams);
+        clientManager.getValue().setLoginClientCertAlias(loginClientCertAlias);
 
         TokenResponse safeTokenResponse = tokenResponseResult.getDataOrNull();
         if (safeTokenResponse != null) {
