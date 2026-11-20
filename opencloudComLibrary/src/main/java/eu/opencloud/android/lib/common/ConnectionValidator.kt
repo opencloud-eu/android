@@ -58,6 +58,7 @@ class ConnectionValidator(
             }
 
             client.account = baseClient.account
+            client.setClientCertAlias(baseClient.clientCertAlias)
             client.credentials = baseClient.credentials
             while (validationRetryCount < VALIDATION_RETRY_COUNT) {
                 Timber.d("validationRetryCount %d", validationRetryCount)

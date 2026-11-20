@@ -111,6 +111,10 @@ public class HttpClient {
         mOkHttpClient = null;
     }
 
+    public synchronized String getClientCertAlias() {
+        return mClientCertAlias;
+    }
+
     /**
      * Sets the alias (from the Android KeyChain) of the client certificate to present for mTLS.
      * Invalidates the cached client when the alias changes so it is rebuilt with the new certificate.
