@@ -77,7 +77,12 @@ class TokenRequestRemoteOperation(
 
             } else {
                 Timber.e("Failed response while getting tokens from the server status code: $status; response message: $responseBody")
-                RemoteOperationResult<TokenResponse>(postMethod)
+                if (tokenRequestParams is TokenRequestParams.RefreshToken && isRefreshTokenRejected(responseBody)) {
+                    // The IdP says the refresh token (or the client) is not valid anymore: it will never work again
+                    RemoteOperationResult<TokenResponse>(RemoteOperationResult.ResultCode.OAUTH2_ERROR)
+                } else {
+                    RemoteOperationResult<TokenResponse>(postMethod)
+                }
             }
 
         } catch (e: Exception) {
@@ -85,5 +90,19 @@ class TokenRequestRemoteOperation(
             return RemoteOperationResult<TokenResponse>(e)
 
         }
+    }
+
+    companion object {
+        private val OAUTH_ERROR_REGEX = Regex("\"error\"\\s*:\\s*\"([^\"]+)\"")
+
+        /** Error codes of RFC 6749 section 5.2 that no retry can fix, the user has to authorize again. */
+        private val REJECTED_REFRESH_TOKEN_ERRORS = setOf("invalid_grant", "invalid_client", "unauthorized_client", "access_denied")
+
+        /**
+         * @return true if the body of a failed token request carries an OAuth error telling that the refresh token
+         * was rejected for good. Transient failures (5xx, proxies, timeouts...) do not match.
+         */
+        internal fun isRefreshTokenRejected(responseBody: String?): Boolean =
+            responseBody?.let { OAUTH_ERROR_REGEX.find(it)?.groupValues?.get(1) } in REJECTED_REFRESH_TOKEN_ERRORS
     }
 }

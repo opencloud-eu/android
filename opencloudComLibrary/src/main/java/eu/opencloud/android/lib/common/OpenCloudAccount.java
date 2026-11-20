@@ -33,6 +33,7 @@ import android.net.Uri;
 
 import eu.opencloud.android.lib.common.accounts.AccountUtils;
 import eu.opencloud.android.lib.common.accounts.AccountUtils.AccountNotFoundException;
+import eu.opencloud.android.lib.common.accounts.TokenRefreshFailedException;
 import eu.opencloud.android.lib.common.authentication.OpenCloudCredentials;
 import eu.opencloud.android.lib.common.authentication.OpenCloudCredentialsFactory;
 
@@ -118,7 +119,12 @@ public class OpenCloudAccount {
         }
 
         if (mSavedAccount != null) {
-            mCredentials = AccountUtils.getCredentialsForAccount(context, mSavedAccount);
+            try {
+                mCredentials = AccountUtils.getCredentialsForAccount(context, mSavedAccount);
+            } catch (IOException e) {
+                // The authenticator reports a transient failure refreshing the token as an IOException
+                throw new TokenRefreshFailedException("Could not obtain a token for " + mSavedAccount.name, e);
+            }
         }
     }
 

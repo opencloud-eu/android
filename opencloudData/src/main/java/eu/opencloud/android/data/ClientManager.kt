@@ -76,10 +76,14 @@ class ClientManager(
     fun getClientForAnonymousCredentials(
         path: String,
         requiresNewClient: Boolean,
-        openCloudCredentials: OpenCloudCredentials? = getAnonymousCredentials()
+        openCloudCredentials: OpenCloudCredentials? = getAnonymousCredentials(),
+        clientCertAlias: String? = null
     ): OpenCloudClient {
         val safeClient = openCloudClient
         val pathUri = path.toUri()
+        // An explicit alias (e.g. the one of an existing account whose token is being refreshed) wins over the one
+        // chosen in the login screen
+        val effectiveClientCertAlias = clientCertAlias ?: loginClientCertAlias
 
         return if (requiresNewClient || safeClient == null || safeClient.baseUri != pathUri) {
             Timber.d("Creating new client for path: $pathUri. Old client path: ${safeClient?.baseUri}, requiresNewClient: $requiresNewClient")
@@ -91,7 +95,7 @@ class ClientManager(
                 context
             ).apply {
                 credentials = openCloudCredentials
-                setClientCertAlias(loginClientCertAlias)
+                setClientCertAlias(effectiveClientCertAlias)
             }.also {
                 openCloudClient = it
             }
@@ -99,7 +103,7 @@ class ClientManager(
             Timber.d("Reusing anonymous client for ${safeClient.baseUri}")
             safeClient.apply {
                 credentials = openCloudCredentials
-                setClientCertAlias(loginClientCertAlias)
+                setClientCertAlias(effectiveClientCertAlias)
             }
         }
     }

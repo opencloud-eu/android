@@ -42,6 +42,9 @@ import eu.opencloud.android.domain.authentication.oauth.RequestTokenUseCase;
 import eu.opencloud.android.domain.authentication.oauth.model.OIDCServerConfiguration;
 import eu.opencloud.android.domain.authentication.oauth.model.TokenRequest;
 import eu.opencloud.android.domain.authentication.oauth.model.TokenResponse;
+import eu.opencloud.android.domain.exceptions.OAuth2ErrorAccessDeniedException;
+import eu.opencloud.android.domain.exceptions.OAuth2ErrorException;
+import eu.opencloud.android.domain.exceptions.UnauthorizedException;
 import eu.opencloud.android.lib.common.accounts.AccountTypeUtils;
 import eu.opencloud.android.lib.common.accounts.AccountUtils;
 import kotlin.Lazy;
@@ -73,6 +76,13 @@ public class AccountAuthenticator extends AbstractAccountAuthenticator {
      */
     private static final String KEY_REQUIRED_FEATURES = "requiredFeatures";
     public static final String KEY_ACCOUNT = "account";
+
+    /**
+     * Serializes the refresh of access tokens. Refresh tokens can be single-use (rotation), so two refreshes
+     * running at once with the same refresh token make the second one fail with invalid_grant and may even
+     * revoke the whole session at the IdP.
+     */
+    private static final Object REFRESH_TOKEN_LOCK = new Object();
 
     private Context mContext;
 
@@ -152,7 +162,7 @@ public class AccountAuthenticator extends AbstractAccountAuthenticator {
      */
     @Override
     public Bundle getAuthToken(AccountAuthenticatorResponse accountAuthenticatorResponse,
-                               Account account, String authTokenType, Bundle options) {
+                               Account account, String authTokenType, Bundle options) throws NetworkErrorException {
         /// validate parameters
         try {
             validateAccountType(account.type);
@@ -174,7 +184,15 @@ public class AccountAuthenticator extends AbstractAccountAuthenticator {
             // this account, null will be returned
             accessToken = accountManager.peekAuthToken(account, authTokenType);
             if (accessToken == null && canBeRefreshed(authTokenType) && clientSecretIsValid(accountManager, account)) {
-                accessToken = refreshToken(account, authTokenType, accountManager);
+                synchronized (REFRESH_TOKEN_LOCK) {
+                    // Another thread may have refreshed the token while this one was waiting for the lock
+                    accessToken = accountManager.peekAuthToken(account, authTokenType);
+                    if (accessToken == null) {
+                        // Throws NetworkErrorException if the failure is transient, so the caller does not mistake
+                        // it for an expired session
+                        accessToken = refreshToken(account, authTokenType, accountManager);
+                    }
+                }
             }
         }
 
@@ -315,11 +333,19 @@ public class AccountAuthenticator extends AbstractAccountAuthenticator {
                 getAccountType())));
     }
 
+    /**
+     * Exchanges the stored refresh token for a new access token.
+     *
+     * @return the new access token, or null if the session is definitely over (no refresh token stored, or the IdP
+     * rejected it) and the user needs to log in again.
+     * @throws NetworkErrorException if the refresh failed for a transient reason (no network, timeout, server
+     *                               error...). The stored tokens are untouched and a later attempt may succeed.
+     */
     private String refreshToken(
             Account account,
             String authTokenType,
             AccountManager accountManager
-    ) {
+    ) throws NetworkErrorException {
 
         // Prepare everything to perform the token request
         String refreshToken = accountManager.getUserData(account, KEY_OAUTH2_REFRESH_TOKEN);
@@ -329,10 +355,12 @@ public class AccountAuthenticator extends AbstractAccountAuthenticator {
             return null;
         }
 
-        Timber.d("Ready to exchange for new tokens. Account: [ %s ], Refresh token: [ %s ]", account.name,
-                refreshToken);
+        Timber.d("Ready to exchange for new tokens. Account: [ %s ]", account.name);
 
         String baseUrl = accountManager.getUserData(account, AccountUtils.Constants.KEY_OC_BASE_URL);
+
+        // Servers requiring mTLS reject discovery and token requests that do not present the account's certificate
+        String clientCertAlias = AccountUtils.getClientCertAliasForAccount(mContext, account);
 
         // OIDC Discovery: prefer the stored webfinger issuer (points to the real IDP),
         // fall back to baseUrl for accounts created before webfinger support.
@@ -340,7 +368,8 @@ public class AccountAuthenticator extends AbstractAccountAuthenticator {
         String discoveryUrl = (oidcIssuer != null) ? oidcIssuer : baseUrl;
 
         @NotNull Lazy<OIDCDiscoveryUseCase> oidcDiscoveryUseCase = inject(OIDCDiscoveryUseCase.class);
-        OIDCDiscoveryUseCase.Params oidcDiscoveryUseCaseParams = new OIDCDiscoveryUseCase.Params(discoveryUrl);
+        OIDCDiscoveryUseCase.Params oidcDiscoveryUseCaseParams =
+                new OIDCDiscoveryUseCase.Params(discoveryUrl, clientCertAlias);
         UseCaseResult<OIDCServerConfiguration> oidcServerConfigurationUseCaseResult =
                 oidcDiscoveryUseCase.getValue().invoke(oidcDiscoveryUseCaseParams);
 
@@ -385,8 +414,14 @@ public class AccountAuthenticator extends AbstractAccountAuthenticator {
                 clientAuth = OAuthUtils.Companion.getClientAuth(clientSecret, clientId);
             }
         } else {
-            Timber.d("OIDC Discovery failed. Server discovery info: [ %s ]",
-                    oidcServerConfigurationUseCaseResult.getThrowableOrNull().toString());
+            Throwable discoveryError = oidcServerConfigurationUseCaseResult.getThrowableOrNull();
+            Timber.d("OIDC Discovery failed. Server discovery info: [ %s ]", String.valueOf(discoveryError));
+
+            if (oidcIssuer != null) {
+                // The IdP is known, so the legacy ownCloud endpoint below can not be the right one: the failure is
+                // just the IdP being unreachable for now
+                throw new NetworkErrorException("OIDC discovery failed for " + oidcIssuer, discoveryError);
+            }
 
             tokenEndpoint = baseUrl + File.separator + mContext.getString(R.string.oauth2_url_endpoint_access);
             clientAuth = OAuthUtils.Companion.getClientAuth(clientSecret, clientId);
@@ -404,7 +439,8 @@ public class AccountAuthenticator extends AbstractAccountAuthenticator {
                 scope,
                 clientIdForRequest,
                 clientSecretForRequest,
-                refreshToken
+                refreshToken,
+                clientCertAlias
         );
 
         // Token exchange
@@ -416,10 +452,26 @@ public class AccountAuthenticator extends AbstractAccountAuthenticator {
         if (safeTokenResponse != null) {
             return handleSuccessfulRefreshToken(safeTokenResponse,
                     account, authTokenType, accountManager, refreshToken);
-        } else {
-            Timber.e(tokenResponseResult.getThrowableOrNull(), "OAuth request to refresh access token failed. Preparing to access Login Activity");
+        }
+
+        Throwable error = tokenResponseResult.getThrowableOrNull();
+        if (isRefreshTokenRejected(error)) {
+            Timber.e(error, "OAuth refresh token was rejected. Preparing to access Login Activity");
             return null;
         }
+
+        Timber.w(error, "OAuth request to refresh access token failed, but the refresh token was not rejected");
+        throw new NetworkErrorException("Could not refresh the access token for " + account.name, error);
+    }
+
+    /**
+     * Tells whether a failed token request means the refresh token (or the client) is not valid anymore, as opposed
+     * to a transient problem like no connection, a timeout or a server error.
+     */
+    static boolean isRefreshTokenRejected(Throwable error) {
+        return error instanceof OAuth2ErrorException
+                || error instanceof OAuth2ErrorAccessDeniedException
+                || error instanceof UnauthorizedException;
     }
 
     private String handleSuccessfulRefreshToken(
@@ -430,7 +482,6 @@ public class AccountAuthenticator extends AbstractAccountAuthenticator {
             String oldRefreshToken
     ) {
             String newAccessToken = tokenResponse.getAccessToken();
-            accountManager.setAuthToken(account, authTokenType, newAccessToken);
 
             String refreshTokenToUseFromNowOn;
             if (tokenResponse.getRefreshToken() != null) {
@@ -438,10 +489,13 @@ public class AccountAuthenticator extends AbstractAccountAuthenticator {
             } else {
                 refreshTokenToUseFromNowOn = oldRefreshToken;
             }
-            accountManager.setUserData(account, KEY_OAUTH2_REFRESH_TOKEN, refreshTokenToUseFromNowOn);
 
-            Timber.d("Token refreshed successfully. New access token: [ %s ]. New refresh token: [ %s ]",
-                    newAccessToken, refreshTokenToUseFromNowOn);
+            // The refresh token goes first: it may have been rotated, which makes the old one useless. If the process
+            // dies before the access token is stored, the next call finds no access token and refreshes with it.
+            accountManager.setUserData(account, KEY_OAUTH2_REFRESH_TOKEN, refreshTokenToUseFromNowOn);
+            accountManager.setAuthToken(account, authTokenType, newAccessToken);
+
+            Timber.d("Token refreshed successfully for account [ %s ]", account.name);
 
             return newAccessToken;
         }
