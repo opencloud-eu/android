@@ -90,6 +90,8 @@ import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
 import timber.log.Timber
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 /**
  * Main Application of the project
@@ -362,6 +364,9 @@ class MainApp : Application() {
 
         const val PREFERENCE_KEY_LAST_SEEN_VERSION_CODE = "lastSeenVersionCode"
 
+        private const val DEPENDENCY_INJECTION_TIMEOUT_SECONDS = 10L
+        private val dependencyInjectionReady = CountDownLatch(1)
+
         const val PREFERENCE_KEY_DONT_SHOW_SERVER_ACCOUNT_WARNING_DIALOG = "PREFERENCE_KEY_DONT_SHOW_SERVER_ACCOUNT_WARNING_DIALOG"
 
         /**
@@ -413,6 +418,12 @@ class MainApp : Application() {
                 return String.format(appString, version)
             }
 
+        fun awaitDependencyInjection() {
+            if (!dependencyInjectionReady.await(DEPENDENCY_INJECTION_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
+                Timber.w("Dependency injection not ready after $DEPENDENCY_INJECTION_TIMEOUT_SECONDS s")
+            }
+        }
+
         fun initDependencyInjection() {
             stopKoin()
             startKoin {
@@ -428,6 +439,7 @@ class MainApp : Application() {
                     )
                 )
             }
+            dependencyInjectionReady.countDown()
         }
 
         fun getLastSeenVersionCode(): Int {
