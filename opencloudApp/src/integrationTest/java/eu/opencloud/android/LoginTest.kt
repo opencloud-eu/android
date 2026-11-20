@@ -1,5 +1,6 @@
 package eu.opencloud.android
 
+import androidx.test.espresso.NoActivityResumedException
 import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.rule.GrantPermissionRule
 import com.kaspersky.kaspresso.kaspresso.Kaspresso
@@ -18,7 +19,9 @@ class LoginTest : TestCase(
     kaspressoBuilder = Kaspresso.Builder.advanced {
         flakySafetyParams = FlakySafetyParams.custom(
             timeoutMs = 20_000L,
-            intervalMs = 100L
+            intervalMs = 100L,
+            // the start screen is reached through SplashActivity -> FileDisplayActivity -> LoginActivity
+            allowedExceptions = FlakySafetyParams.defaultAllowedExceptions + NoActivityResumedException::class.java
         )
     }
 ) {
