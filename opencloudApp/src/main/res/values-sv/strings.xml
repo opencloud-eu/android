@@ -595,6 +595,7 @@
     <string name="prefs_camera_upload_behaviour_title">Ursprungsfilen kommer att</string>
     <string name="prefs_camera_upload_last_sync_title">Senaste synkronisering</string>
     <string name="notifications_permission_denied">Du kan uppdatera dina inställningar under Inställningar</string>
+    <string name="media_location_permission_denied">Utan platsbehörighet kommer uppladdade foton och videor att sakna GPS-position. Du kan bevilja behörigheten i Inställningar.</string>
     <string name="upload_copy_files">Kopiera fil</string>
     <string name="upload_move_files">Flytta fil</string>
 

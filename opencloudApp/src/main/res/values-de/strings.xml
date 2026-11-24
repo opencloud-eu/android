@@ -595,6 +595,7 @@
     <string name="prefs_camera_upload_behaviour_title">Die Originaldatei wird</string>
     <string name="prefs_camera_upload_last_sync_title">Letzte Synchronisierung</string>
     <string name="notifications_permission_denied">Sie können Ihre Einstellungen unter „Einstellungen“ aktualisieren.</string>
+    <string name="media_location_permission_denied">Ohne Standortzugriff verlieren hochgeladene Fotos und Videos ihre GPS-Standortdaten. Sie können diese Zugriffsberechtigung in den Einstellungen erteilen.</string>
     <string name="upload_copy_files">Datei kopieren</string>
     <string name="upload_move_files">Datei verschieben</string>
 
