@@ -30,6 +30,8 @@ dependencies {
 
     testImplementation 'junit:junit:4.13.2'
     testImplementation 'org.robolectric:robolectric:4.16.1'
+    // The interceptor serializes its logs with KotlinJsonAdapterFactory, the app gets kotlin-reflect from opencloudData
+    testImplementation libs.kotlin.reflect
     // MockWebServer for HTTP integration tests
     testImplementation 'com.squareup.okhttp3:mockwebserver:4.9.2'
     testImplementation 'com.squareup.okhttp3:okhttp-tls:4.9.2'
