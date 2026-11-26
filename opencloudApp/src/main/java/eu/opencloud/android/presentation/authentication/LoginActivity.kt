@@ -932,7 +932,7 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
             finish()
         } else {
             if (authorizationCode != null) {
-                Timber.d("Authorization code received [$authorizationCode]. Let's exchange it for access token")
+                Timber.d("Authorization code received. Let's exchange it for access token")
                 exchangeAuthorizationCodeForTokens(authorizationCode)
             } else {
                 val authorizationError = intent.data?.getQueryParameter("error")
@@ -1016,7 +1016,7 @@ class LoginActivity : AppCompatActivity(), SslUntrustedCertDialog.OnSslUntrusted
             when (val uiResult = it.peekContent()) {
                 is UIResult.Loading -> {}
                 is UIResult.Success -> {
-                    Timber.d("Tokens received ${uiResult.data}, trying to login, creating account and adding it to account manager")
+                    Timber.d("Tokens received, trying to login, creating account and adding it to account manager")
                     val tokenResponse = uiResult.data ?: return@observe
 
                     // Extract preferred_username from id_token for login_hint on re-login

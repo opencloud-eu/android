@@ -27,10 +27,11 @@ class OIDCDiscoveryUseCase(
 
     override fun run(params: Params): OIDCServerConfiguration {
         require(params.baseUrl.isNotEmpty()) { "Invalid URL" }
-        return oAuthRepository.performOIDCDiscovery(params.baseUrl)
+        return oAuthRepository.performOIDCDiscovery(params.baseUrl, params.clientCertAlias)
     }
 
     data class Params(
-        val baseUrl: String
+        val baseUrl: String,
+        val clientCertAlias: String? = null
     )
 }
