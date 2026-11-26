@@ -24,6 +24,7 @@
 package eu.opencloud.android.lib.common.http.logging
 
 import eu.opencloud.android.lib.common.http.HttpConstants.AUTHORIZATION_HEADER
+import eu.opencloud.android.lib.common.http.HttpConstants.CONTENT_TYPE_WWW_FORM
 import eu.opencloud.android.lib.common.http.HttpConstants.OC_X_REQUEST_ID
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
@@ -88,7 +89,7 @@ class LogInterceptor : Interceptor {
         if (auxHeaders.contains(AUTHORIZATION_HEADER)) {
             val authHeaderList = auxHeaders[AUTHORIZATION_HEADER]!!.split(" ")
             val authType = authHeaderList[0]
-            val authInfo = if (redactAuthHeader) "[redacted]" else authHeaderList[1]
+            val authInfo = if (redactSecrets) REDACTED else authHeaderList[1]
             auxHeaders[AUTHORIZATION_HEADER] = "$authType $authInfo"
         }
         return auxHeaders
@@ -110,7 +111,7 @@ class LogInterceptor : Interceptor {
             val contentType = requestBody.contentType()
             val charset: Charset = contentType?.charset(StandardCharsets.UTF_8) ?: StandardCharsets.UTF_8
             if (contentType.isLoggable()) {
-                return buffer.readString(charset)
+                return redactBodyIfNeeded(buffer.readString(charset), contentType)
             } else if (requestBody.contentLength() > 0) {
                 return "$BINARY_OMITTED ${requestBody.contentLength()} $BYTES"
             }
@@ -158,7 +159,7 @@ class LogInterceptor : Interceptor {
 
     private fun getResponseBodyString(contentType: MediaType?, contentLength: Int, responseBody: String): String? =
         if (contentType?.isLoggable() == true) {
-            responseBody
+            redactBodyIfNeeded(responseBody, contentType)
         } else if (contentLength > 0) {
             "$BINARY_OMITTED $contentLength $BYTES"
         } else {
@@ -176,11 +177,33 @@ class LogInterceptor : Interceptor {
         return String.format(DURATION_FORMAT, hours, minutes, seconds, auxMillis)
     }
 
+    private fun redactBodyIfNeeded(body: String, contentType: MediaType?): String =
+        if (redactSecrets) redactBody(body, contentType) else body
+
     companion object {
         var httpLogsEnabled: Boolean = false
-        var redactAuthHeader: Boolean = true
+
+        /** Hides the credentials (authorization header, OAuth tokens and client secrets) in the HTTP logs */
+        var redactSecrets: Boolean = true
+
         private const val LIMIT_BODY_LOG: Long = 1000000
         private const val BINARY_OMITTED = "<-- Body end for response -- Binary -- Omitted:"
         private const val BYTES = "bytes -->"
+        private const val REDACTED = "[redacted]"
+
+        /** Token and client registration responses */
+        private val SECRET_JSON_FIELDS_REGEX =
+            Regex("(\"(?:access_token|refresh_token|id_token|client_secret)\"\\s*:\\s*)\"(?:[^\"\\\\]|\\\\.)*\"")
+
+        /** Token requests. The authorization code and the PKCE verifier are only sent here */
+        private val SECRET_FORM_FIELDS_REGEX =
+            Regex("((?:^|&)(?:access_token|refresh_token|id_token|client_secret|code|code_verifier)=)[^&]*")
+
+        internal fun redactBody(body: String, contentType: MediaType?): String =
+            if (contentType?.toString()?.contains(CONTENT_TYPE_WWW_FORM) == true) {
+                body.replace(SECRET_FORM_FIELDS_REGEX, "$1$REDACTED")
+            } else {
+                body.replace(SECRET_JSON_FIELDS_REGEX, "$1\"$REDACTED\"")
+            }
     }
 }
