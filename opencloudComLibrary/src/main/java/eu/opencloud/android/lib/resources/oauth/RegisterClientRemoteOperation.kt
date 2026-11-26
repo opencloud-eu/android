@@ -57,14 +57,12 @@ class RegisterClientRemoteOperation(
             val responseBody = postMethod.getResponseBodyAsString()
 
             return if (status == HttpConstants.HTTP_CREATED && responseBody != null) {
-                Timber.d("Successful response $responseBody")
-
                 // Parse the response
                 val moshi: Moshi = Moshi.Builder().build()
                 val jsonAdapter: JsonAdapter<ClientRegistrationResponse> =
                     moshi.adapter(ClientRegistrationResponse::class.java)
                 val clientRegistrationResponse: ClientRegistrationResponse? = jsonAdapter.fromJson(responseBody)
-                Timber.d("Client registered and parsed to $clientRegistrationResponse")
+                Timber.d("Client registered with client id %s", clientRegistrationResponse?.clientId)
 
                 RemoteOperationResult<ClientRegistrationResponse>(RemoteOperationResult.ResultCode.OK).apply {
                     data = clientRegistrationResponse
